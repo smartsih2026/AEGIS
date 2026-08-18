@@ -178,6 +178,15 @@
     document.addEventListener('DOMContentLoaded', () => {
       initMap();
       checkUrlQueryData();
+
+      // Trigger native Location Permission Prompt on launch for demo
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => { console.log('Rescue location permission granted'); },
+          (err) => { console.log('Rescue location fallback active'); },
+          { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+        );
+      }
     });
 
     function initMap() {

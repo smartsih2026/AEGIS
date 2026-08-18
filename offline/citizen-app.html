@@ -314,7 +314,7 @@
         navigator.geolocation.getCurrentPosition(
           (pos) => { console.log('Location permission granted'); },
           (err) => { console.log('Location fallback active'); },
-          { timeout: 5000 }
+          { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
         );
       }
     });
