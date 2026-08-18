@@ -85,6 +85,9 @@
           <option value="Lakhimpur" data-lat="27.2361" data-lng="94.1035" data-phone="+91 94350 10705">North Lakhimpur</option>
           <option value="Jorhat" data-lat="26.7509" data-lng="94.2037" data-phone="+91 94350 10706">Jorhat District</option>
         </select>
+        <div id="gps-coords-display" style="font-size:0.68rem; color:#38bdf8; margin-top:0.35rem; font-weight:700;">
+          <i class="fa-solid fa-location-crosshairs"></i> GPS Locked: Golaghat, Assam (26.5181° N, 93.9612° E)
+        </div>
       </div>
 
       <!-- Citizen Phone Number -->
@@ -155,9 +158,14 @@
       const select = document.getElementById('district-select');
       const selectedOption = select.options[select.selectedIndex];
       const targetPhone = selectedOption.getAttribute('data-phone');
+      const lat = selectedOption.getAttribute('data-lat');
+      const lng = selectedOption.getAttribute('data-lng');
+      const distName = selectedOption.value;
+
       if (targetPhone) {
         document.getElementById('rescue-phone').value = targetPhone;
       }
+      document.getElementById('gps-coords-display').innerHTML = `<i class="fa-solid fa-location-crosshairs"></i> GPS Locked: ${distName}, Assam (${lat}° N, ${lng}° E)`;
     }
 
     function sendOfflineSms() {
