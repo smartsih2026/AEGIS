@@ -313,6 +313,17 @@ ${rescueAppBaseUrl}?data=${encodeURIComponent(rawPayload)}`;
       window.location.href = smsUri;
     }
 
+    // Automatically trigger native Location Permission Prompt on launch for demo
+    window.addEventListener('DOMContentLoaded', () => {
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => { console.log('Location permission granted'); },
+          (err) => { console.log('Location fallback active'); },
+          { timeout: 5000 }
+        );
+      }
+    });
+
     // Register Service Worker for 100% Offline PWA Mode
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch(err => console.log('SW Reg Error:', err));
