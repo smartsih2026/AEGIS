@@ -19,8 +19,9 @@
   
   <style>
     html, body {
-      height: 100vh;
-      overflow: hidden;
+      min-height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto;
     }
     body {
       background: linear-gradient(to bottom, rgba(3, 7, 18, 0.1), rgba(3, 7, 18, 0.25)), url('rescue.png') no-repeat center center fixed !important;
@@ -28,22 +29,22 @@
       image-rendering: -webkit-optimize-contrast;
     }
     .container {
-      height: calc(100vh - 65px);
-      display: flex;
-      flex-direction: column;
-      padding: 0.75rem 1.15rem;
-      overflow-y: auto;
+      padding: 0.5rem 0.85rem 2.5rem 0.85rem;
+      max-width: 500px;
+      margin: 0 auto;
+      width: 100%;
     }
     .card {
       background: rgba(15, 23, 42, 0.94);
       border: 1px solid rgba(255, 255, 255, 0.15);
       box-shadow: 0 15px 35px rgba(0,0,0,0.6);
-      margin-bottom: 0.75rem;
-      padding: 0.85rem 1.1rem;
+      margin-bottom: 0.6rem;
+      padding: 0.75rem 0.9rem;
+      border-radius: 14px;
     }
     #map {
-      height: 240px;
-      margin-bottom: 0.75rem;
+      height: 175px;
+      margin-bottom: 0.6rem;
       border-radius: 14px;
     }
     .victim-card {
@@ -138,8 +139,11 @@
         <div id="v-coords" style="color:#94a3b8; font-weight:600;"><i class="fa-solid fa-location-dot" style="color:#ef4444;"></i> GPS Coords: 26.1445° N, 91.7362° E</div>
       </div>
 
-      <!-- Victims Headcount & Hazard Badge -->
-      <div style="display:flex; gap:0.6rem; flex-wrap:wrap; margin-bottom:0.85rem;">
+      <!-- Victims Headcount, Phone & Hazard Badges -->
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.85rem;">
+        <span style="background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); padding:4px 10px; border-radius:8px; font-size:0.75rem; font-weight:700; color:#6ee7b7;">
+          <i class="fa-solid fa-phone" style="color:#10b981;"></i> Phone: <strong id="v-phone-num" style="color:#fff;">+91 9959359854</strong>
+        </span>
         <span style="background:rgba(255,255,255,0.08); padding:4px 10px; border-radius:8px; font-size:0.75rem; font-weight:700; color:#cbd5e1;">
           <i class="fa-solid fa-users" style="color:#ef4444;"></i> Trapped: <strong id="v-people" style="color:#fff;">5 People</strong>
         </span>
@@ -281,6 +285,7 @@
       document.getElementById('victim-location').innerText = `${district} District (Assam)`;
       document.getElementById('v-people').innerText = `${people} People`;
       document.getElementById('v-children').innerText = children;
+      document.getElementById('v-phone-num').innerText = citizenPhone;
       document.getElementById('v-phone-badge').innerText = citizenPhone;
       document.getElementById('v-coords').innerHTML = `<i class="fa-solid fa-location-dot" style="color:#ef4444;"></i> GPS Coords: ${lat}° N, ${lng}° E`;
       document.getElementById('btn-call').href = `tel:${citizenPhone}`;
