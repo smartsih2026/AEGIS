@@ -293,7 +293,15 @@
 
       // Construct clean 2G offline payload code string for SMS (NO URL AT ALL!)
       const rawPayload = `AEGIS#SOS#${citizenPhone}#${lat},${lng}#${district}#${counts.people}P#${counts.children}C#${hazard}`;
-      const fullSmsBody = rawPayload;
+      
+      const fullSmsBody = `🚨 AEGIS FLOOD EMERGENCY SOS
+📍 Location: ${district} District (${lat}, ${lng})
+👥 Trapped: ${counts.people} People (${counts.children} Children)
+⚠️ Hazard: ${hazardTextEnglish}
+📞 Contact: ${citizenPhone}
+
+📋 PASTE THIS CODE IN AEGIS RESCUE APP:
+${rawPayload}`;
 
       // Clean phone number for sms: URI scheme
       const cleanTargetNumber = rescuePhone.replace(/[^\d+]/g, '');
