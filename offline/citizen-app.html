@@ -291,22 +291,9 @@
       };
       const hazardTextEnglish = englishHazards[hazard] || '🏠 Trapped on Submerged Roof';
 
-      // Construct compact payload string
+      // Construct clean 2G offline payload code string for SMS
       const rawPayload = `AEGIS#SOS#${citizenPhone}#${lat},${lng}#${district}#${counts.people}P#${counts.children}C#${hazard}`;
-
-      // Solution 1: Plain text summary (ALWAYS ENGLISH) + Raw Code + 1-Tap App Opener Link included in SMS
-      const rescueAppBaseUrl = "https://aegis-xi-ruddy.vercel.app/offline/rescue-app.html";
-      const fullSmsBody = `🚨 AEGIS FLOOD EMERGENCY SOS
-📍 Location: ${district} District (${lat}, ${lng})
-👥 Trapped: ${counts.people} People (${counts.children} Children)
-⚠️ Hazard: ${hazardTextEnglish}
-📞 Contact: ${citizenPhone}
-
-🔑 SOS CODE:
-${rawPayload}
-
-📲 Open Live Map:
-${rescueAppBaseUrl}?data=${encodeURIComponent(rawPayload)}`;
+      const fullSmsBody = rawPayload;
 
       // Clean phone number for sms: URI scheme
       const cleanTargetNumber = rescuePhone.replace(/[^\d+]/g, '');
