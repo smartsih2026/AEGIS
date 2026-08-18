@@ -291,8 +291,8 @@
       };
       const hazardTextEnglish = englishHazards[hazard] || '🏠 Trapped on Submerged Roof';
 
-      // Construct clean 2G offline payload code string for SMS (Without + in code to prevent SMS hyperlink splitting)
-      const rawPayload = `AEGIS#SOS#91${rawPhone}#${lat},${lng}#${district}#${counts.people}P#${counts.children}C#${hazard}`;
+      // Construct clean 2G offline payload code string for SMS (aegis.sos/ prefix turns ENTIRE code line BLUE in SMS apps)
+      const rawPayload = `aegis.sos/AEGIS#SOS#91${rawPhone}#${lat},${lng}#${district}#${counts.people}P#${counts.children}C#${hazard}`;
       
       const fullSmsBody = `🚨 AEGIS FLOOD EMERGENCY SOS
 
