@@ -280,19 +280,24 @@
       const rescuePhone = document.getElementById('rescue-phone').value.trim();
       const hazard = document.getElementById('hazard-select').value;
 
-      // Hazard text mapping
-      const hazardSelect = document.getElementById('hazard-select');
-      const hazardText = hazardSelect.options[hazardSelect.selectedIndex].text;
+      // English Hazard dictionary for SMS output (ensures 100% English SMS output regardless of UI language)
+      const englishHazards = {
+        'ROOF_SUBMERGED': '🏠 Trapped on Submerged Roof',
+        'HOUSE_WATERLOGGED': '🌊 Water inside House (3+ feet)',
+        'MEDICAL_URGENCY': '🚑 Medical Emergency / Pregnant',
+        'FOOD_WATER_SHORTAGE': '📦 Food & Drinking Water Shortage'
+      };
+      const hazardTextEnglish = englishHazards[hazard] || '🏠 Trapped on Submerged Roof';
 
       // Construct compact payload string
       const rawPayload = `AEGIS#SOS#${citizenPhone}#${lat},${lng}#${district}#${counts.people}P#${counts.children}C#${hazard}`;
 
-      // Solution 1: Plain text summary + 1-Tap App Opener Link included in SMS
+      // Solution 1: Plain text summary (ALWAYS ENGLISH) + 1-Tap App Opener Link included in SMS
       const rescueAppBaseUrl = "https://aegis-xi-ruddy.vercel.app/offline/rescue-app.html";
       const fullSmsBody = `🚨 AEGIS FLOOD EMERGENCY SOS
 📍 Location: ${district} District (${lat}, ${lng})
 👥 Trapped: ${counts.people} People (${counts.children} Children)
-⚠️ Hazard: ${hazardText}
+⚠️ Hazard: ${hazardTextEnglish}
 📞 Contact: ${citizenPhone}
 
 📲 Tap to open live map in Rescue App:
