@@ -1,117 +1,127 @@
-# 🏆 AEGIS: Complete SIH Jury Live Demo & Pitching Script
+# 🏆 AEGIS: Official SIH Jury Live Presentation & Pitching Blueprint
 
-**Project Name:** AEGIS — AI-Powered Flood Response & Tactical Rescue Platform  
-**Target:** Smart India Hackathon (SIH) Jury Presentation  
-**Presentation Style:** Simple Terminology, Step-by-Step Live Website Demonstration  
-
----
-
-## 🎬 10-Minute Presentation Timeline
-
-```
-┌──────────────────────────────────────┬──────────┬──────────────────────────────────────────────┐
-│ Stage                                │ Time     │ What You Show & Say                          │
-├──────────────────────────────────────┼──────────┼──────────────────────────────────────────────┤
-│ 1. Introduction & The Assam Crisis   │ 1.0 min  │ Flood problem in Assam & communication loss. │
-│ 2. Step 1: Sign in with Google       │ 1.0 min  │ Open index.html & login with Google.        │
-│ 3. Step 2: Sending Emergency SOS     │ 1.5 mins │ Submit SOS on citizen-sos.html (Waiting).    │
-│ 4. Step 3: Real-Time Rescue Alert    │ 2.5 mins │ Switch tab to Rescue Desk & Accept SOS.      │
-│ 5. Step 4: Instant Live GPS Tracking │ 1.5 mins │ Show automatic speedboat tracking unlock.    │
-│ 6. Step 5: Groq AI Emergency Brain   │ 1.5 mins │ Test live AI chat on citizen-ai.html.        │
-│ 7. Step 6: Tactical Route & Summary  │ 1.0 min  │ Show new tab route & closing pitch for ASDMA.│
-└──────────────────────────────────────┴──────────┴──────────────────────────────────────────────┘
-```
+**Live Production Deployment URL:** [https://aegis-xi-ruddy.vercel.app/](https://aegis-xi-ruddy.vercel.app/)  
+**Target Domain:** Smart India Hackathon (SIH) — Disaster Management & Emergency Safety  
+**Presentation Approach:** Non-Technical Simple Terminology, Step-by-Step Live Web Demo  
 
 ---
 
-## 🚀 Step-by-Step Live Website Walkthrough Script
+## ⏱️ 10-Minute Presentation Master Timeline
 
-### 📍 Step 1: Citizen Sign In with Google (`index.html`)
-* **On Screen:** Open `http://localhost:8085/index.html`.
-* **Action:** Click **"Citizen Access"** button &rarr; Click **"Sign in with Google"**.
-* **What to Say:**
-  > *"Respected Jury members, during floods, citizens need a fast, zero-friction way to request help without filling long forms. On the AEGIS landing page, a citizen simply clicks **Sign in with Google**.*
+```
+┌──────────────────────────────────────┬──────────┬─────────────────────────────────────────────────────────────┐
+│ Stage                                │ Duration │ Live Demo Screen & Core Message                             │
+├──────────────────────────────────────┼──────────┼─────────────────────────────────────────────────────────────┤
+│ 1. Hook & Assam Flood Problem        │ 1.0 min  │ Problem: Communication breakdown during annual Assam floods.│
+│ 2. Step 1: 1-Click Google Sign In    │ 1.0 min  │ Show index.html → Google Sign-In & automatic profile sync.  │
+│ 3. Step 2: Emergency SOS Submission  │ 1.5 mins │ Show citizen-sos.html → Distress ticket SOS-1088 (Waiting). │
+│ 4. Step 3: Real-Time Rescue Dispatch │ 2.5 mins │ Switch tab to rescue-dashboard.html → Accept Red SOS Alert. │
+│ 5. Step 4: Instant Speedboat GPS ETA │ 1.5 mins │ Switch back to citizen-tracking.html → Live GPS unlocked!   │
+│ 6. Step 5: Groq 70B LPU AI Brain     │ 1.5 mins │ Show citizen-ai.html → Instant electrical hazard safety advice.│
+│ 7. Step 6: Tactical Map & Summary    │ 1.0 min  │ Show sos-route.html → ASDMA deployment readiness pitch.     │
+└──────────────────────────────────────┴──────────┴─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🎙️ Step-by-Step Live Pitching & Demonstration Script
+
+### 📍 Step 1: Citizen 1-Click Google Authentication
+* **Live URL:** [https://aegis-xi-ruddy.vercel.app/index.html](https://aegis-xi-ruddy.vercel.app/index.html)
+* **On Screen:** Open the live Vercel URL.
+* **Action:** Click **"Citizen Access"** &rarr; Click **"Sign in with Google"**.
+* **What to Say to the Jury:**
+  > *"Respected Jury members, during Assam's annual floods across river basins like Dhansiri and Brahmaputra, thousands of citizens are stranded without fast access to rescue services.*
   > 
-  > *AEGIS instantly logs them in using Google Authentication and loads their profile name, email, and Google profile picture across the entire portal."*
+  > *With **AEGIS**, citizens don't waste time filling out complex forms. They simply click **Sign in with Google**.*
+  > 
+  > *AEGIS instantly verifies their identity using Firebase Google Authentication and automatically displays their Google profile photo, name, and email across every single page of the portal."*
 
 ---
 
-### 📍 Step 2: Submitting Distress SOS Report (`citizen-sos.html`)
-* **On Screen:** AEGIS redirects to the **Citizen SOS Page** (`citizen-sos.html`).
+### 📍 Step 2: Submitting Distress SOS Report & Waiting State
+* **Live URL:** [https://aegis-xi-ruddy.vercel.app/citizen-sos.html](https://aegis-xi-ruddy.vercel.app/citizen-sos.html)
+* **On Screen:** AEGIS automatically redirects to the **Citizen SOS Page**.
 * **Action:** 
-  1. Point to the GPS map (auto-detected location: Golaghat, Ward 4).
-  2. Point to the headcount (5 People, 2 Children).
+  1. Point out the GPS auto-detected map location (Golaghat Ward 4).
+  2. Point out trapped headcount details (5 People, 2 Children).
   3. Click **"Send SOS Report"**.
-* **What to Say:**
-  > *"Here, Ravi Das is trapped on his roof with 5 family members. He clicks **Send SOS Report**. Notice what happens immediately:*
+* **What to Say to the Jury:**
+  > *"Let me show you a real scenario. Ravi Das is trapped on his roof with 5 family members as flood waters rise. He clicks **Send SOS Report**.*
   > 
-  > *AEGIS locks in an active distress ticket **SOS-1088** and displays a live waiting banner: **`⏳ WAITING FOR RESCUE TEAM APPROVAL`**.*
+  > *Notice what happens immediately:*
+  > * AEGIS locks in active distress ticket **SOS-1088**.
+  > * The screen displays a live status banner: **`⏳ WAITING FOR RESCUE TEAM APPROVAL`**.*
   > 
-  > *The citizen is not left wondering if anyone received his call — he knows his distress signal has been transmitted to the NDRF Command Desk."*
+  > *The citizen receives immediate reassurance that their distress signal is actively broadcasting to the NDRF Control Room."*
 
 ---
 
-### 📍 Step 3: Real-Time Rescue Alert & Deployment (`rescue-dashboard.html`)
-* **On Screen:** Press `Ctrl + Tab` to switch to **Tab 2** (`rescue-dashboard.html` or `rescue-sos.html`).
-* **Action:** Point out the **Urgent Red Emergency Modal** that pops up dynamically with sound alarm across the screen!
-* **What to Say:**
-  > *"Now let's switch over to the Rescue Commander's screen in the Control Room.*
+### 📍 Step 3: Sub-Second Real-Time Alert on Rescue Command Center
+* **Live URL:** [https://aegis-xi-ruddy.vercel.app/rescue-dashboard.html](https://aegis-xi-ruddy.vercel.app/rescue-dashboard.html)
+* **Action:** Press `Ctrl + Tab` to switch to **Tab 2** (Rescue Commander Screen).
+* **Highlight:** Point out the **Urgent Red Emergency Modal** that pops up automatically with a loud audio alarm across the Commander's screen!
+* **What to Say to the Jury:**
+  > *"Now let's switch over to the Rescue Commander's screen at the NDRF Control Center.*
   > 
-  > *No matter which page the Rescue Officer is currently viewing, AEGIS instantly triggers a high-priority **Red Emergency Alarm**:*
+  > *Without refreshing the page, AEGIS instantly triggers a high-priority **Red Emergency Alarm** with sound:*
   > * 🚨 **CRITICAL CITIZEN SOS RECEIVED (SOS-1088)**
   > * **Location:** `Golaghat District, Ward 4`
-  > * **Trapped:** `5 People (2 Children)`
+  > * **Victims:** `5 People Trapped (2 Children)`
   > 
-  > *The Commander clicks **`[ 🚀 Accept & Deploy Rescue Team ]`**."*
-* **Action:** Click the **`[ 🚀 Accept & Deploy Rescue Team ]`** button.
+  > *The Rescue Commander clicks **`[ 🚀 Accept & Deploy Rescue Team ]`**."*
+* **Action:** Click **`[ 🚀 Accept & Deploy Rescue Team ]`**.
 
 ---
 
-### 📍 Step 4: Automatic Live GPS Tracking Unlock (`citizen-tracking.html`)
-* **On Screen:** Press `Ctrl + Shift + Tab` to switch back to **Tab 1** (Citizen Screen).
-* **Highlight:** Tab 1 automatically updates to **`🟢 RESCUE TEAM APPROVED & DISPATCHED!`** and navigates to **My SOS / Tracking** (`citizen-tracking.html`).
-* **What to Say:**
-  > *"Switching back to the citizen's phone — in under 3 seconds, the citizen's screen automatically updates to **RESCUE TEAM DISPATCHED**.*
+### 📍 Step 4: Automatic Live GPS Speedboat Tracking Unlock
+* **Live URL:** [https://aegis-xi-ruddy.vercel.app/citizen-tracking.html](https://aegis-xi-ruddy.vercel.app/citizen-tracking.html)
+* **Action:** Press `Ctrl + Shift + Tab` to switch back to **Tab 1** (Citizen Screen).
+* **Highlight:** Show Tab 1 automatically updating to **`🟢 RESCUE TEAM APPROVED & DISPATCHED!`** and unlocking live GPS speedboat tracking.
+* **What to Say to the Jury:**
+  > *"Switching back to the citizen's phone — in under 3 seconds, without reloading, the citizen's screen automatically turns green to **RESCUE TEAM DISPATCHED**.*
   > 
-  > *It opens the live map showing **Motorized OBM Speedboat SD-04** navigating towards their home with an estimated arrival time of 12 minutes. This eliminates panic and prevents duplicate emergency calls!"*
+  > *It unlocks an interactive map showing **Motorized Speedboat SD-04** navigating toward their roof with an estimated arrival time of 12 minutes. This eliminates panic and stops citizens from making repeated emergency calls."*
 
 ---
 
-### 📍 Step 5: High-Speed AI Emergency Brain (`citizen-ai.html`)
-* **On Screen:** Navigate to **`http://localhost:8085/citizen-ai.html`**.
-* **Action:** Type or click a prompt: *"Water level inside house is 3 feet. Electric main switch is submerged. What immediate safety actions should I take in Golaghat?"*
-* **What to Say:**
-  > *"During floods, phone lines get jammed. We built **AEGIS Brain** powered by **Groq LPU (Llama 3.3 70B)** to provide sub-second emergency advice.*
+### 📍 Step 5: High-Speed Groq 70B LPU Emergency AI Brain
+* **Live URL:** [https://aegis-xi-ruddy.vercel.app/citizen-ai.html](https://aegis-xi-ruddy.vercel.app/citizen-ai.html)
+* **Action:** Navigate to `citizen-ai.html`. Click or type: *"Water level inside house is 3 feet. Electric main switch is submerged. What immediate safety actions should I take in Golaghat?"*
+* **What to Say to the Jury:**
+  > *"During floods, phone hotlines often get overwhelmed. We built **AEGIS Brain** powered by **Groq LPU (Llama 3.3 70B)** to deliver sub-second AI safety advice.*
   > 
-  > *Notice the response:*
-  > * 🚨 **CRITICAL ELECTRICAL PROTOCOL:** Do NOT touch submerged main switchboards or appliances in standing water.
-  > * Move family to elevated roofs.
+  > *Look at the instant answer:*
+  > * 🚨 **CRITICAL ELECTRICAL SAFETY PROTOCOL:** Never touch submerged main switchboards or appliances in standing water to avoid electrocution.
+  > * Move family to elevated roofs immediately.
   > * Call National Emergency Helpline **112**.
   > 
-  > *AEGIS AI delivers instant, life-saving safety guidance tailored specifically for flood emergencies."*
+  > *AEGIS AI delivers instant, life-saving emergency guidance in simple, plain language."*
 
 ---
 
-### 📍 Step 6: Tactical Map Navigation in New Tab (`sos-route.html`) & Conclusion
-* **On Screen:** Open **`http://localhost:8085/sos-route.html?id=SOS-1088`** (View on Map link from Rescue SOS Center).
-* **Highlight:** Point out the dedicated full-screen navigation route from NDRF Base Camp to the citizen's house.
-* **What to Say:**
-  > *"For rescue boat drivers, clicking 'View on Map' opens a dedicated tactical route map in a new tab, showing real-time street coordinates and water depth warnings.*
+### 📍 Step 6: Tactical Speedboat Navigation in New Tab & Final Pitch
+* **Live URL:** [https://aegis-xi-ruddy.vercel.app/sos-route.html?id=SOS-1088](https://aegis-xi-ruddy.vercel.app/sos-route.html?id=SOS-1088)
+* **Action:** Click **"View on Map →"** from Rescue SOS Center, opening `sos-route.html` in a new tab.
+* **Highlight:** Point out the dedicated full-screen navigation map with route line from NDRF Base Camp to the victim's house.
+* **What to Say to the Jury:**
+  > *"For rescue speedboat operators on the river, clicking 'View on Map' opens a dedicated tactical route map in a new tab with animated navigation lines and water depth telemetry.*
   > 
   > *To summarize:*
-  > * **1-Click Google Sign In** for citizens.
-  > * **Sub-Second Real-Time Alert & Approval Sync** between Citizen & Rescue teams.
-  > * **Sub-Second Groq 70B AI Brain** for live safety guidance.
+  > 1. **1-Click Google Authentication** for zero friction.
+  > 2. **Sub-Second Real-Time Alert & Approval Telemetry** between Citizens & NDRF.
+  > 3. **Groq Llama 3.3 70B AI Brain** for instant life safety advice.
   > 
-  > *AEGIS is production-ready for deployment across ASDMA to save lives across Assam. Thank you!"*
+  > *AEGIS is fully deployed live on Vercel and ready for deployment across the Assam State Disaster Management Authority (ASDMA). Thank you!"*
 
 ---
 
-## 💡 Quick Presentation Tips for Success
+## 💡 Top 3 Tips for Jury Demo Success
 
-1. **Tab Order Setup:**
-   * Keep **Tab 1** (`citizen-sos.html`) and **Tab 2** (`rescue-dashboard.html`) open next to each other before starting.
-2. **Simple English:**
-   * Avoid complicated terms. Use simple words like *"Instant Alert"*, *"Live Speedboat Tracking"*, and *"Smart Emergency AI Assistant"*.
-3. **Show, Don't Just Tell:**
-   * Click the buttons live during the presentation. The instant red popup and automatic map unlock will impress the jury!
+1. **Keep 2 Tabs Prepared Before Starting:**
+   * **Tab 1:** `https://aegis-xi-ruddy.vercel.app/citizen-sos.html`
+   * **Tab 2:** `https://aegis-xi-ruddy.vercel.app/rescue-dashboard.html`
+2. **Use `Ctrl + Tab` and `Ctrl + Shift + Tab`:**
+   * Smoothly switch between Tab 1 and Tab 2 so the jury sees the full-screen transition instantly.
+3. **Point Out the Green & Red Visual Status Banners:**
+   * Emphasize how the visual colors (Yellow Waiting &rarr; Red Alert &rarr; Green Approved) make the system easy for anyone to understand!
