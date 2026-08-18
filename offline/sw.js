@@ -1,10 +1,10 @@
-const CACHE_NAME = 'aegis-offline-v2';
+const CACHE_NAME = 'aegis-offline-v3';
 const ASSETS_TO_CACHE = [
   './citizen-app.html',
   './rescue-app.html',
   './offline-styles.css',
-  './citizen.jpg',
-  './rescue.jpg',
+  './citizen.png',
+  './rescue.png',
   './manifest-citizen.json',
   './manifest-rescue.json'
 ];
