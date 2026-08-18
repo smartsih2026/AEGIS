@@ -202,9 +202,12 @@
         } catch (e) {}
       }
 
-      // 3. Extract substring starting from AEGIS#SOS
+      // 3. Extract substring starting from AEGIS#SOS or AEGIS_SOS
       if (str.includes('AEGIS#SOS')) {
         const idx = str.indexOf('AEGIS#SOS');
+        str = str.substring(idx);
+      } else if (str.includes('AEGIS_SOS')) {
+        const idx = str.indexOf('AEGIS_SOS');
         str = str.substring(idx);
       }
 
@@ -233,7 +236,7 @@
         processAegisPayload(rawData);
       } else {
         // Default Demo Payload for presentation
-        const defaultPayload = "AEGIS#SOS#+91 98765 43210#26.5181,93.9612#Golaghat#5P#2C#ROOF_SUBMERGED";
+        const defaultPayload = "AEGIS_SOS_+919876543210_26.5181,93.9612_Golaghat_5P_2C_ROOF_SUBMERGED";
         processAegisPayload(defaultPayload);
       }
     }
@@ -247,8 +250,18 @@
       const payloadStr = cleanAndExtractPayload(rawInputStr);
       if (!payloadStr) return;
 
-      // Payload format: AEGIS#SOS#PHONE#LAT,LNG#DISTRICT#PEOPLE#CHILDREN#HAZARD
-      const parts = payloadStr.split('#');
+      // Payload format: AEGIS#SOS#PHONE#LAT,LNG#DISTRICT#PEOPLE#CHILDREN#HAZARD (or separated by _)
+      let parts;
+      if (payloadStr.includes('#')) {
+        parts = payloadStr.split('#');
+      } else {
+        const p = payloadStr.split('_');
+        if (p.length >= 8) {
+          parts = [p[0], p[1], p[2], p[3], p[4], p[5], p[6], p.slice(7).join('_')];
+        } else {
+          parts = p;
+        }
+      }
       if (parts.length < 8) return;
 
       const citizenPhone = parts[2];
