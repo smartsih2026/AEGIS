@@ -291,17 +291,14 @@
       };
       const hazardTextEnglish = englishHazards[hazard] || '🏠 Trapped on Submerged Roof';
 
-      // Split 1: Human-readable emergency summary
-      const split1 = `🚨 AEGIS FLOOD EMERGENCY SOS\n📍 Location: ${district} District (${lat}, ${lng})\n👥 Trapped: ${counts.people} People (${counts.children} Children)\n⚠️ Hazard: ${hazardTextEnglish}\n📞 Contact: ${citizenPhone}`;
+      // Construct clean 3-part message formatted with dividers so Android SMS apps do not truncate
+      const part1 = `🚨 AEGIS FLOOD EMERGENCY SOS\n📍 Location: ${district} District (${lat}, ${lng})\n👥 Trapped: ${counts.people} People (${counts.children} Children)\n⚠️ Hazard: ${hazardTextEnglish}\n📞 Contact: ${citizenPhone}`;
+      
+      const part2 = `📋 PASTE THIS CODE IN AEGIS RESCUE APP:`;
+      
+      const part3 = `aegis.sos/AEGIS#SOS#91${rawPhone}#${lat},${lng}#${district}#${counts.people}P#${counts.children}C#${hazard}`;
 
-      // Split 2: Instruction header
-      const split2 = `📋 PASTE THIS CODE IN AEGIS RESCUE APP:`;
-
-      // Split 3: Clean 1-Tap Blue Code Block
-      const split3 = `aegis.sos/AEGIS#SOS#91${rawPhone}#${lat},${lng}#${district}#${counts.people}P#${counts.children}C#${hazard}`;
-
-      // Combine into 3 distinct message splits sent in 1-tap
-      const fullSmsBody = `${split1}\n\n${split2}\n\n${split3}`;
+      const fullSmsBody = `${part1}\n───────────────\n${part2}\n───────────────\n${part3}`;
 
       // Clean phone number for sms: URI scheme
       const cleanTargetNumber = rescuePhone.replace(/[^\d+]/g, '');
