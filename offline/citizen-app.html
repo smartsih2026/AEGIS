@@ -291,9 +291,9 @@
       };
       const hazardTextEnglish = englishHazards[hazard] || '🏠 Trapped on Submerged Roof';
 
-      // Construct clean 2G offline payload code string for SMS
+      // Construct clean 2G offline payload code string for SMS (NO URL AT ALL!)
       const rawPayload = `AEGIS#SOS#${citizenPhone}#${lat},${lng}#${district}#${counts.people}P#${counts.children}C#${hazard}`;
-      const fullSmsBody = rawPayload;
+      const fullSmsBody = `Copy & Paste this code in AEGIS Rescue App:\n${rawPayload}`;
 
       // Clean phone number for sms: URI scheme
       const cleanTargetNumber = rescuePhone.replace(/[^\d+]/g, '');
