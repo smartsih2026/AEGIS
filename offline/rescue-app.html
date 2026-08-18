@@ -92,6 +92,25 @@
 
   <div class="container">
 
+    <!-- Manual Payload Decoder Box (Placed at Top for 100% Offline Access) -->
+    <div class="card" style="margin-bottom:0.75rem;">
+      <div style="font-size:0.78rem; font-weight:800; color:#38bdf8; margin-bottom:0.45rem; text-transform:uppercase; letter-spacing:0.04em; display:flex; align-items:center; justify-content:space-between;">
+        <span><i class="fa-solid fa-satellite-dish"></i> Parse / Paste Incoming SMS Code</span>
+        <span style="font-size:0.65rem; color:#10b981; font-weight:700;">100% Offline</span>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:0.5rem;">
+        <input type="text" id="manual-payload-input" class="form-control" placeholder="Paste full SMS link, text, or AEGIS#SOS code here...">
+        <div style="display:flex; gap:0.5rem;">
+          <button onclick="pasteFromClipboard()" style="flex:1.2; background:rgba(30,41,59,0.95); border:1px solid rgba(56,189,248,0.5); color:#38bdf8; font-weight:800; padding:0.65rem; border-radius:10px; font-size:0.82rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:0.4rem;">
+            <i class="fa-solid fa-paste"></i> 1-Tap Paste Clipboard
+          </button>
+          <button onclick="parseManualInput()" style="flex:1; background:linear-gradient(135deg, #10b981 0%, #059669 100%); border:none; color:#fff; font-weight:800; padding:0.65rem; border-radius:10px; font-size:0.82rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:0.4rem; box-shadow: 0 4px 12px rgba(16,185,129,0.3);">
+            <i class="fa-solid fa-bolt"></i> DECODE
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Leaflet Mobile Map -->
     <div id="map"></div>
 
@@ -134,24 +153,6 @@
       </div>
     </div>
 
-    <!-- Manual Payload Decoder Box -->
-    <div class="card">
-      <div style="font-size:0.75rem; font-weight:800; color:#38bdf8; margin-bottom:0.45rem; text-transform:uppercase; letter-spacing:0.04em;">
-        <i class="fa-solid fa-terminal"></i> Parse / Paste Incoming SMS Code
-      </div>
-      <div style="display:flex; flex-direction:column; gap:0.5rem;">
-        <input type="text" id="manual-payload-input" class="form-control" placeholder="Paste full SMS link or AEGIS#SOS code here...">
-        <div style="display:flex; gap:0.5rem;">
-          <button onclick="pasteFromClipboard()" style="flex:1; background:rgba(30,41,59,0.9); border:1px solid rgba(56,189,248,0.4); color:#38bdf8; font-weight:800; padding:0.6rem; border-radius:10px; font-size:0.8rem; cursor:pointer;">
-            <i class="fa-solid fa-paste"></i> Paste Clipboard
-          </button>
-          <button onclick="parseManualInput()" style="flex:1; background:linear-gradient(135deg, #38bdf8 0%, #0284c7 100%); border:none; color:#030712; font-weight:800; padding:0.6rem; border-radius:10px; font-size:0.8rem; cursor:pointer;">
-            <i class="fa-solid fa-bolt"></i> DECODE SMS
-          </button>
-        </div>
-      </div>
-    </div>
-
   </div>
 
   <!-- Leaflet JS -->
@@ -179,24 +180,27 @@
       if (!inputStr) return null;
       let str = inputStr.trim();
 
-      // If full web URL is passed with data=
-      if (str.includes('data=')) {
-        str = str.split('data=')[1].split('&')[0];
-      }
-
-      // Decode URL encoding (%23 -> #, %2B -> +, %2C -> ,)
+      // 1. Decode URL encoding (%23 -> #, %2B -> +, %2C -> ,)
       try {
         str = decodeURIComponent(str);
       } catch (e) {}
 
-      // Extract AEGIS#SOS substring
+      // 2. If full web URL parameter data= is passed
+      if (str.includes('data=')) {
+        str = str.split('data=')[1].split('&')[0];
+        try {
+          str = decodeURIComponent(str);
+        } catch (e) {}
+      }
+
+      // 3. Extract substring starting from AEGIS#SOS
       if (str.includes('AEGIS#SOS')) {
         const idx = str.indexOf('AEGIS#SOS');
         str = str.substring(idx);
       }
 
-      // Trim whitespace or trailing params
-      str = str.split(' ')[0].split('\n')[0];
+      // 4. Trim whitespace or trailing lines
+      str = str.split(' ')[0].split('\n')[0].split('\r')[0];
       return str;
     }
 
