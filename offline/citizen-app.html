@@ -90,7 +90,10 @@
       <!-- Citizen Phone Number -->
       <div class="form-group">
         <label class="form-label">Your Mobile Phone Number (For Rescue Callback)</label>
-        <input type="tel" id="citizen-phone" class="form-control" value="+91 98765 43210" placeholder="Enter 10-digit mobile number">
+        <div style="display:flex; align-items:center;">
+          <span style="background:rgba(30, 41, 59, 0.95); border:1px solid rgba(255,255,255,0.15); border-right:none; color:#38bdf8; font-weight:800; padding:0.68rem 0.85rem; border-top-left-radius:12px; border-bottom-left-radius:12px; font-size:0.88rem;">+91</span>
+          <input type="tel" id="citizen-phone" class="form-control" style="border-top-left-radius:0; border-bottom-left-radius:0;" value="" placeholder="Enter 10-digit mobile number" maxlength="10">
+        </div>
       </div>
 
       <!-- Headcount Pickers -->
@@ -165,7 +168,9 @@
       const lat = selectedOpt.getAttribute('data-lat');
       const lng = selectedOpt.getAttribute('data-lng');
       
-      const citizenPhone = document.getElementById('citizen-phone').value.trim() || '9876543210';
+      let rawPhone = document.getElementById('citizen-phone').value.replace(/\D/g, '');
+      if (!rawPhone) rawPhone = '9876543210';
+      const citizenPhone = `+91${rawPhone}`;
       const rescuePhone = document.getElementById('rescue-phone').value.trim();
       const hazard = document.getElementById('hazard-select').value;
 
