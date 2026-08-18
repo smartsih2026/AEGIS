@@ -72,12 +72,19 @@
     <div class="brand-badge">
       <div class="brand-icon rescue-icon"><i class="fa-solid fa-ship"></i></div>
       <div>
-        <div class="brand-title">AEGIS Rescue Command</div>
-        <div style="font-size:0.62rem; color:#94a3b8; font-weight:700;">Offline Tactical Unit</div>
+        <div class="brand-title" id="lbl-rescue-title">AEGIS Rescue Command</div>
+        <div style="font-size:0.62rem; color:#94a3b8; font-weight:700;" id="lbl-rescue-sub">Offline Tactical Unit</div>
       </div>
     </div>
-    <div class="offline-pill" style="background:rgba(16,185,129,0.15); border-color:rgba(16,185,129,0.4); color:#6ee7b7;">
-      <i class="fa-solid fa-satellite-dish"></i> Signal Active
+    <div style="display:flex; align-items:center; gap:0.5rem;">
+      <select id="lang-select" onchange="changeLanguage()" style="background:rgba(30,41,59,0.9); border:1px solid rgba(16,185,129,0.4); color:#6ee7b7; font-weight:800; font-size:0.75rem; border-radius:10px; padding:4px 8px; outline:none; cursor:pointer;">
+        <option value="en">🌐 English</option>
+        <option value="hi">🌐 हिंदी</option>
+        <option value="as">🌐 অসমীয়া</option>
+      </select>
+      <div class="offline-pill" style="background:rgba(16,185,129,0.15); border-color:rgba(16,185,129,0.4); color:#6ee7b7;">
+        <i class="fa-solid fa-satellite-dish"></i> <span id="lbl-signal">Signal Active</span>
+      </div>
     </div>
   </header>
 
@@ -246,14 +253,61 @@
       playEmergencySiren();
     }
 
+    const translations = {
+      en: {
+        title: "AEGIS Rescue Command",
+        sub: "Offline Tactical Unit",
+        signal: "Signal Active",
+        deploy: "DEPLOY BOAT",
+        dispatched: "BOAT DISPATCHED",
+        call: "CALL VICTIM"
+      },
+      hi: {
+        title: "AEGIS बचाव कमांड",
+        sub: "ऑफलाइन सामरिक इकाई",
+        signal: "सिग्नल सक्रिय",
+        deploy: "नाव तैनात करें",
+        dispatched: "नाव भेजी गई",
+        call: "पीड़ित को कॉल करें"
+      },
+      as: {
+        title: "AEGIS উদ্ধাৰ কমান্ড",
+        sub: "অফলাইন কৌশলগত গোট",
+        signal: "সংকেত সক্ৰিয়",
+        deploy: "নাও নিয়োগ কৰক",
+        dispatched: "নাও প্ৰেৰণ কৰা হ'ল",
+        call: "ভুক্তভোগীক কল কৰক"
+      }
+    };
+
+    function changeLanguage() {
+      const lang = document.getElementById('lang-select').value;
+      const t = translations[lang] || translations.en;
+
+      document.getElementById('lbl-rescue-title').innerText = t.title;
+      document.getElementById('lbl-rescue-sub').innerText = t.sub;
+      document.getElementById('lbl-signal').innerText = t.signal;
+      
+      const btn = document.getElementById('btn-deploy');
+      if (btn) {
+        btn.innerHTML = `<i class="fa-solid fa-${isDeployed ? 'check-circle' : 'paper-plane'}"></i> ${isDeployed ? t.dispatched : t.deploy}`;
+      }
+      const callBtn = document.getElementById('btn-call');
+      if (callBtn) {
+        callBtn.innerHTML = `<i class="fa-solid fa-phone-volume"></i> ${t.call}`;
+      }
+    }
+
     function toggleDeploy() {
+      const lang = document.getElementById('lang-select').value;
+      const t = translations[lang] || translations.en;
       const btn = document.getElementById('btn-deploy');
       if (!isDeployed) {
-        btn.innerHTML = `<i class="fa-solid fa-check-circle"></i> BOAT DISPATCHED`;
+        btn.innerHTML = `<i class="fa-solid fa-check-circle"></i> ${t.dispatched}`;
         btn.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
         isDeployed = true;
       } else {
-        btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> DEPLOY BOAT`;
+        btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> ${t.deploy}`;
         btn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
         isDeployed = false;
       }

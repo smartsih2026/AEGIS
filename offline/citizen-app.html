@@ -59,24 +59,31 @@
     <div class="brand-badge">
       <div class="brand-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
       <div>
-        <div class="brand-title">AEGIS Citizen</div>
-        <div style="font-size:0.62rem; color:#94a3b8; font-weight:700;">Offline Emergency SOS</div>
+        <div class="brand-title" id="lbl-badge-title">AEGIS Citizen</div>
+        <div style="font-size:0.62rem; color:#94a3b8; font-weight:700;" id="lbl-badge-sub">Offline Emergency SOS</div>
       </div>
     </div>
-    <div class="offline-pill">
-      <i class="fa-solid fa-wifi-slash"></i> Offline Mode
+    <div style="display:flex; align-items:center; gap:0.5rem;">
+      <select id="lang-select" onchange="changeLanguage()" style="background:rgba(30,41,59,0.9); border:1px solid rgba(56,189,248,0.4); color:#38bdf8; font-weight:800; font-size:0.75rem; border-radius:10px; padding:4px 8px; outline:none; cursor:pointer;">
+        <option value="en">🌐 English</option>
+        <option value="hi">🌐 हिंदी</option>
+        <option value="as">🌐 অসমীয়া</option>
+      </select>
+      <div class="offline-pill">
+        <i class="fa-solid fa-wifi-slash"></i> <span id="lbl-mode">Offline Mode</span>
+      </div>
     </div>
   </header>
 
   <div class="container">
     <div class="card">
       <div style="font-size:0.85rem; font-weight:800; color:#38bdf8; margin-bottom:1rem; display:flex; align-items:center; gap:0.4rem;">
-        <i class="fa-solid fa-tower-cell"></i> 2G Offline SMS Dispatch
+        <i class="fa-solid fa-tower-cell"></i> <span id="lbl-dispatch-title">2G Offline SMS Dispatch</span>
       </div>
 
       <!-- District / Location Selection -->
       <div class="form-group">
-        <label class="form-label">Select Your District in Assam</label>
+        <label class="form-label" id="lbl-select-district">Select Your District in Assam</label>
         <select id="district-select" class="form-select" onchange="onDistrictChange()">
           <option value="Golaghat" data-lat="26.5181" data-lng="93.9612" data-phone="+91 8143893783">Golaghat District (Ward 4)</option>
           <option value="Guwahati" data-lat="26.1445" data-lng="91.7362" data-phone="+91 8309289388">Kamrup Metro / Guwahati</option>
@@ -92,7 +99,7 @@
 
       <!-- Citizen Phone Number -->
       <div class="form-group">
-        <label class="form-label">Your Mobile Phone Number (For Rescue Callback)</label>
+        <label class="form-label" id="lbl-phone">Your Mobile Phone Number (For Rescue Callback)</label>
         <div style="display:flex; align-items:center;">
           <span style="background:rgba(30, 41, 59, 0.95); border:1px solid rgba(255,255,255,0.15); border-right:none; color:#38bdf8; font-weight:800; padding:0.68rem 0.85rem; border-top-left-radius:12px; border-bottom-left-radius:12px; font-size:0.88rem;">+91</span>
           <input type="tel" id="citizen-phone" class="form-control" style="border-top-left-radius:0; border-bottom-left-radius:0;" value="" placeholder="Enter 10-digit mobile number" maxlength="10">
@@ -102,7 +109,7 @@
       <!-- Headcount Pickers -->
       <div class="counter-grid form-group">
         <div class="counter-box">
-          <label class="form-label">Total Trapped</label>
+          <label class="form-label" id="lbl-trapped">Total Trapped</label>
           <div class="counter-btn-group">
             <button class="btn-counter" onclick="adjustCount('people', -1)">-</button>
             <span id="count-people" class="counter-val">5</span>
@@ -110,7 +117,7 @@
           </div>
         </div>
         <div class="counter-box">
-          <label class="form-label">Children / Elderly</label>
+          <label class="form-label" id="lbl-children">Children / Elderly</label>
           <div class="counter-btn-group">
             <button class="btn-counter" onclick="adjustCount('children', -1)">-</button>
             <span id="count-children" class="counter-val">2</span>
@@ -121,33 +128,121 @@
 
       <!-- Emergency Hazard Type Dropdown -->
       <div class="form-group">
-        <label class="form-label">Emergency Hazard Situation</label>
+        <label class="form-label" id="lbl-hazard">Emergency Hazard Situation</label>
         <select id="hazard-select" class="form-select">
-          <option value="ROOF_SUBMERGED">🏠 Trapped on Submerged Roof</option>
-          <option value="HOUSE_WATERLOGGED">🌊 Water inside House (3+ feet)</option>
-          <option value="MEDICAL_URGENCY">🚑 Medical Emergency / Pregnant</option>
-          <option value="FOOD_WATER_SHORTAGE">📦 Food & Drinking Water Shortage</option>
+          <option id="hz-roof" value="ROOF_SUBMERGED">🏠 Trapped on Submerged Roof</option>
+          <option id="hz-water" value="HOUSE_WATERLOGGED">🌊 Water inside House (3+ feet)</option>
+          <option id="hz-medical" value="MEDICAL_URGENCY">🚑 Medical Emergency / Pregnant</option>
+          <option id="hz-food" value="FOOD_WATER_SHORTAGE">📦 Food & Drinking Water Shortage</option>
         </select>
       </div>
 
       <!-- Target Rescue Officer Hotline Number -->
       <div class="form-group">
-        <label class="form-label">Target Rescue Unit Hotline</label>
+        <label class="form-label" id="lbl-hotline">Target Rescue Unit Hotline</label>
         <input type="tel" id="rescue-phone" class="form-control" value="+91 8143893783" placeholder="Enter rescue squad hotline number">
         <div style="font-size:0.68rem; color:#94a3b8; margin-top:0.35rem;">
-          <i class="fa-solid fa-circle-info" style="color:#38bdf8;"></i> Auto-assigned to nearest district unit.
+          <i class="fa-solid fa-circle-info" style="color:#38bdf8;"></i> <span id="lbl-auto-info">Auto-assigned to nearest district unit.</span>
         </div>
       </div>
 
       <!-- Send Offline SOS Button -->
       <button class="btn-sos" onclick="sendOfflineSms()">
-        <i class="fa-solid fa-paper-plane"></i> SEND OFFLINE EMERGENCY SMS
+        <i class="fa-solid fa-paper-plane"></i> <span id="btn-send-sms">SEND OFFLINE EMERGENCY SMS</span>
       </button>
     </div>
   </div>
 
   <script>
     let counts = { people: 5, children: 2 };
+
+    const translations = {
+      en: {
+        badgeTitle: "AEGIS Citizen",
+        badgeSub: "Offline Emergency SOS",
+        modePill: "Offline Mode",
+        dispatchTitle: "2G Offline SMS Dispatch",
+        selectDistrict: "Select Your District in Assam",
+        phoneLabel: "Your Mobile Phone Number (For Rescue Callback)",
+        phonePlaceholder: "Enter 10-digit mobile number",
+        trappedLabel: "Total Trapped",
+        childrenLabel: "Children / Elderly",
+        hazardLabel: "Emergency Hazard Situation",
+        hzRoof: "🏠 Trapped on Submerged Roof",
+        hzWater: "🌊 Water inside House (3+ feet)",
+        hzMedical: "🚑 Medical Emergency / Pregnant",
+        hzFood: "📦 Food & Drinking Water Shortage",
+        hotlineLabel: "Target Rescue Unit Hotline",
+        autoInfo: "Auto-assigned to nearest district unit.",
+        sendBtn: "SEND OFFLINE EMERGENCY SMS",
+        gpsLocked: "GPS Locked"
+      },
+      hi: {
+        badgeTitle: "AEGIS नागरिक",
+        badgeSub: "ऑफलाइन आपातकालीन SOS",
+        modePill: "ऑफलाइन मोड",
+        dispatchTitle: "2G ऑफलाइन SMS सेवा",
+        selectDistrict: "असम में अपना जिला चुनें",
+        phoneLabel: "आपका मोबाइल नंबर (बचाव कॉल के लिए)",
+        phonePlaceholder: "10-अंकों का मोबाइल नंबर दर्ज करें",
+        trappedLabel: "कुल फंसे हुए लोग",
+        childrenLabel: "बच्चे / बुजुर्ग",
+        hazardLabel: "आपातकालीन स्थिति",
+        hzRoof: "🏠 डूबी हुई छत पर फंसे हुए हैं",
+        hzWater: "🌊 घर के अंदर पानी (3+ फीट)",
+        hzMedical: "🚑 चिकित्सा आपातकाल / गर्भवती",
+        hzFood: "📦 भोजन और पीने के पानी की कमी",
+        hotlineLabel: "लक्ष्य बचाव दल हॉटलाइन",
+        autoInfo: "निकटतम जिला दल को स्वतः आवंटित।",
+        sendBtn: "ऑफलाइन आपातकालीन SMS भेजें",
+        gpsLocked: "जीपीएस लॉक"
+      },
+      as: {
+        badgeTitle: "AEGIS নাগৰিক",
+        badgeSub: "অফলাইন জৰুৰীকালীন SOS",
+        modePill: "অফলাইন ম'ড",
+        dispatchTitle: "2G অফলাইন SMS সেৱা",
+        selectDistrict: "অসমৰ আপোনাৰ জিলা বাছক",
+        phoneLabel: "আপোনাৰ মোবাইল নম্বৰ (উদ্ধাৰ কলৰ বাবে)",
+        phonePlaceholder: "১০-সংখ্যাৰ মোবাইল নম্বৰ প্ৰৱিষ্ট কৰক",
+        trappedLabel: "মুঠ আৱদ্ধ লোক",
+        childrenLabel: "শিশু / বয়োবৃদ্ধ",
+        hazardLabel: "জৰুৰীকালীন বিপদজনক পৰিস্থিতি",
+        hzRoof: "🏠 জলমগ্ন চালত আৱদ্ধ হৈ আছে",
+        hzWater: "🌊 ঘৰৰ ভিতৰত পানী (৩+ ফুট)",
+        hzMedical: "🚑 চিকিৎসা জৰুৰীকালীন / গৰ্ভৱতী",
+        hzFood: "📦 খাদ্য আৰু খোৱাপানীৰ অভাৱ",
+        hotlineLabel: "লক্ষ্য উদ্ধাৰকাৰী দলৰ হটলাইন",
+        autoInfo: "নিকটতম জিলা উদ্ধাৰকাৰী দললৈ স্বয়ংক্ৰিয়ভাৱে আবণ্টন।",
+        sendBtn: "অফলাইন জৰুৰীকালীন SMS প্ৰেৰণ কৰক",
+        gpsLocked: "GPS লক কৰা হৈছে"
+      }
+    };
+
+    function changeLanguage() {
+      const lang = document.getElementById('lang-select').value;
+      const t = translations[lang] || translations.en;
+
+      document.getElementById('lbl-badge-title').innerText = t.badgeTitle;
+      document.getElementById('lbl-badge-sub').innerText = t.badgeSub;
+      document.getElementById('lbl-mode').innerText = t.modePill;
+      document.getElementById('lbl-dispatch-title').innerText = t.dispatchTitle;
+      document.getElementById('lbl-select-district').innerText = t.selectDistrict;
+      document.getElementById('lbl-phone').innerText = t.phoneLabel;
+      document.getElementById('citizen-phone').placeholder = t.phonePlaceholder;
+      document.getElementById('lbl-trapped').innerText = t.trappedLabel;
+      document.getElementById('lbl-children').innerText = t.childrenLabel;
+      document.getElementById('lbl-hazard').innerText = t.hazardLabel;
+      document.getElementById('hz-roof').innerText = t.hzRoof;
+      document.getElementById('hz-water').innerText = t.hzWater;
+      document.getElementById('hz-medical').innerText = t.hzMedical;
+      document.getElementById('hz-food').innerText = t.hzFood;
+      document.getElementById('lbl-hotline').innerText = t.hotlineLabel;
+      document.getElementById('lbl-auto-info').innerText = t.autoInfo;
+      document.getElementById('btn-send-sms').innerText = t.sendBtn;
+
+      onDistrictChange();
+    }
 
     function adjustCount(type, delta) {
       counts[type] = Math.max(0, counts[type] + delta);
@@ -162,10 +257,13 @@
       const lng = selectedOption.getAttribute('data-lng');
       const distName = selectedOption.value;
 
+      const lang = document.getElementById('lang-select').value;
+      const t = translations[lang] || translations.en;
+
       if (targetPhone) {
         document.getElementById('rescue-phone').value = targetPhone;
       }
-      document.getElementById('gps-coords-display').innerHTML = `<i class="fa-solid fa-location-crosshairs"></i> GPS Locked: ${distName}, Assam (${lat}° N, ${lng}° E)`;
+      document.getElementById('gps-coords-display').innerHTML = `<i class="fa-solid fa-location-crosshairs"></i> ${t.gpsLocked}: ${distName}, Assam (${lat}° N, ${lng}° E)`;
     }
 
     function sendOfflineSms() {
@@ -185,6 +283,9 @@
       // Hazard text mapping
       const hazardSelect = document.getElementById('hazard-select');
       const hazardText = hazardSelect.options[hazardSelect.selectedIndex].text;
+
+      // Construct compact payload string
+      const rawPayload = `AEGIS#SOS#${citizenPhone}#${lat},${lng}#${district}#${counts.people}P#${counts.children}C#${hazard}`;
 
       // Solution 1: Plain text summary + 1-Tap App Opener Link included in SMS
       const rescueAppBaseUrl = "https://aegis-xi-ruddy.vercel.app/offline/rescue-app.html";
