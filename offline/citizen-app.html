@@ -20,8 +20,9 @@
       overflow: hidden;
     }
     body {
-      background: linear-gradient(to bottom, rgba(3, 7, 18, 0.22), rgba(3, 7, 18, 0.42)), url('citizen.jpg') no-repeat center center fixed !important;
+      background: linear-gradient(to bottom, rgba(3, 7, 18, 0.1), rgba(3, 7, 18, 0.25)), url('citizen.jpg') no-repeat center center fixed !important;
       background-size: cover !important;
+      image-rendering: -webkit-optimize-contrast;
     }
     .container {
       height: calc(100vh - 65px);
@@ -32,12 +33,11 @@
       overflow-y: auto;
     }
     .card {
-      background: rgba(15, 23, 42, 0.88);
-      backdrop-filter: blur(16px);
+      background: rgba(15, 23, 42, 0.94);
       margin-bottom: 0;
       padding: 1rem 1.15rem;
       border: 1px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.6);
     }
     .form-group {
       margin-bottom: 0.75rem;

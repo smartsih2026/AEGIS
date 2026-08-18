@@ -17,8 +17,7 @@ body {
 }
 
 .app-header {
-  background: rgba(7, 13, 29, 0.95);
-  backdrop-filter: blur(16px);
+  background: rgba(7, 13, 29, 0.96);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   padding: 1rem 1.25rem;
   display: flex;
