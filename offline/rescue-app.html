@@ -16,13 +16,37 @@
   <link rel="stylesheet" href="offline-styles.css">
   
   <style>
+    html, body {
+      height: 100vh;
+      overflow: hidden;
+    }
     body {
-      background: linear-gradient(to bottom, rgba(3, 7, 18, 0.82), rgba(3, 7, 18, 0.94)), url('rescue.jpg') no-repeat center center fixed !important;
+      background: linear-gradient(to bottom, rgba(3, 7, 18, 0.22), rgba(3, 7, 18, 0.42)), url('rescue.jpg') no-repeat center center fixed !important;
       background-size: cover !important;
     }
+    .container {
+      height: calc(100vh - 65px);
+      display: flex;
+      flex-direction: column;
+      padding: 0.75rem 1.15rem;
+      overflow-y: auto;
+    }
+    .card {
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+      margin-bottom: 0.75rem;
+      padding: 0.85rem 1.1rem;
+    }
+    #map {
+      height: 240px;
+      margin-bottom: 0.75rem;
+      border-radius: 14px;
+    }
     .victim-card {
-      background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(15, 23, 42, 0.9) 100%);
-      border: 1px solid rgba(239, 68, 68, 0.4);
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(15, 23, 42, 0.92) 100%);
+      border: 1px solid rgba(239, 68, 68, 0.5);
     }
     .status-badge {
       display: inline-flex;
