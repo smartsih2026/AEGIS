@@ -1,4 +1,5 @@
 {
+  "id": "com.aegis.citizen",
   "name": "AEGIS Citizen Offline SOS",
   "short_name": "AEGIS SOS",
   "description": "Offline 2G Emergency SOS Dispatcher for Assam Floods",
