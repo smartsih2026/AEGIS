@@ -134,14 +134,21 @@
       </div>
     </div>
 
-    <!-- Manual Packet Importer (For Presentation Testing) -->
+    <!-- Manual Payload Decoder Box -->
     <div class="card">
-      <div class="form-label"><i class="fa-solid fa-terminal" style="color:#38bdf8;"></i> Parse/Paste SOS Payload Code</div>
-      <div style="display:flex; gap:0.5rem;">
-        <input type="text" id="manual-payload-input" class="form-control" placeholder="AEGIS#SOS#9876543210#26.5181,93.9612#Golaghat#5P#2C#ROOF_SUBMERGED">
-        <button onclick="parseManualInput()" style="background:#38bdf8; border:none; color:#030712; font-weight:800; padding:0 1rem; border-radius:12px; cursor:pointer;">
-          DECODE
-        </button>
+      <div style="font-size:0.75rem; font-weight:800; color:#38bdf8; margin-bottom:0.45rem; text-transform:uppercase; letter-spacing:0.04em;">
+        <i class="fa-solid fa-terminal"></i> Parse / Paste Incoming SMS Code
+      </div>
+      <div style="display:flex; flex-direction:column; gap:0.5rem;">
+        <input type="text" id="manual-payload-input" class="form-control" placeholder="Paste full SMS link or AEGIS#SOS code here...">
+        <div style="display:flex; gap:0.5rem;">
+          <button onclick="pasteFromClipboard()" style="flex:1; background:rgba(30,41,59,0.9); border:1px solid rgba(56,189,248,0.4); color:#38bdf8; font-weight:800; padding:0.6rem; border-radius:10px; font-size:0.8rem; cursor:pointer;">
+            <i class="fa-solid fa-paste"></i> Paste Clipboard
+          </button>
+          <button onclick="parseManualInput()" style="flex:1; background:linear-gradient(135deg, #38bdf8 0%, #0284c7 100%); border:none; color:#030712; font-weight:800; padding:0.6rem; border-radius:10px; font-size:0.8rem; cursor:pointer;">
+            <i class="fa-solid fa-bolt"></i> DECODE SMS
+          </button>
+        </div>
       </div>
     </div>
 
@@ -168,6 +175,43 @@
       }).addTo(map);
     }
 
+    function cleanAndExtractPayload(inputStr) {
+      if (!inputStr) return null;
+      let str = inputStr.trim();
+
+      // If full web URL is passed with data=
+      if (str.includes('data=')) {
+        str = str.split('data=')[1].split('&')[0];
+      }
+
+      // Decode URL encoding (%23 -> #, %2B -> +, %2C -> ,)
+      try {
+        str = decodeURIComponent(str);
+      } catch (e) {}
+
+      // Extract AEGIS#SOS substring
+      if (str.includes('AEGIS#SOS')) {
+        const idx = str.indexOf('AEGIS#SOS');
+        str = str.substring(idx);
+      }
+
+      // Trim whitespace or trailing params
+      str = str.split(' ')[0].split('\n')[0];
+      return str;
+    }
+
+    async function pasteFromClipboard() {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text) {
+          document.getElementById('manual-payload-input').value = text;
+          parseManualInput();
+        }
+      } catch (err) {
+        parseManualInput();
+      }
+    }
+
     function checkUrlQueryData() {
       const urlParams = new URLSearchParams(window.location.search);
       const rawData = urlParams.get('data');
@@ -186,7 +230,10 @@
       if (val) processAegisPayload(val);
     }
 
-    function processAegisPayload(payloadStr) {
+    function processAegisPayload(rawInputStr) {
+      const payloadStr = cleanAndExtractPayload(rawInputStr);
+      if (!payloadStr) return;
+
       // Payload format: AEGIS#SOS#PHONE#LAT,LNG#DISTRICT#PEOPLE#CHILDREN#HAZARD
       const parts = payloadStr.split('#');
       if (parts.length < 8) return;
