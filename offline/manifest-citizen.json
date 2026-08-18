@@ -8,9 +8,10 @@
   "theme_color": "#ef4444",
   "icons": [
     {
-      "src": "https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=192&q=80",
-      "sizes": "192x192",
-      "type": "image/jpeg"
+      "src": "citizen-icon.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
