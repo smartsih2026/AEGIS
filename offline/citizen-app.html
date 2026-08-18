@@ -314,9 +314,11 @@
       }
     });
 
-    // Register Service Worker for 100% Offline PWA Mode
+    // Register Service Worker for 100% Offline PWA Mode with auto-update
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(err => console.log('SW Reg Error:', err));
+      navigator.serviceWorker.register('sw.js').then(reg => {
+        reg.update();
+      }).catch(err => console.log('SW Reg Error:', err));
     }
   </script>
 </body>
