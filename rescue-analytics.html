@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics & Reports - AEGIS Rescue Command System</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Rescue Master Stylesheet & Script -->
+  <link rel="stylesheet" href="rescue-styles.css">
+  <script src="js/rescue-common.js?v=3.0"></script>
+
+  <style>
+    /* Report Shortcut Buttons */
+    .r-shortcut-btn {
+      width: 100%;
+      background: rgba(15,23,42,0.85);
+      border: 1px solid rgba(59,130,246,0.35);
+      color: #e2e8f0;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.32rem 0.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: all 0.2s ease;
+    }
+    .r-shortcut-btn:hover {
+      background: rgba(37,99,235,0.3);
+      color: #fff;
+      border-color: #3b82f6;
+      transform: translateX(3px);
+    }
+
+    /* Zero-Scroll 3-Row Grid Layout for Analytics Page */
+    .r-analytics-grid {
+      display: grid;
+      grid-template-rows: 1fr 1fr 1fr;
+      gap: 0.45rem;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* Pulsing Alert Animation */
+    @keyframes alertPulse {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    .r-alert-pulse-btn {
+      animation: alertPulse 1.8s infinite;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="r-layout-container">
+    <!-- Left Navigation Sidebar -->
+    <aside class="r-sidebar">
+      <div class="r-sidebar-logo">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.25)"/>
+          <path d="M12 8v8M8 12h8" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <div style="font-weight: 800; font-size: 1.15rem; color: #fff; line-height: 1;">AEGIS</div>
+          <div style="font-size: 0.6rem; color: #cbd5e1; font-weight: 500;">Stronger Together, Safer Assam.</div>
+        </div>
+      </div>
+
+      <!-- Exact 12 User-Specified Pages Navigation Menu -->
+      <nav class="r-nav-menu">
+        <a class="r-nav-item" href="rescue-dashboard.html"><i class="fa-solid fa-gauge-high"></i> Command Dashboard</a>
+        <a class="r-nav-item" href="rescue-map.html"><i class="fa-solid fa-map-location-dot"></i> Flood Risk Map</a>
+        <a class="r-nav-item" href="rescue-priority.html"><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i> Emergency Priority Zones</a>
+        <a class="r-nav-item" href="rescue-analysis.html"><i class="fa-solid fa-chart-line"></i> Flood Risk Analysis</a>
+        <a class="r-nav-item" href="rescue-impact.html"><i class="fa-solid fa-house-crack"></i> Impact Assessment</a>
+        <a class="r-nav-item" href="rescue-resources.html"><i class="fa-solid fa-boxes-packing"></i> Resource Command Center</a>
+        <a class="r-nav-item" href="rescue-sos.html"><i class="fa-solid fa-circle-exclamation" style="color:#ef4444;"></i> Citizen SOS Center <span class="r-nav-badge">12</span></a>
+        <a class="r-nav-item" href="rescue-shelters.html"><i class="fa-solid fa-campground"></i> Shelter Network Management</a>
+        <a class="r-nav-item" href="rescue-operations.html"><i class="fa-solid fa-person-shelter"></i> Live Rescue Operations</a>
+        <a class="r-nav-item active" href="rescue-analytics.html"><i class="fa-solid fa-chart-pie"></i> Analytics &amp; Reports</a>
+        <a class="r-nav-item" href="rescue-teams.html"><i class="fa-solid fa-users-gear"></i> Team Management</a>
+        <a class="r-nav-item" href="rescue-notifications.html"><i class="fa-solid fa-bullhorn" style="color:#f59e0b;"></i> Notifications &amp; Communication <span class="r-nav-badge">5</span></a>
+        <a class="r-nav-item" href="index.html" style="margin-top:auto; color:#ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Settings / Exit</a>
+      </nav>
+
+      <!-- Sidebar Emergency Hotline Box -->
+      <div class="r-sidebar-hotline" style="padding:0.5rem;">
+        <div style="font-size: 0.65rem; color: #fca5a5; font-weight: 700;">EMERGENCY HOTLINE</div>
+        <div style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin: 0.15rem 0;">
+          <i class="fa-solid fa-phone-volume" style="color:#ef4444"></i> 112
+        </div>
+        <div style="font-size: 0.625rem; color: #cbd5e1;">Emergency Call</div>
+        
+        <button class="r-push-talk-btn" style="padding:0.32rem;" onclick="alert('Push-To-Talk Radio Active...')">
+          <i class="fa-solid fa-microphone"></i> Push to Talk
+        </button>
+      </div>
+
+      <!-- Report Shortcuts Sidebar Panel -->
+      <div style="margin-top:0.3rem; background:rgba(6,12,28,0.7); border:1px solid rgba(59,130,246,0.2); border-radius:8px; padding:0.35rem 0.5rem; display:flex; flex-direction:column; gap:0.25rem;">
+        <div style="font-size:0.625rem; font-weight:800; color:#94a3b8;">REPORT SHORTCUTS</div>
+        <button class="r-shortcut-btn" style="border-left:3px solid #2563eb;" onclick="alert('Generating Daily Situation Report...')">
+          <i class="fa-solid fa-chart-line" style="color:#38bdf8;"></i> Daily Situation Report
+        </button>
+        <button class="r-shortcut-btn" style="border-left:3px solid #10b981;" onclick="alert('Generating District Performance Report...')">
+          <i class="fa-solid fa-trophy" style="color:#10b981;"></i> District Performance Report
+        </button>
+        <button class="r-shortcut-btn" style="border-left:3px solid #eab308;" onclick="alert('Generating Resource Utilization Report...')">
+          <i class="fa-solid fa-boxes-stacked" style="color:#eab308;"></i> Resource Utilization Report
+        </button>
+        <button class="r-shortcut-btn" style="border-left:3px solid #a78bfa;" onclick="alert('Generating Incident Summary Report...')">
+          <i class="fa-solid fa-clipboard-list" style="color:#a78bfa;"></i> Incident Summary Report
+        </button>
+        <button class="r-shortcut-btn" style="border-left:3px solid #06b6d4;" onclick="alert('Opening Custom Report Builder Wizard...')">
+          <i class="fa-solid fa-sliders" style="color:#06b6d4;"></i> Custom Report Builder
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Container -->
+    <main class="r-main-area">
+      <!-- Top Header Bar -->
+      <header class="r-topbar" style="margin-bottom: 0.35rem;">
+        <div style="display:flex; align-items:center; gap:0.65rem;">
+          <div>
+            <div style="font-weight:800; font-size:1.15rem; color:#fff; line-height:1.1; display:flex; align-items:center; gap:0.45rem;">
+              Analytics &amp; Reports
+              <span style="color:#10b981; font-size:0.7rem; font-weight:700;">● Live</span>
+            </div>
+            <div style="font-size:0.72rem; color:#cbd5e1;">Unified insights, performance metrics &amp; data-driven decision support</div>
+          </div>
+        </div>
+
+        <!-- Center Location Pill -->
+        <div style="display:flex; align-items:center; gap:0.45rem; background:rgba(15,23,42,0.9); border:1px solid rgba(59,130,246,0.3); border-radius:6px; padding:0.25rem 0.65rem;">
+          <i class="fa-solid fa-location-dot" style="color:#ef4444;"></i>
+          <span style="font-size:0.785rem; font-weight:700; color:#fff;">Assam, India</span>
+        </div>
+
+        <!-- Right Utilities & Animated Alert Pill -->
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <div class="r-top-utility-box" style="padding:0.28rem 0.6rem; font-size:0.75rem;">
+            <i class="fa-solid fa-cloud-showers-heavy" style="color:#38bdf8;"></i>
+            <span><strong>25°C</strong> Heavy Rain</span>
+          </div>
+
+          <!-- Animated Pulsing Alert Box -->
+          <div style="background:rgba(239,68,68,0.25); border:1px solid #ef4444; border-radius:6px; padding:0.28rem 0.6rem; font-size:0.72rem; font-weight:800; color:#ef4444; display:flex; align-items:center; gap:0.35rem;" class="r-alert-pulse-btn">
+            <i class="fa-solid fa-triangle-exclamation"></i> Flood Alert Level 4 - Severe
+          </div>
+
+          <div class="r-top-utility-box" style="padding:0.28rem 0.6rem; font-size:0.75rem;">
+            <i class="fa-solid fa-radio" style="color:#10b981;"></i>
+            <span>Radio Comms <strong style="color:#38bdf8;">Channel 2</strong></span>
+            <span style="color:#10b981; font-size:0.7rem;"><i class="fa-solid fa-signal"></i></span>
+          </div>
+
+          <div style="position:relative; cursor:pointer;" onclick="location.href='rescue-notifications.html'">
+            <i class="fa-solid fa-bell" style="color:#cbd5e1; font-size:1.1rem;"></i>
+            <span style="position:absolute; top:-4px; right:-6px; background:#ef4444; color:#fff; font-size:0.58rem; font-weight:800; padding:1px 5px; border-radius:50%;">6</span>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:0.55rem; cursor:pointer;" onclick="alert('Command Officer Desk')">
+            <div style="width:32px; height:32px; border-radius:50%; background:#ef4444; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:0.75rem; border:1px solid #fca5a5;">CO</div>
+            <div>
+              <div style="font-size:0.785rem; font-weight:700; color:#fff; line-height:1.1;">Command Officer</div>
+              <div style="font-size:0.625rem; color:#cbd5e1;">NDRF Team-4</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Top Bar 1: OVERVIEW SUMMARY KPI Bar + Date Filter & Export Button -->
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:0 1.15rem; margin-bottom:0.25rem;">
+        <span style="font-weight:800; font-size:0.785rem; color:#fff;">OVERVIEW SUMMARY</span>
+        <div style="display:flex; align-items:center; gap:0.55rem;">
+          <select style="background:rgba(15,23,42,0.9); border:1px solid rgba(59,130,246,0.3); color:#fff; font-size:0.685rem; font-weight:700; padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer;">
+            <option>Aug 6 – Aug 12, 2026</option>
+            <option>Jul 30 – Aug 5, 2026</option>
+            <option>Past 30 Days</option>
+          </select>
+          <button style="background:rgba(37,99,235,0.25); border:1px solid #2563eb; color:#38bdf8; font-size:0.685rem; font-weight:800; padding:0.2rem 0.6rem; border-radius:4px; cursor:pointer; display:flex; align-items:center; gap:0.3rem;" onclick="window.print()">
+            <i class="fa-solid fa-file-export"></i> Export Report
+          </button>
+        </div>
+      </div>
+
+      <!-- Top 7 KPI Cards Bar -->
+      <div class="r-metrics-bar" style="grid-template-columns: repeat(7, 1fr); margin-bottom: 0.35rem; padding:0 1.15rem;">
+        <div class="r-metric-card" style="border-left: 3.5px solid #2563eb; padding:0.35rem 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.6rem; font-weight:800; color:#2563eb;">TOTAL SOS REQUESTS</span>
+            <i class="fa-solid fa-circle-exclamation" style="color:#2563eb; font-size:0.85rem;"></i>
+          </div>
+          <div style="font-size:1.25rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-total-sos">2,458</div>
+          <div style="font-size:0.58rem; color:#10b981; font-weight:700;">↑ 18% vs last 7 days</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3.5px solid #10b981; padding:0.35rem 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.6rem; font-weight:800; color:#10b981;">TOTAL RESCUES</span>
+            <i class="fa-solid fa-circle-check" style="color:#10b981; font-size:0.85rem;"></i>
+          </div>
+          <div style="font-size:1.25rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-total-rescues">1,856</div>
+          <div style="font-size:0.58rem; color:#10b981; font-weight:700;">↑ 22% vs last 7 days</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3.5px solid #38bdf8; padding:0.35rem 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.6rem; font-weight:800; color:#38bdf8;">PEOPLE RESCUED</span>
+            <i class="fa-solid fa-person-shelter" style="color:#38bdf8; font-size:0.85rem;"></i>
+          </div>
+          <div style="font-size:1.25rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-people-rescued">8,542</div>
+          <div style="font-size:0.58rem; color:#10b981; font-weight:700;">↑ 19% vs last 7 days</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3.5px solid #10b981; padding:0.35rem 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.6rem; font-weight:800; color:#10b981;">AVG RESPONSE TIME</span>
+            <i class="fa-solid fa-stopwatch" style="color:#10b981; font-size:0.85rem;"></i>
+          </div>
+          <div style="font-size:1.25rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-avg-resp">18.6 min</div>
+          <div style="font-size:0.58rem; color:#10b981; font-weight:700;">↓ 12% vs last 7 days</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3.5px solid #10b981; padding:0.35rem 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.6rem; font-weight:800; color:#10b981;">RESCUE SUCCESS RATE</span>
+            <i class="fa-solid fa-award" style="color:#10b981; font-size:0.85rem;"></i>
+          </div>
+          <div style="font-size:1.25rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-success-rate">94.2%</div>
+          <div style="font-size:0.58rem; color:#10b981; font-weight:700;">↑ 6% vs last 7 days</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3.5px solid #a78bfa; padding:0.35rem 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.6rem; font-weight:800; color:#a78bfa;">RESOURCES DEPLOYED</span>
+            <i class="fa-solid fa-boxes-packing" style="color:#a78bfa; font-size:0.85rem;"></i>
+          </div>
+          <div style="font-size:1.25rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-resources">512</div>
+          <div style="font-size:0.58rem; color:#10b981; font-weight:700;">↑ 15% vs last 7 days</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3.5px solid #2563eb; padding:0.35rem 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.6rem; font-weight:800; color:#2563eb;">SHELTER OCCUPANCY</span>
+            <i class="fa-solid fa-campground" style="color:#2563eb; font-size:0.85rem;"></i>
+          </div>
+          <div style="font-size:1.25rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-shelter-occ">67.6%</div>
+          <div style="font-size:0.58rem; color:#10b981; font-weight:700;">↑ 8% vs last 7 days</div>
+        </div>
+      </div>
+
+      <!-- Main Analytics Workspace 3-Row Grid -->
+      <div class="r-analytics-grid" style="padding:0 1.15rem 0.35rem 1.15rem;">
+        
+        <!-- Row 1: 3 Line Trend Charts Split -->
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:0.45rem; height:100%; min-height:0;">
+          
+          <!-- Chart 1: SOS REQUESTS TREND -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.45rem; height:100%;">
+            <div style="font-weight:800; font-size:0.75rem; color:#fff; margin-bottom:0.1rem;">SOS REQUESTS TREND</div>
+            
+            <div style="flex:1; position:relative; width:100%; height:100%;">
+              <svg width="100%" height="100%" viewBox="0 0 240 50" preserveAspectRatio="none">
+                <path d="M 10 40 L 45 32 L 80 28 L 115 12 L 150 16 L 185 20 L 230 8" fill="none" stroke="#2563eb" stroke-width="2.5"/>
+                <polygon points="10,40 45,32 80,28 115,12 150,16 185,20 230,8 230,48 10,48" fill="url(#blueGradient)" opacity="0.25"/>
+                <defs>
+                  <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#2563eb"/>
+                    <stop offset="100%" stop-color="transparent"/>
+                  </linearGradient>
+                </defs>
+
+                <circle cx="115" cy="12" r="3" fill="#38bdf8"/>
+                <text x="115" y="8" fill="#38bdf8" font-size="5" font-weight="bold" text-anchor="middle">415</text>
+
+                <circle cx="230" cy="8" r="3" fill="#38bdf8"/>
+                <text x="225" y="5" fill="#38bdf8" font-size="5" font-weight="bold" text-anchor="middle">449</text>
+
+                <text x="10" y="48" fill="#cbd5e1" font-size="4.5">Aug 6</text>
+                <text x="45" y="48" fill="#cbd5e1" font-size="4.5">Aug 7</text>
+                <text x="80" y="48" fill="#cbd5e1" font-size="4.5">Aug 8</text>
+                <text x="115" y="48" fill="#cbd5e1" font-size="4.5">Aug 9</text>
+                <text x="150" y="48" fill="#cbd5e1" font-size="4.5">Aug 10</text>
+                <text x="185" y="48" fill="#cbd5e1" font-size="4.5">Aug 11</text>
+                <text x="225" y="48" fill="#cbd5e1" font-size="4.5">Aug 12</text>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Chart 2: RESPONSE TIME TREND (Average) -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.45rem; height:100%;">
+            <div style="font-weight:800; font-size:0.75rem; color:#fff; margin-bottom:0.1rem;">RESPONSE TIME TREND (Average)</div>
+            
+            <div style="flex:1; position:relative; width:100%; height:100%;">
+              <svg width="100%" height="100%" viewBox="0 0 240 50" preserveAspectRatio="none">
+                <path d="M 10 20 L 45 22 L 80 26 L 115 36 L 150 32 L 185 24 L 230 30" fill="none" stroke="#10b981" stroke-width="2.5"/>
+                <polygon points="10,20 45,22 80,26 115,36 150,32 185,24 230,30 230,48 10,48" fill="url(#greenGradient)" opacity="0.25"/>
+                <defs>
+                  <linearGradient id="greenGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#10b981"/>
+                    <stop offset="100%" stop-color="transparent"/>
+                  </linearGradient>
+                </defs>
+
+                <circle cx="115" cy="36" r="3" fill="#10b981"/>
+                <text x="115" y="32" fill="#10b981" font-size="5" font-weight="bold" text-anchor="middle">17.6m</text>
+
+                <text x="10" y="48" fill="#cbd5e1" font-size="4.5">Aug 6</text>
+                <text x="45" y="48" fill="#cbd5e1" font-size="4.5">Aug 7</text>
+                <text x="80" y="48" fill="#cbd5e1" font-size="4.5">Aug 8</text>
+                <text x="115" y="48" fill="#cbd5e1" font-size="4.5">Aug 9</text>
+                <text x="150" y="48" fill="#cbd5e1" font-size="4.5">Aug 10</text>
+                <text x="185" y="48" fill="#cbd5e1" font-size="4.5">Aug 11</text>
+                <text x="225" y="48" fill="#cbd5e1" font-size="4.5">Aug 12</text>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Chart 3: RESCUE SUCCESS RATE TREND -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.45rem; height:100%;">
+            <div style="font-weight:800; font-size:0.75rem; color:#fff; margin-bottom:0.1rem;">RESCUE SUCCESS RATE TREND</div>
+            
+            <div style="flex:1; position:relative; width:100%; height:100%;">
+              <svg width="100%" height="100%" viewBox="0 0 240 50" preserveAspectRatio="none">
+                <path d="M 10 30 L 45 28 L 80 25 L 115 20 L 150 18 L 185 18 L 230 14" fill="none" stroke="#a78bfa" stroke-width="2.5"/>
+                <polygon points="10,30 45,28 80,25 115,20 150,18 185,18 230,14 230,48 10,48" fill="url(#purpleGradient)" opacity="0.25"/>
+                <defs>
+                  <linearGradient id="purpleGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#a78bfa"/>
+                    <stop offset="100%" stop-color="transparent"/>
+                  </linearGradient>
+                </defs>
+
+                <circle cx="230" cy="14" r="3" fill="#a78bfa"/>
+                <text x="225" y="10" fill="#a78bfa" font-size="5" font-weight="bold" text-anchor="middle">94.2%</text>
+
+                <text x="10" y="48" fill="#cbd5e1" font-size="4.5">Aug 6</text>
+                <text x="45" y="48" fill="#cbd5e1" font-size="4.5">Aug 7</text>
+                <text x="80" y="48" fill="#cbd5e1" font-size="4.5">Aug 8</text>
+                <text x="115" y="48" fill="#cbd5e1" font-size="4.5">Aug 9</text>
+                <text x="150" y="48" fill="#cbd5e1" font-size="4.5">Aug 10</text>
+                <text x="185" y="48" fill="#cbd5e1" font-size="4.5">Aug 11</text>
+                <text x="225" y="48" fill="#cbd5e1" font-size="4.5">Aug 12</text>
+              </svg>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Row 2: 3 Analytics Breakdown Panels Split -->
+        <div style="display:grid; grid-template-columns: 1fr 1.3fr 1fr; gap:0.45rem; height:100%; min-height:0;">
+          
+          <!-- Box 4: SOS BY DISTRICT (Multi-Color Donut Breakdown) -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.45rem; height:100%;">
+            <div style="font-weight:800; font-size:0.75rem; color:#fff; margin-bottom:0.15rem;">SOS BY DISTRICT</div>
+
+            <div style="flex:1; display:flex; align-items:center; justify-content:space-between;">
+              <svg width="70" height="70" viewBox="0 0 42 42">
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#2563eb" stroke-width="5.5" stroke-dasharray="20 80" stroke-dashoffset="25"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#ef4444" stroke-width="5.5" stroke-dasharray="15.8 84.2" stroke-dashoffset="5"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#f59e0b" stroke-width="5.5" stroke-dasharray="12.7 87.3" stroke-dashoffset="89.2"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#10b981" stroke-width="5.5" stroke-dasharray="11.6 88.4" stroke-dashoffset="76.5"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#a78bfa" stroke-width="5.5" stroke-dasharray="10 90" stroke-dashoffset="64.9"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#eab308" stroke-width="5.5" stroke-dasharray="29.9 70.1" stroke-dashoffset="54.9"></circle>
+                <text x="21" y="19" fill="#fff" font-size="5" font-weight="bold" text-anchor="middle">2,458</text>
+                <text x="21" y="24" fill="#cbd5e1" font-size="3.5" text-anchor="middle">Total SOS</text>
+              </svg>
+
+              <div style="font-size:0.58rem; display:flex; flex-direction:column; gap:0.12rem;" id="sos-district-legend">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Box 5: DISTRICT PERFORMANCE RANKING Table -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; overflow:hidden; padding:0.45rem; height:100%;">
+            <div style="font-weight:800; font-size:0.75rem; color:#fff; margin-bottom:0.15rem;">DISTRICT PERFORMANCE RANKING</div>
+
+            <div style="flex:1; overflow-y:auto; font-size:0.6rem;">
+              <table style="width:100%; border-collapse:collapse;" id="district-rank-table">
+                <!-- Populated by JS -->
+              </table>
+            </div>
+          </div>
+
+          <!-- Box 6: RESOURCE UTILIZATION (Gauge Donut + Horizontal Bars) -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.45rem; height:100%;">
+            <div style="font-weight:800; font-size:0.75rem; color:#fff; margin-bottom:0.15rem;">RESOURCE UTILIZATION</div>
+
+            <div style="flex:1; display:grid; grid-template-columns: 80px 1fr; gap:0.45rem; align-items:center;">
+              <div style="text-align:center;">
+                <svg width="65" height="65" viewBox="0 0 42 42">
+                  <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="rgba(255,255,255,0.1)" stroke-width="5.5"></circle>
+                  <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#10b981" stroke-width="5.5" stroke-dasharray="76 24" stroke-dashoffset="25"></circle>
+                  <text x="21" y="20" fill="#fff" font-size="6" font-weight="bold" text-anchor="middle">76%</text>
+                  <text x="21" y="25" fill="#cbd5e1" font-size="3" text-anchor="middle">Overall</text>
+                </svg>
+              </div>
+
+              <div style="display:flex; flex-direction:column; gap:0.12rem; font-size:0.55rem;" id="resource-util-bars">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Row 3: 3 Executive Summary Consoles Split -->
+        <div style="display:grid; grid-template-columns: 1.1fr 1.2fr 1fr; gap:0.45rem; height:100%; min-height:0;">
+          
+          <!-- Box 7: RESCUE OPERATIONS SUMMARY Table -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; overflow:hidden; padding:0.45rem; height:100%;">
+            <div style="font-weight:800; font-size:0.75rem; color:#fff; margin-bottom:0.15rem;">RESCUE OPERATIONS SUMMARY</div>
+
+            <!-- Top Cards -->
+            <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:0.2rem; text-align:center; margin-bottom:0.25rem;">
+              <div style="background:rgba(255,255,255,0.03); padding:0.15rem; border-radius:4px;"><span style="font-size:0.5rem; color:#cbd5e1;">Active</span><div style="font-size:0.75rem; font-weight:800; color:#38bdf8;">24</div></div>
+              <div style="background:rgba(255,255,255,0.03); padding:0.15rem; border-radius:4px;"><span style="font-size:0.5rem; color:#cbd5e1;">Done</span><div style="font-size:0.75rem; font-weight:800; color:#10b981;">156</div></div>
+              <div style="background:rgba(255,255,255,0.03); padding:0.15rem; border-radius:4px;"><span style="font-size:0.5rem; color:#cbd5e1;">In Prog</span><div style="font-size:0.75rem; font-weight:800; color:#f59e0b;">18</div></div>
+              <div style="background:rgba(255,255,255,0.03); padding:0.15rem; border-radius:4px;"><span style="font-size:0.5rem; color:#cbd5e1;">On Hold</span><div style="font-size:0.75rem; font-weight:800; color:#a78bfa;">8</div></div>
+              <div style="background:rgba(255,255,255,0.03); padding:0.15rem; border-radius:4px;"><span style="font-size:0.5rem; color:#cbd5e1;">Cancel</span><div style="font-size:0.75rem; font-weight:800; color:#ef4444;">4</div></div>
+            </div>
+
+            <div style="flex:1; overflow-y:auto; font-size:0.58rem;">
+              <table style="width:100%; border-collapse:collapse;" id="ops-summary-table">
+                <!-- Populated by JS -->
+              </table>
+            </div>
+          </div>
+
+          <!-- Box 8: IMPACT OVERVIEW & IMPACT TREND Chart -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.45rem; height:100%;">
+            <div style="font-weight:800; font-size:0.75rem; color:#fff; margin-bottom:0.15rem;">IMPACT OVERVIEW</div>
+
+            <!-- 4 Damage Cards -->
+            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:0.25rem; text-align:center; margin-bottom:0.25rem;">
+              <div style="background:rgba(255,255,255,0.03); padding:0.2rem; border-radius:4px;">
+                <div style="font-size:0.5rem; color:#cbd5e1;">Affected Pop</div>
+                <div style="font-size:0.75rem; font-weight:800; color:#fff;">245,630</div>
+                <div style="font-size:0.48rem; color:#10b981;">↑ 14%</div>
+              </div>
+              <div style="background:rgba(255,255,255,0.03); padding:0.2rem; border-radius:4px;">
+                <div style="font-size:0.5rem; color:#cbd5e1;">Damaged Houses</div>
+                <div style="font-size:0.75rem; font-weight:800; color:#fff;">18,746</div>
+                <div style="font-size:0.48rem; color:#10b981;">↑ 11%</div>
+              </div>
+              <div style="background:rgba(255,255,255,0.03); padding:0.2rem; border-radius:4px;">
+                <div style="font-size:0.5rem; color:#cbd5e1;">Villages</div>
+                <div style="font-size:0.75rem; font-weight:800; color:#fff;">326</div>
+                <div style="font-size:0.48rem; color:#10b981;">↑ 8%</div>
+              </div>
+              <div style="background:rgba(255,255,255,0.03); padding:0.2rem; border-radius:4px;">
+                <div style="font-size:0.5rem; color:#cbd5e1;">Infra Damage</div>
+                <div style="font-size:0.75rem; font-weight:800; color:#fff;">₹1,245 Cr</div>
+                <div style="font-size:0.48rem; color:#10b981;">↑ 13%</div>
+              </div>
+            </div>
+
+            <!-- Multi-Line Impact Trend -->
+            <div style="flex:1; position:relative; width:100%; height:100%;">
+              <svg width="100%" height="100%" viewBox="0 0 240 40" preserveAspectRatio="none">
+                <path d="M 10 32 L 45 28 L 80 24 L 115 18 L 150 14 L 185 10 L 230 6" fill="none" stroke="#2563eb" stroke-width="2"/>
+                <path d="M 10 35 L 45 33 L 80 30 L 115 26 L 150 22 L 185 18 L 230 14" fill="none" stroke="#f59e0b" stroke-width="2"/>
+                <path d="M 10 38 L 45 37 L 80 35 L 115 33 L 150 31 L 185 29 L 230 27" fill="none" stroke="#a78bfa" stroke-width="2"/>
+
+                <text x="10" y="39" fill="#cbd5e1" font-size="4">Aug 6</text>
+                <text x="45" y="39" fill="#cbd5e1" font-size="4">Aug 7</text>
+                <text x="80" y="39" fill="#cbd5e1" font-size="4">Aug 8</text>
+                <text x="115" y="39" fill="#cbd5e1" font-size="4">Aug 9</text>
+                <text x="150" y="39" fill="#cbd5e1" font-size="4">Aug 10</text>
+                <text x="185" y="39" fill="#cbd5e1" font-size="4">Aug 11</text>
+                <text x="225" y="39" fill="#cbd5e1" font-size="4">Aug 12</text>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Box 9: 🤖 AI INSIGHTS & KEY TAKEAWAYS -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.45rem; background:rgba(6,12,28,0.95); border:1px solid rgba(59,130,246,0.35); height:100%;">
+            <div style="font-weight:800; font-size:0.75rem; color:#fff; margin-bottom:0.15rem; display:flex; align-items:center; gap:0.3rem;">
+              <i class="fa-solid fa-brain" style="color:#38bdf8;"></i> AI INSIGHTS &amp; KEY TAKEAWAYS
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:0.18rem; font-size:0.58rem; flex:1;" id="ai-takeaways-container">
+              <!-- Populated by JS -->
+            </div>
+
+            <button style="width:100%; background:rgba(37,99,235,0.2); border:1px solid rgba(59,130,246,0.3); color:#38bdf8; font-size:0.58rem; font-weight:700; padding:0.2rem; border-radius:4px; cursor:pointer; margin-top:auto;" onclick="alert('Opening Full AI Analytics & Predictive Insights Report...')">
+              View Detailed Insights
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Sticky Bottom Meta Footer -->
+      <footer class="r-footer-bar">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.25)"/>
+          </svg>
+          <span><strong>AEGIS Rescue Command System</strong> &bull; Empowering Teams. Saving Lives.</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <span><i class="fa-solid fa-shield-halved" style="color:#10b981;"></i> Secure</span>
+          <span>&bull;</span>
+          <span><i class="fa-solid fa-lock" style="color:#38bdf8;"></i> Encrypted</span>
+          <span>&bull;</span>
+          <span><i class="fa-solid fa-location-crosshairs" style="color:#f59e0b;"></i> GPS Tracking</span>
+          <span>&bull;</span>
+          <span><i class="fa-solid fa-arrows-rotate" style="color:#a78bfa;"></i> Real-time Sync</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span>Data Source: ASDMA | CWC | IMD | Local Authorities</span>
+          <span>&bull;</span>
+          <span>Last Updated: 12 Aug 2026, 10:40 AM</span>
+          <span>&bull;</span>
+          <span style="color:#10b981; font-weight:700;">🟢 Live</span>
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- Data Interactivity Logic -->
+  <script src="js/rescue-analytics-data.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Render Summary KPIs
+      const k = rescueAnalyticsData.summaryKpis;
+      document.getElementById('kpi-total-sos').innerText = k.totalSos;
+      document.getElementById('kpi-total-rescues').innerText = k.totalRescues;
+      document.getElementById('kpi-people-rescued').innerText = k.peopleRescued;
+      document.getElementById('kpi-avg-resp').innerText = k.avgResponseTime;
+      document.getElementById('kpi-success-rate').innerText = k.successRate;
+      document.getElementById('kpi-resources').innerText = k.resourcesDeployed;
+      document.getElementById('kpi-shelter-occ').innerText = k.shelterOccupancy;
+
+      // 2. Render Consoles & Tables
+      renderSosDistrictLegend();
+      renderDistrictRankingTable();
+      renderResourceUtilBars();
+      renderOpsSummaryTable();
+      renderAiTakeaways();
+    });
+
+    function renderSosDistrictLegend() {
+      const container = document.getElementById('sos-district-legend');
+      container.innerHTML = '';
+
+      rescueAnalyticsData.sosByDistrict.slices.forEach(sl => {
+        const div = document.createElement('div');
+        div.innerHTML = `<strong style="color:${sl.color};">■ ${sl.district}:</strong> ${sl.count} (${sl.pct})`;
+        container.appendChild(div);
+      });
+    }
+
+    function renderDistrictRankingTable() {
+      const table = document.getElementById('district-rank-table');
+      table.innerHTML = `
+        <thead>
+          <tr style="border-bottom:1px solid rgba(59,130,246,0.2); color:#94a3b8; font-size:0.58rem; text-align:left;">
+            <th style="padding:2px 4px;">Rank</th>
+            <th style="padding:2px 4px;">District</th>
+            <th style="padding:2px 4px;">SOS Handled</th>
+            <th style="padding:2px 4px;">People Rescued</th>
+            <th style="padding:2px 4px;">Avg Response</th>
+            <th style="padding:2px 4px;">Success Rate</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `;
+
+      const tbody = table.querySelector('tbody');
+      rescueAnalyticsData.districtRanking.forEach(d => {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid rgba(255,255,255,0.04)';
+        tr.innerHTML = `
+          <td style="padding:2.5px 4px; font-weight:800; color:#38bdf8;">${d.badge}</td>
+          <td style="padding:2.5px 4px; font-weight:700; color:#fff;">${d.district}</td>
+          <td style="padding:2.5px 4px; color:#cbd5e1;">${d.sos}</td>
+          <td style="padding:2.5px 4px; color:#10b981; font-weight:700;">${d.rescued.toLocaleString()}</td>
+          <td style="padding:2.5px 4px; color:#38bdf8;">${d.responseTime}</td>
+          <td style="padding:2.5px 4px; font-weight:800; color:#10b981;">${d.success}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderResourceUtilBars() {
+      const container = document.getElementById('resource-util-bars');
+      container.innerHTML = '';
+
+      rescueAnalyticsData.resourceUtilization.bars.forEach(rb => {
+        const div = document.createElement('div');
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; margin-bottom:1px;">
+            <span style="color:#cbd5e1;"><i class="fa-solid ${rb.icon}" style="color:${rb.color}; font-size:9px; margin-right:3px;"></i> ${rb.name}</span>
+            <strong style="color:${rb.color};">${rb.pct}%</strong>
+          </div>
+          <div style="background:rgba(255,255,255,0.08); height:3.5px; border-radius:2px; overflow:hidden;">
+            <div style="width:${rb.pct}%; background:${rb.color}; height:100%;"></div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderOpsSummaryTable() {
+      const table = document.getElementById('ops-summary-table');
+      table.innerHTML = `
+        <thead>
+          <tr style="border-bottom:1px solid rgba(59,130,246,0.2); color:#94a3b8; font-size:0.58rem; text-align:left;">
+            <th style="padding:2px 4px;">Mission Type</th>
+            <th style="padding:2px 4px;">Active</th>
+            <th style="padding:2px 4px;">Completed</th>
+            <th style="padding:2px 4px;">Success Rate</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `;
+
+      const tbody = table.querySelector('tbody');
+      rescueAnalyticsData.operationsSummary.byType.forEach(op => {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid rgba(255,255,255,0.04)';
+        tr.innerHTML = `
+          <td style="padding:2.5px 4px; font-weight:700; color:#fff;">${op.type}</td>
+          <td style="padding:2.5px 4px; color:#38bdf8;">${op.active}</td>
+          <td style="padding:2.5px 4px; color:#10b981; font-weight:700;">${op.completed}</td>
+          <td style="padding:2.5px 4px; font-weight:800; color:#10b981;">${op.success}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderAiTakeaways() {
+      const container = document.getElementById('ai-takeaways-container');
+      container.innerHTML = '';
+
+      rescueAnalyticsData.aiInsights.forEach(ai => {
+        const div = document.createElement('div');
+        div.style.display = 'flex';
+        div.style.gap = '0.35rem';
+        div.style.alignItems = 'flex-start';
+
+        div.innerHTML = `
+          <i class="fa-solid ${ai.icon}" style="color:${ai.color}; margin-top:2px; font-size:11px;"></i>
+          <div>
+            <strong style="color:#fff; display:block;">${ai.title}</strong>
+            <span style="color:#cbd5e1; font-size:0.55rem;">${ai.text}</span>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+  </script>
+</body>
+</html>

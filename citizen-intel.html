@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Intelligence Hub & Safe Routes - AEGIS</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Master Citizen Stylesheet -->
+  <link rel="stylesheet" href="citizen-styles.css">
+
+  <!-- Master Citizen Script (Loaded early for global alert & telemetry tools) -->
+  <script src="js/citizen.js?v=3.0"></script>
+
+  <!-- Firebase SDK (Compat Version) & Auth Module -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="js/firebase-auth.js?v=3.0"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      background-color: #030712;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #f1f5f9;
+      font-size: 13.5px;
+      line-height: 1.38;
+    }
+
+    .intel-layout-container {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+
+    /* Left Navigation Sidebar */
+    .intel-sidebar {
+      background: #060b18;
+      border-right: 1px solid rgba(59, 130, 246, 0.18);
+      display: flex;
+      flex-direction: column;
+      padding: 0.85rem 0.75rem;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .intel-sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.2rem 0.4rem 0.75rem 0.4rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 0.55rem;
+    }
+
+    .intel-nav-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 0.18rem;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .intel-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.48rem 0.75rem;
+      color: #94a3b8;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.825rem;
+      border-radius: 8px;
+      transition: all 0.18s ease;
+      cursor: pointer;
+    }
+
+    .intel-nav-item:hover {
+      background: rgba(59, 130, 246, 0.12);
+      color: #ffffff;
+    }
+
+    .intel-nav-item.active {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    }
+
+    .intel-emergency-card {
+      background: linear-gradient(180deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.22) 100%);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: 10px;
+      padding: 0.65rem;
+      text-align: center;
+      margin-top: 0.45rem;
+      position: relative;
+    }
+
+    /* Main Area */
+    .intel-main-area {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      background: #030712;
+    }
+
+    /* Top Bar */
+    .intel-topbar {
+      height: 48px;
+      background: #070d1d;
+      border-bottom: 1px solid rgba(59, 130, 246, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .district-select-box {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      color: #f1f5f9;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.3rem 0.85rem;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .district-select-box select {
+      background: transparent;
+      border: none;
+      color: #f1f5f9;
+      font-weight: 700;
+      font-size: 0.8rem;
+      outline: none;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .district-select-box select option {
+      background: #070d1d;
+      color: #fff;
+    }
+
+    /* 4 Telemetry Metrics Cards */
+    .intel-stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.65rem;
+      padding: 0.45rem 1.15rem;
+      flex-shrink: 0;
+    }
+
+    .intel-stat-card {
+      background: #060c1c;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      border-radius: 8px;
+      padding: 0.45rem 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    /* Workspace 2-Column Master Grid */
+    .intel-workspace-grid {
+      display: grid;
+      grid-template-columns: 1fr 310px;
+      gap: 0.85rem;
+      padding: 0 1.15rem 0.55rem 1.15rem;
+      flex: 1;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    /* Left Master Section */
+    .intel-left-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      overflow: hidden;
+    }
+
+    /* Map Box with Route Telemetry */
+    .route-map-container {
+      background: #060c1c;
+      border: 1px solid rgba(59, 130, 246, 0.22);
+      border-radius: 10px;
+      padding: 0.65rem 0.85rem;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .route-map-split {
+      display: grid;
+      grid-template-columns: 175px 1fr;
+      gap: 0.75rem;
+      flex: 1;
+      min-height: 0;
+      margin-top: 0.35rem;
+    }
+
+    #intel-leaflet-map {
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(59, 130, 246, 0.25);
+    }
+
+    /* Bottom Alternate Routes Strip */
+    .alternate-routes-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr 190px;
+      gap: 0.65rem;
+      flex-shrink: 0;
+    }
+
+    .alt-route-card {
+      background: #060c1c;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      border-radius: 8px;
+      padding: 0.55rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* Right Column (Route Summary, Conditions, Guidelines, Nav Button) */
+    .intel-right-col {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      overflow: hidden;
+    }
+
+    .intel-panel-card {
+      background: #060c1c;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      border-radius: 10px;
+      padding: 0.65rem 0.85rem;
+    }
+
+    /* Sticky Footer */
+    .intel-footer-bar {
+      height: 32px;
+      background: #040813;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.15rem;
+      font-size: 0.685rem;
+      color: #64748b;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="intel-layout-container">
+    <!-- Left Navigation Sidebar -->
+    <aside class="intel-sidebar">
+      <div class="intel-sidebar-logo">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.25)"/>
+          <path d="M12 8v8M8 12h8" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <div style="font-weight: 800; font-size: 1.15rem; color: #fff; line-height: 1;">AEGIS</div>
+          <div style="font-size: 0.58rem; color: #94a3b8; font-weight: 500;">Stronger Together, Safer Together.</div>
+        </div>
+      </div>
+
+      <nav class="intel-nav-menu">
+        <a class="intel-nav-item" onclick="location.href='citizen-dashboard.html'"><i class="fa-solid fa-house"></i> Dashboard</a>
+        <a class="intel-nav-item" onclick="location.href='citizen-ai.html'"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Command Center</a>
+        <a class="intel-nav-item active" onclick="location.href='citizen-intel.html'"><i class="fa-solid fa-route"></i> Safe Routes</a>
+        <a class="intel-nav-item" onclick="location.href='citizen-shelters.html'"><i class="fa-solid fa-campground"></i> Shelter Network</a>
+        <a class="intel-nav-item" onclick="location.href='citizen-sos.html'"><i class="fa-solid fa-circle-exclamation" style="color:#ef4444;"></i> SOS Reports</a>
+        <a class="intel-nav-item" onclick="location.href='citizen-tracking.html'"><i class="fa-solid fa-location-crosshairs"></i> My SOS / Tracking</a>
+        <a class="intel-nav-item" onclick="location.href='citizen-notifications.html'"><i class="fa-solid fa-bell"></i> Notifications</a>
+        <a class="intel-nav-item" onclick="location.href='citizen-contacts.html'"><i class="fa-solid fa-phone"></i> Emergency Contacts</a>
+        <a class="intel-nav-item" onclick="location.href='citizen-profile.html'"><i class="fa-solid fa-gear"></i> Profile & Settings</a>
+        <a class="intel-nav-item" onclick="location.href='citizen-help.html'"><i class="fa-solid fa-circle-question"></i> Help & Support</a>
+        <a class="intel-nav-item" onclick="location.href='index.html'" style="margin-top:auto; color:#ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+      </nav>
+
+      <!-- Emergency Hotline Card -->
+      <div class="intel-emergency-card">
+        <div style="font-size: 0.65rem; color: #fca5a5; font-weight: 700;">In case of emergency</div>
+        <div style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin: 0.15rem 0;"><i class="fa-solid fa-phone-volume" style="color:#ef4444"></i> Call 112</div>
+        <div style="font-size: 0.625rem; color: #cbd5e1; margin-bottom: 0.25rem;">or send SOS instantly</div>
+        
+        <div style="display:flex; justify-content:center; margin-top:0.35rem;">
+          <svg width="110" height="32" viewBox="0 0 120 35" fill="none">
+            <path d="M10 25 Q35 15 60 25 T110 25" stroke="#38bdf8" stroke-width="2" fill="none" opacity="0.6"/>
+            <path d="M25 22 L95 22 L85 30 L35 30 Z" fill="#ea580c"/>
+            <circle cx="45" cy="14" r="4" fill="#fbbf24"/>
+            <circle cx="60" cy="13" r="4" fill="#60a5fa"/>
+            <circle cx="75" cy="14" r="4" fill="#34d399"/>
+            <path d="M45 18 L45 22 M60 17 L60 22 M75 18 L75 22" stroke="#fff" stroke-width="2"/>
+          </svg>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Area -->
+    <main class="intel-main-area">
+      <!-- Top Bar -->
+      <header class="intel-topbar">
+        <div style="display:flex; align-items:center; gap:0.65rem;">
+          <div class="district-select-box">
+            <i class="fa-solid fa-location-dot" style="color:#38bdf8;"></i>
+            <select id="intel-district-select" onchange="renderIntelForDistrict(this.value)">
+              <!-- Upper Assam -->
+              <option value="Golaghat" selected>Golaghat District, Assam</option>
+              <option value="Jorhat">Jorhat District, Assam</option>
+              <option value="Dibrugarh">Dibrugarh District, Assam</option>
+              <option value="Sivasagar">Sivasagar District, Assam</option>
+              <option value="Tinsukia">Tinsukia District, Assam</option>
+              <option value="Dhemaji">Dhemaji District, Assam</option>
+              <option value="Lakhimpur">Lakhimpur District, Assam</option>
+              <!-- Central Assam -->
+              <option value="Nagaon">Nagaon District, Assam</option>
+              <option value="Hojai">Hojai District, Assam</option>
+              <option value="Morigaon">Morigaon District, Assam</option>
+              <option value="Dima Hasao">Dima Hasao District, Assam</option>
+              <option value="East Karbi Anglong">East Karbi Anglong District, Assam</option>
+              <!-- Lower & North Assam -->
+              <option value="Kamrup Metropolitan">Kamrup Metropolitan (Guwahati), Assam</option>
+              <option value="Darrang">Darrang District, Assam</option>
+              <option value="Barpeta">Barpeta District, Assam</option>
+              <option value="Sonitpur">Sonitpur District, Assam</option>
+              <option value="Dhubri">Dhubri District, Assam</option>
+              <option value="Goalpara">Goalpara District, Assam</option>
+              <!-- Barak Valley -->
+              <option value="Cachar">Cachar District, Assam</option>
+              <option value="Hailakandi">Hailakandi District, Assam</option>
+              <option value="Karimganj">Karimganj District, Assam</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:1rem;">
+          <div style="position:relative; cursor:pointer;" onclick="location.href='citizen-notifications.html'">
+            <i class="fa-solid fa-bell" style="color:#94a3b8; font-size:1.05rem;"></i>
+            <span style="position:absolute; top:-4px; right:-6px; background:#ef4444; color:#fff; font-size:0.55rem; font-weight:800; padding:1px 4px; border-radius:50%;">3</span>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:0.55rem; cursor:pointer;" onclick="location.href='citizen-profile.html'">
+            <div style="position:relative;">
+              <img class="citizen-user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid #38bdf8;" alt="Avatar">
+              <span style="position:absolute; bottom:0; right:0; width:8px; height:8px; background:#10b981; border:2px solid #070d1d; border-radius:50%;"></span>
+            </div>
+            <div style="text-align:left;">
+              <div class="citizen-user-name" style="font-size:0.785rem; font-weight:700; color:#fff; line-height:1.1;">Ravi Das</div>
+              <div class="citizen-user-email" style="font-size:0.625rem; color:#94a3b8;">ravi.das@email.com</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Intelligence Hub Header Banner -->
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:0.55rem 1.15rem 0.25rem 1.15rem;">
+        <div style="display:flex; align-items:center; gap:0.65rem;">
+          <div style="width:32px; height:32px; border-radius:50%; background:rgba(37,99,235,0.2); color:#38bdf8; display:flex; align-items:center; justify-content:center; font-size:0.95rem; border:1px solid rgba(59,130,246,0.4);">
+            <i class="fa-solid fa-route"></i>
+          </div>
+          <div>
+            <div style="font-weight:800; font-size:1.05rem; color:#fff; line-height:1.1;">INTELLIGENCE HUB</div>
+            <div style="font-size:0.7rem; color:#94a3b8;">AI-powered recommendations for safe routes, shelters and real-time flood insights.</div>
+          </div>
+        </div>
+        
+        <div style="display:flex; align-items:center; gap:0.55rem;">
+          <div style="display:flex; align-items:center; gap:0.4rem; font-size:0.72rem; color:#a78bfa; background:rgba(139,92,246,0.12); border:1px solid rgba(139,92,246,0.3); padding:0.25rem 0.65rem; border-radius:6px; font-weight:600;">
+            <i class="fa-solid fa-robot"></i> AI Powered
+          </div>
+          <button class="btn btn-outline" style="font-size:0.72rem; padding:0.25rem 0.65rem; color:#cbd5e1; border-color:rgba(255,255,255,0.18);" onclick="showCustomAlert('🤖 AEGIS Route Engine Intelligence', '1. Scans river water depths and breached causeways.\n2. Computes shortest road-following detour to the nearest operational shelter.\n3. Updates turn-by-turn road conditions in real-time.', 'ai')">
+            <i class="fa-solid fa-circle-info"></i> How it works
+          </button>
+        </div>
+      </div>
+
+      <!-- Ask AEGIS Bar & Prompt Chips -->
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:0.65rem; padding:0 1.15rem 0.35rem 1.15rem; flex-shrink:0;">
+        <div style="display:flex; align-items:center; gap:0.4rem; overflow-x:auto;">
+          <span style="font-size:0.72rem; font-weight:700; color:#38bdf8; white-space:nowrap;">Ask AEGIS:</span>
+          <span class="btn btn-outline" style="font-size:0.685rem; padding:0.2rem 0.55rem; border-radius:14px; color:#cbd5e1; border-color:rgba(255,255,255,0.12); cursor:pointer;" onclick="askAegis('Where is the nearest safe shelter?')">Where is the nearest safe shelter?</span>
+          <span class="btn btn-outline" style="font-size:0.685rem; padding:0.2rem 0.55rem; border-radius:14px; color:#cbd5e1; border-color:rgba(255,255,255,0.12); cursor:pointer;" onclick="askAegis('Which route is safe from here?')">Which route is safe from here?</span>
+          <span class="btn btn-outline" style="font-size:0.685rem; padding:0.2rem 0.55rem; border-radius:14px; color:#cbd5e1; border-color:rgba(255,255,255,0.12); cursor:pointer;" onclick="askAegis('Water level in my area')">Water level in my area</span>
+          <span class="btn btn-outline" style="font-size:0.685rem; padding:0.2rem 0.55rem; border-radius:14px; color:#cbd5e1; border-color:rgba(255,255,255,0.12); cursor:pointer;" onclick="askAegis('Is it safe to travel now?')">Is it safe to travel now?</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.35rem;">
+          <input type="text" id="aegis-quick-input" placeholder="Type your question..." style="background:#060c1c; border:1px solid rgba(59,130,246,0.25); color:#fff; font-size:0.75rem; padding:0.25rem 0.65rem; border-radius:6px; outline:none; width:180px;">
+          <button class="btn btn-primary" style="padding:0.25rem 0.6rem; font-size:0.72rem; border-radius:6px;" onclick="askAegis(document.getElementById('aegis-quick-input').value)">
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 Telemetry Metrics Cards -->
+      <div class="intel-stats-bar">
+        <!-- Stat 1: Current Location -->
+        <div class="intel-stat-card">
+          <div style="width:32px; height:32px; border-radius:50%; background:rgba(37,99,235,0.2); color:#38bdf8; display:flex; align-items:center; justify-content:center; font-size:0.85rem; flex-shrink:0;">
+            <i class="fa-solid fa-location-crosshairs"></i>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:0.625rem; color:#94a3b8;">Current Location</div>
+            <div style="font-size:0.85rem; font-weight:800; color:#fff;" id="intel-user-town">Golaghat Town</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.58rem; color:#64748b;">
+              <span>Assam</span>
+              <a href="#" style="color:#38bdf8; text-decoration:none;" onclick="showCustomAlert('📍 GPS Location Refreshed', 'GPS synchronized to current district center.', 'info')">Update Location <i class="fa-solid fa-arrows-rotate"></i></a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stat 2: Flood Risk in Area -->
+        <div class="intel-stat-card">
+          <div style="width:32px; height:32px; border-radius:50%; background:rgba(239,68,68,0.2); color:#ef4444; display:flex; align-items:center; justify-content:center; font-size:0.85rem; flex-shrink:0;">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:0.625rem; color:#94a3b8;">Flood Risk in Your Area</div>
+            <div style="font-size:0.85rem; font-weight:800; color:#ef4444;" id="intel-risk-level">HIGH</div>
+            <div style="font-size:0.58rem; color:#94a3b8;">Stay alert and avoid low-lying areas.</div>
+          </div>
+        </div>
+
+        <!-- Stat 3: Nearest Safe Shelter -->
+        <div class="intel-stat-card">
+          <div style="width:32px; height:32px; border-radius:50%; background:rgba(16,185,129,0.2); color:#10b981; display:flex; align-items:center; justify-content:center; font-size:0.85rem; flex-shrink:0;">
+            <i class="fa-solid fa-campground"></i>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:0.625rem; color:#94a3b8;">Nearest Safe Shelter</div>
+            <div style="font-size:0.825rem; font-weight:800; color:#fff;" id="intel-shelter-title">Golaghat Relief Camp</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.58rem;">
+              <span style="color:#94a3b8;" id="intel-shelter-dist">2.4 km away</span>
+              <a href="citizen-shelters.html" style="color:#10b981; font-weight:700; text-decoration:none;">View Shelter &rarr;</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stat 4: Weather Alert -->
+        <div class="intel-stat-card">
+          <div style="width:32px; height:32px; border-radius:50%; background:rgba(6,182,212,0.2); color:#06b6d4; display:flex; align-items:center; justify-content:center; font-size:0.85rem; flex-shrink:0;">
+            <i class="fa-solid fa-cloud-showers-heavy"></i>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:0.625rem; color:#94a3b8;">Weather Alert</div>
+            <div style="font-size:0.825rem; font-weight:800; color:#fff;">Heavy Rainfall</div>
+            <div style="font-size:0.58rem; color:#94a3b8;">Expected for next 6 hours &bull; IMD</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Workspace 2-Column Grid -->
+      <div class="intel-workspace-grid">
+        
+        <!-- Left: Master Route Console -->
+        <div class="intel-left-section">
+          
+          <!-- AI RECOMMENDED SAFE ROUTE Container -->
+          <div class="route-map-container">
+            <!-- Header -->
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div style="display:flex; align-items:center; gap:0.55rem;">
+                <span style="font-weight:800; font-size:0.925rem; color:#fff;">AI RECOMMENDED SAFE ROUTE</span>
+                <span style="background:rgba(16,185,129,0.25); color:#10b981; font-size:0.625rem; font-weight:800; padding:1.5px 6px; border-radius:4px;">Best Route</span>
+              </div>
+
+              <!-- Route Safety Legend -->
+              <div style="display:flex; align-items:center; gap:0.65rem; font-size:0.685rem;">
+                <span style="display:flex; align-items:center; gap:0.25rem;"><span style="color:#10b981;">●</span> Safe</span>
+                <span style="display:flex; align-items:center; gap:0.25rem;"><span style="color:#f59e0b;">●</span> Moderate</span>
+                <span style="display:flex; align-items:center; gap:0.25rem;"><span style="color:#ef4444;">●</span> Unsafe</span>
+              </div>
+            </div>
+
+            <!-- Split Box (Left: Route Telemetry | Right: Leaflet Map) -->
+            <div class="route-map-split">
+              
+              <!-- Route Stats -->
+              <div style="display:flex; flex-direction:column; justify-content:space-between; font-size:0.75rem;">
+                <div>
+                  <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:0.25rem; margin-bottom:0.35rem;">
+                    <span style="color:#94a3b8;"><i class="fa-solid fa-route"></i> Total Distance</span>
+                    <strong style="color:#fff;" id="route-dist">2.4 km</strong>
+                  </div>
+
+                  <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:0.25rem; margin-bottom:0.35rem;">
+                    <span style="color:#94a3b8;"><i class="fa-solid fa-clock"></i> Estimated Time</span>
+                    <strong style="color:#fff;" id="route-time">18 mins</strong>
+                  </div>
+
+                  <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:0.25rem; margin-bottom:0.35rem;">
+                    <span style="color:#94a3b8;"><i class="fa-solid fa-shield-halved"></i> Route Safety</span>
+                    <strong style="color:#10b981;">Safe</strong>
+                  </div>
+
+                  <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:0.25rem; margin-bottom:0.35rem;">
+                    <span style="color:#94a3b8;"><i class="fa-solid fa-car"></i> Traffic Status</span>
+                    <strong style="color:#10b981;">Light</strong>
+                  </div>
+
+                  <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:0.25rem; margin-bottom:0.35rem;">
+                    <span style="color:#94a3b8;"><i class="fa-solid fa-water"></i> Flood Risk</span>
+                    <strong style="color:#10b981;">Low</strong>
+                  </div>
+
+                  <div style="display:flex; justify-content:space-between;">
+                    <span style="color:#94a3b8;"><i class="fa-solid fa-road"></i> Conditions</span>
+                    <strong style="color:#10b981;">Good</strong>
+                  </div>
+                </div>
+
+                <!-- Callout Box -->
+                <div style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:6px; padding:0.35rem 0.55rem; font-size:0.685rem; color:#a7f3d0; display:flex; align-items:center; gap:0.4rem; margin-top:0.35rem;">
+                  <i class="fa-solid fa-shield-check" style="color:#10b981; font-size:0.9rem;"></i>
+                  <span>This route is safest for current conditions.</span>
+                </div>
+              </div>
+
+              <!-- Center Leaflet Map -->
+              <div style="position:relative; height:100%; border-radius:8px; overflow:hidden;">
+                <div id="intel-leaflet-map"></div>
+
+                <!-- Map Bottom Legend -->
+                <div style="position:absolute; bottom:8px; left:8px; z-index:1000; background:rgba(6,12,28,0.92); border:1px solid rgba(59,130,246,0.3); border-radius:6px; padding:0.25rem 0.55rem; font-size:0.625rem; display:flex; align-items:center; gap:0.65rem; color:#cbd5e1;">
+                  <span style="display:flex; align-items:center; gap:0.25rem;"><span style="color:#10b981;">━</span> Safe Route</span>
+                  <span style="display:flex; align-items:center; gap:0.25rem;"><span style="color:#f59e0b;">━</span> Moderate Risk</span>
+                  <span style="display:flex; align-items:center; gap:0.25rem;"><span style="color:#ef4444;">━</span> Unsafe Route</span>
+                  <span style="display:flex; align-items:center; gap:0.25rem;">🔴 Blocked Road</span>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Disclaimer -->
+            <div style="font-size:0.625rem; color:#64748b; margin-top:0.35rem; display:flex; align-items:center; gap:0.35rem;">
+              <i class="fa-solid fa-circle-info" style="color:#38bdf8;"></i>
+              <span>Route recommendations may change with real-time updates. Follow official instructions.</span>
+            </div>
+          </div>
+
+          <!-- Bottom: Alternate Routes Strip -->
+          <div class="alternate-routes-strip">
+            
+            <!-- Alternate Route 1 -->
+            <div class="alt-route-card" style="border-left:3px solid #f59e0b;">
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-weight:800; font-size:0.785rem; color:#f59e0b;">Alternate Route 1</span>
+                  <span style="font-size:0.65rem; color:#94a3b8;">3.1 km &bull; 22 mins</span>
+                </div>
+                <div style="font-size:0.65rem; color:#cbd5e1; margin-top:0.25rem;">
+                  <div>&bull; Moderate risk due to waterlogging</div>
+                  <div>&bull; Small patches of water on road</div>
+                </div>
+              </div>
+              <button class="btn btn-outline" style="font-size:0.685rem; padding:0.25rem; border-color:#f59e0b; color:#f59e0b; margin-top:0.35rem;" onclick="showAlternateRoute(1)">
+                View Route &rarr;
+              </button>
+            </div>
+
+            <!-- Alternate Route 2 -->
+            <div class="alt-route-card" style="border-left:3px solid #ef4444;">
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-weight:800; font-size:0.785rem; color:#ef4444;">Alternate Route 2</span>
+                  <span style="font-size:0.65rem; color:#94a3b8;">4.2 km &bull; 28 mins</span>
+                </div>
+                <div style="font-size:0.65rem; color:#cbd5e1; margin-top:0.25rem;">
+                  <div>&bull; High risk - avoid if possible</div>
+                  <div>&bull; Multiple flooded stretches</div>
+                </div>
+              </div>
+              <button class="btn btn-outline" style="font-size:0.685rem; padding:0.25rem; border-color:#ef4444; color:#ef4444; margin-top:0.35rem;" onclick="showAlternateRoute(2)">
+                View Route &rarr;
+              </button>
+            </div>
+
+            <!-- AI Tip Card -->
+            <div class="alt-route-card" style="background:rgba(37,99,235,0.1); border-color:rgba(59,130,246,0.3);">
+              <div style="display:flex; align-items:center; gap:0.4rem; color:#38bdf8; font-weight:800; font-size:0.75rem;">
+                <i class="fa-solid fa-robot"></i> AI Tip
+              </div>
+              <div style="font-size:0.685rem; color:#cbd5e1; line-height:1.35; margin:0.3rem 0;">
+                Start early to reach the shelter safely. Avoid night travel.
+              </div>
+              <div style="font-size:0.58rem; color:#94a3b8;">Updated real-time</div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Right Column: Route Summary, Conditions, Guidelines -->
+        <div class="intel-right-col">
+          
+          <!-- 1. Route Summary -->
+          <div class="intel-panel-card">
+            <div style="font-weight:800; font-size:0.825rem; color:#fff; margin-bottom:0.45rem;">ROUTE SUMMARY</div>
+            
+            <div style="display:flex; flex-direction:column; gap:0.35rem; font-size:0.75rem;">
+              <div style="display:flex; gap:0.45rem; align-items:flex-start;">
+                <span style="color:#38bdf8;">●</span>
+                <div>
+                  <div style="font-size:0.625rem; color:#94a3b8;">From</div>
+                  <div style="font-weight:700; color:#fff;" id="sum-from">Your Location (Golaghat Town)</div>
+                </div>
+              </div>
+
+              <div style="display:flex; gap:0.45rem; align-items:flex-start;">
+                <span style="color:#10b981;">●</span>
+                <div>
+                  <div style="font-size:0.625rem; color:#94a3b8;">To</div>
+                  <div style="font-weight:700; color:#10b981;" id="sum-to">Golaghat Relief Camp</div>
+                </div>
+              </div>
+
+              <div style="display:flex; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.06); padding-top:0.35rem; margin-top:0.2rem;">
+                <span style="color:#94a3b8;">Distance</span>
+                <strong style="color:#fff;" id="sum-dist">2.4 km</strong>
+              </div>
+
+              <div style="display:flex; justify-content:space-between;">
+                <span style="color:#94a3b8;">Estimated Time</span>
+                <strong style="color:#fff;" id="sum-time">18 mins</strong>
+              </div>
+
+              <div style="display:flex; justify-content:space-between;">
+                <span style="color:#94a3b8;">Best Time to Travel</span>
+                <strong style="color:#10b981;">Now</strong>
+              </div>
+
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="color:#94a3b8;">Safety Score</span>
+                <span style="background:rgba(16,185,129,0.2); color:#10b981; font-weight:800; font-size:0.75rem; padding:1.5px 6px; border-radius:4px;">
+                  <i class="fa-solid fa-shield-check"></i> 92 / 100 Excellent
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Road Conditions on Route -->
+          <div class="intel-panel-card">
+            <div style="font-weight:800; font-size:0.825rem; color:#fff; margin-bottom:0.35rem;">ROAD CONDITIONS ON ROUTE</div>
+            
+            <div style="display:flex; flex-direction:column; gap:0.3rem; font-size:0.72rem;">
+              <div style="display:flex; justify-content:space-between;">
+                <span style="color:#cbd5e1;"><i class="fa-solid fa-road" style="color:#38bdf8;"></i> <span id="road-1-name">NH-715 (Golaghat Road)</span></span>
+                <strong style="color:#10b981;">Good</strong>
+              </div>
+              <div style="display:flex; justify-content:space-between;">
+                <span style="color:#cbd5e1;"><i class="fa-solid fa-road" style="color:#38bdf8;"></i> Link Road via Camp</span>
+                <strong style="color:#10b981;">Good</strong>
+              </div>
+              <div style="display:flex; justify-content:space-between;">
+                <span style="color:#cbd5e1;"><i class="fa-solid fa-bridge" style="color:#38bdf8;"></i> Pulibong Bridge</span>
+                <strong style="color:#10b981;">Good</strong>
+              </div>
+              <div style="display:flex; justify-content:space-between;">
+                <span style="color:#cbd5e1;"><i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;"></i> Flood Risk Zones</span>
+                <strong style="color:#10b981;">Low</strong>
+              </div>
+              <div style="display:flex; justify-content:space-between;">
+                <span style="color:#cbd5e1;"><i class="fa-solid fa-water" style="color:#38bdf8;"></i> Waterlogging Areas</span>
+                <strong style="color:#10b981;">None</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Travel Guidelines -->
+          <div class="intel-panel-card" style="flex:1; display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <div style="font-weight:800; font-size:0.825rem; color:#fff; margin-bottom:0.35rem;">TRAVEL GUIDELINES</div>
+              
+              <div style="display:flex; flex-direction:column; gap:0.25rem; font-size:0.685rem; color:#cbd5e1;">
+                <div><i class="fa-solid fa-triangle-exclamation" style="color:#38bdf8;"></i> Avoid low-lying areas and underpasses.</div>
+                <div><i class="fa-solid fa-person-walking-dashed-line-arrow-right" style="color:#ef4444;"></i> Do not walk through flowing water.</div>
+                <div><i class="fa-solid fa-kit-medical" style="color:#a78bfa;"></i> Carry essential medicines and documents.</div>
+                <div><i class="fa-solid fa-mobile-screen" style="color:#38bdf8;"></i> Stay updated with weather alerts.</div>
+                <div><i class="fa-solid fa-shield" style="color:#10b981;"></i> Follow instructions from authorities.</div>
+              </div>
+            </div>
+
+            <!-- Big Start Navigation Action Button -->
+            <button class="btn btn-primary" style="width:100%; font-size:0.85rem; font-weight:800; padding:0.5rem; border-radius:7px; box-shadow:0 4px 14px rgba(37,99,235,0.4); margin-top:0.45rem;" onclick="startGpsNavigation()">
+              Start Navigation <i class="fa-solid fa-location-arrow"></i>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Sticky Meta Footer -->
+      <footer class="intel-footer-bar">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <i class="fa-solid fa-shield-halved" style="color:#10b981;"></i>
+          <span><strong>Stay Informed. Stay Safe.</strong> AEGIS is with you in every step.</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <span>Real-time Updates</span>
+          <span>&bull;</span>
+          <span>Verified Information</span>
+          <span>&bull;</span>
+          <span>Faster Response</span>
+          <span>|</span>
+          <span>Trusted by Government of Assam</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span>Data Source: ASDMA | IMD | Local Authorities</span>
+          <span>&bull;</span>
+          <span>Last Updated: 12 Aug 2026, 10:35 AM</span>
+          <span>&bull;</span>
+          <span style="color:#10b981; font-weight:700;">🟢 Live</span>
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- Master Application Script -->
+  <script src="js/citizen.js?v=3.0"></script>
+
+  <script>
+    let intelMap = null;
+    let currentMapLayers = [];
+    let currentDistrictData = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Initialize Map with Default OpenStreetMap Tiles
+      intelMap = L.map('intel-leaflet-map', {
+        center: [26.4049, 94.0321],
+        zoom: 12,
+        zoomControl: false
+      });
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap'
+      }).addTo(intelMap);
+
+      // Initial Render for Default District (Golaghat)
+      renderIntelForDistrict('Golaghat');
+
+      setTimeout(() => intelMap.invalidateSize(), 300);
+    });
+
+    // Custom POI Icon Builders
+    function createOriginIcon(label) {
+      return L.divIcon({
+        className: 'custom-map-icon',
+        html: `<div style="background:#2563eb; color:#fff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2.5px solid #fff; box-shadow:0 0 16px #2563eb;"><i class="fa-solid fa-user"></i></div>`,
+        iconSize: [30, 30]
+      });
+    }
+
+    function createShelterIcon(label) {
+      return L.divIcon({
+        className: 'custom-map-icon',
+        html: `<div style="background:#10b981; color:#fff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2.5px solid #fff; box-shadow:0 0 16px rgba(16,185,129,0.85);"><i class="fa-solid fa-campground"></i></div>`,
+        iconSize: [32, 32]
+      });
+    }
+
+    function createHazardIcon() {
+      return L.divIcon({
+        className: 'custom-map-icon',
+        html: `<div style="background:#ef4444; color:#fff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 0 12px rgba(239,68,68,0.85);"><i class="fa-solid fa-triangle-exclamation"></i></div>`,
+        iconSize: [28, 28]
+      });
+    }
+
+    function createWarningIcon() {
+      return L.divIcon({
+        className: 'custom-map-icon',
+        html: `<div style="background:#f59e0b; color:#000; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 0 12px rgba(245,158,11,0.85);"><i class="fa-solid fa-triangle-exclamation"></i></div>`,
+        iconSize: [28, 28]
+      });
+    }
+
+    // Dynamic Render for Selected District
+    function renderIntelForDistrict(districtName) {
+      if (!window.citizenApp) return;
+
+      currentDistrictData = window.citizenApp.getDistrictModelData(districtName);
+
+      // 1. Clear Map Layers
+      currentMapLayers.forEach(l => intelMap.removeLayer(l));
+      currentMapLayers = [];
+
+      const origin = currentDistrictData.citizenOrigin;
+      const shelter = currentDistrictData.shelter;
+      const safeWaypoints = currentDistrictData.safeRouteToShelter || [origin, shelter];
+
+      // 2. Add Green Safe Route Polyline
+      const safePolyline = L.polyline(safeWaypoints, {
+        color: '#10b981',
+        weight: 6,
+        opacity: 0.95,
+        lineCap: 'round',
+        lineJoin: 'round'
+      }).addTo(intelMap).bindTooltip("🟢 AI Recommended Safe Evacuation Route", { sticky: true });
+      currentMapLayers.push(safePolyline);
+
+      // 3. Add Origin Marker
+      const originMarker = L.marker(origin, { icon: createOriginIcon() })
+        .addTo(intelMap)
+        .bindPopup(`<b>Your Location</b><br>${currentDistrictData.district} Town`);
+      currentMapLayers.push(originMarker);
+
+      // 4. Add Shelter Marker
+      const shelterName = currentDistrictData.shelterInfo ? currentDistrictData.shelterInfo.name : 'Relief Shelter';
+      const shelterMarker = L.marker(shelter, { icon: createShelterIcon() })
+        .addTo(intelMap)
+        .bindPopup(`<b>${shelterName}</b><br>${currentDistrictData.shelterInfo ? currentDistrictData.shelterInfo.available : '180'} Beds Available`);
+      currentMapLayers.push(shelterMarker);
+
+      // 5. Add Hazard & Blockage Markers if present
+      if (currentDistrictData.roadBlock) {
+        const hazardMarker = L.marker(currentDistrictData.roadBlock, { icon: createHazardIcon() })
+          .addTo(intelMap)
+          .bindPopup(`<b>Road Blockage (Flooded)</b><br>${currentDistrictData.blockageInfo ? currentDistrictData.blockageInfo.name : 'Impassable causeway'}`);
+        currentMapLayers.push(hazardMarker);
+      }
+
+      if (currentDistrictData.floodedArea) {
+        const warningMarker = L.marker(currentDistrictData.floodedArea, { icon: createWarningIcon() })
+          .addTo(intelMap)
+          .bindPopup(`<b>Active Flood Inundation</b><br>Avoid low-lying river boundary`);
+        currentMapLayers.push(warningMarker);
+      }
+
+      // 6. Auto-fit bounds
+      const bounds = L.latLngBounds([origin, shelter, ...safeWaypoints]);
+      intelMap.fitBounds(bounds.pad(0.3), { animate: true, duration: 0.8 });
+
+      // 7. Update UI Telemetry & Cards
+      const dist = currentDistrictData.shelterInfo ? currentDistrictData.shelterInfo.distance : '2.4 km';
+      document.getElementById('intel-user-town').innerText = `${currentDistrictData.district} Town`;
+      document.getElementById('intel-shelter-title').innerText = shelterName;
+      document.getElementById('intel-shelter-dist').innerText = `${dist} away`;
+
+      document.getElementById('route-dist').innerText = dist;
+      document.getElementById('sum-dist').innerText = dist;
+      document.getElementById('sum-from').innerText = `Your Location (${currentDistrictData.district} Town)`;
+      document.getElementById('sum-to').innerText = shelterName;
+      document.getElementById('road-1-name').innerText = currentDistrictData.blockageInfo ? `Safe Detour bypass via ${currentDistrictData.district}` : 'Highway Connector';
+    }
+
+    function showAlternateRoute(num) {
+      if (!currentDistrictData) return;
+      showCustomAlert(`⚠️ Alternate Route ${num}`, `Displaying Alternate Route ${num} for ${currentDistrictData.district}.\nNote: Caution advised due to higher water levels along alternate causeways.`, 'warning');
+    }
+
+    function startGpsNavigation() {
+      showCustomAlert('🛰️ GPS Navigation Online', `Routing to ${currentDistrictData.shelterInfo ? currentDistrictData.shelterInfo.name : 'Relief Shelter'}...\nVoice turn-by-turn guidance online in Assamese & English.`, 'success');
+    }
+
+    function askAegis(query) {
+      if (!query) return;
+      showCustomAlert('🤖 AEGIS AI Assistant', `For "${query}":\nFollowing real-time telemetry in ${currentDistrictData.district}, the recommended evacuation route via highland link road is active and clear. Proceed immediately to ${currentDistrictData.shelterInfo ? currentDistrictData.shelterInfo.name : 'the nearest shelter'}.`, 'ai');
+    }
+  </script>
+</body>
+</html>

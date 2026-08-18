@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Impact Assessment - AEGIS Rescue Command System</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Leaflet & Heatmap Libraries -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+  <!-- Rescue Master Stylesheet & Script -->
+  <link rel="stylesheet" href="rescue-styles.css">
+  <script src="js/rescue-common.js?v=3.0"></script>
+
+  <style>
+    /* Quick Action Buttons */
+    .r-quick-btn {
+      width: 100%;
+      background: rgba(15,23,42,0.8);
+      border: 1px solid rgba(59,130,246,0.3);
+      color: #cbd5e1;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 0.32rem 0.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.18s;
+    }
+    .r-quick-btn:hover {
+      background: rgba(37,99,235,0.25);
+      color: #fff;
+      border-color: #3b82f6;
+    }
+
+    /* Zero-Scroll 3-Row Grid Layout for Impact Page */
+    .r-impact-grid {
+      display: grid;
+      grid-template-rows: 1fr 0.9fr 130px;
+      gap: 0.45rem;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* Sectoral Table Row */
+    .r-sector-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2.5px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      font-size: 0.6rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="r-layout-container">
+    <!-- Left Navigation Sidebar -->
+    <aside class="r-sidebar">
+      <div class="r-sidebar-logo">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.25)"/>
+          <path d="M12 8v8M8 12h8" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <div style="font-weight: 800; font-size: 1.15rem; color: #fff; line-height: 1;">AEGIS</div>
+          <div style="font-size: 0.58rem; color: #94a3b8; font-weight: 500;">Stronger Together, Safer Assam.</div>
+        </div>
+      </div>
+
+      <!-- Exact 12 User-Specified Pages Navigation Menu -->
+      <nav class="r-nav-menu">
+        <a class="r-nav-item" href="rescue-dashboard.html"><i class="fa-solid fa-gauge-high"></i> Command Dashboard</a>
+        <a class="r-nav-item" href="rescue-map.html"><i class="fa-solid fa-map-location-dot"></i> Flood Risk Map</a>
+        <a class="r-nav-item" href="rescue-priority.html"><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i> Emergency Priority Zones</a>
+        <a class="r-nav-item" href="rescue-analysis.html"><i class="fa-solid fa-chart-line"></i> Flood Risk Analysis</a>
+        <a class="r-nav-item active" href="rescue-impact.html"><i class="fa-solid fa-house-crack"></i> Impact Assessment</a>
+        <a class="r-nav-item" href="rescue-resources.html"><i class="fa-solid fa-boxes-packing"></i> Resource Command Center</a>
+        <a class="r-nav-item" href="rescue-sos.html"><i class="fa-solid fa-circle-exclamation" style="color:#ef4444;"></i> Citizen SOS Center <span class="r-nav-badge">12</span></a>
+        <a class="r-nav-item" href="rescue-shelters.html"><i class="fa-solid fa-campground"></i> Shelter Network Management</a>
+        <a class="r-nav-item" href="rescue-operations.html"><i class="fa-solid fa-person-shelter"></i> Live Rescue Operations</a>
+        <a class="r-nav-item" href="rescue-analytics.html"><i class="fa-solid fa-chart-pie"></i> Analytics &amp; Reports</a>
+        <a class="r-nav-item" href="rescue-teams.html"><i class="fa-solid fa-users-gear"></i> Team Management</a>
+        <a class="r-nav-item" href="rescue-notifications.html"><i class="fa-solid fa-bullhorn" style="color:#f59e0b;"></i> Notifications &amp; Communication <span class="r-nav-badge">5</span></a>
+        <a class="r-nav-item" href="index.html" style="margin-top:auto; color:#ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Settings / Exit</a>
+      </nav>
+
+      <!-- Sidebar Emergency Hotline Box -->
+      <div class="r-sidebar-hotline">
+        <div style="font-size: 0.625rem; color: #fca5a5; font-weight: 700;">EMERGENCY HOTLINE</div>
+        <div style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin: 0.15rem 0;">
+          <i class="fa-solid fa-phone-volume" style="color:#ef4444"></i> 112
+        </div>
+        <div style="font-size: 0.6rem; color: #cbd5e1;">Emergency Call</div>
+        
+        <button class="r-push-talk-btn" onclick="alert('Push-To-Talk Radio Active...')">
+          <i class="fa-solid fa-microphone"></i> Push to Talk
+        </button>
+      </div>
+
+      <!-- Quick Actions Sidebar Panel -->
+      <div style="margin-top:0.3rem; background:rgba(6,12,28,0.7); border:1px solid rgba(59,130,246,0.2); border-radius:8px; padding:0.35rem 0.5rem; display:flex; flex-direction:column; gap:0.25rem;">
+        <div style="font-size:0.58rem; font-weight:800; color:#94a3b8;">QUICK ACTIONS</div>
+        <button class="r-quick-btn" style="border-left:3px solid #2563eb;" onclick="alert('Generating Comprehensive Impact Assessment Report...')">
+          <i class="fa-solid fa-file-invoice" style="color:#38bdf8;"></i> Generate Report
+        </button>
+        <button class="r-quick-btn" style="border-left:3px solid #a78bfa;" onclick="alert('Exporting Real-Time Infrastructure Damage CSV...')">
+          <i class="fa-solid fa-file-export" style="color:#a78bfa;"></i> Export Data
+        </button>
+        <button class="r-quick-btn" style="border-left:3px solid #10b981;" onclick="alert('Secure Dashboard Link Copied for State Disaster Command!')">
+          <i class="fa-solid fa-share-nodes" style="color:#10b981;"></i> Share Dashboard
+        </button>
+        <button class="r-quick-btn" style="border-left:3px solid #06b6d4;" onclick="window.print()">
+          <i class="fa-solid fa-print" style="color:#06b6d4;"></i> Print Summary
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Container -->
+    <main class="r-main-area">
+      <!-- Top Header Bar -->
+      <header class="r-topbar" style="margin-bottom: 0.35rem;">
+        <div style="display:flex; align-items:center; gap:0.65rem;">
+          <div>
+            <div style="font-weight:800; font-size:1.1rem; color:#fff; line-height:1.1; display:flex; align-items:center; gap:0.45rem;">
+              Impact Assessment
+              <span style="color:#10b981; font-size:0.65rem; font-weight:700;">● Live</span>
+            </div>
+            <div style="font-size:0.685rem; color:#94a3b8;">Real-time assessment of flood impact across Assam</div>
+          </div>
+        </div>
+
+        <!-- Center Location Pill -->
+        <div style="display:flex; align-items:center; gap:0.45rem; background:rgba(15,23,42,0.9); border:1px solid rgba(59,130,246,0.3); border-radius:6px; padding:0.25rem 0.65rem;">
+          <i class="fa-solid fa-location-dot" style="color:#ef4444;"></i>
+          <span style="font-size:0.75rem; font-weight:700; color:#fff;">Assam, India</span>
+        </div>
+
+        <!-- Right Utilities -->
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <div class="r-top-utility-box">
+            <i class="fa-solid fa-cloud-showers-heavy" style="color:#38bdf8;"></i>
+            <span><strong>25°C</strong> Heavy Rain</span>
+          </div>
+
+          <div class="r-top-utility-box">
+            <i class="fa-solid fa-water" style="color:#ef4444;"></i>
+            <span>Brahmaputra <strong style="color:#ef4444;">Rising Fast</strong></span>
+          </div>
+
+          <div class="r-top-utility-box">
+            <i class="fa-solid fa-radio" style="color:#10b981;"></i>
+            <span>Radio Comms <strong style="color:#38bdf8;">Channel 2</strong></span>
+            <span style="color:#10b981; font-size:0.65rem;"><i class="fa-solid fa-signal"></i></span>
+          </div>
+
+          <div style="position:relative; cursor:pointer;" onclick="location.href='rescue-notifications.html'">
+            <i class="fa-solid fa-bell" style="color:#94a3b8; font-size:1.05rem;"></i>
+            <span style="position:absolute; top:-4px; right:-6px; background:#ef4444; color:#fff; font-size:0.55rem; font-weight:800; padding:1px 4px; border-radius:50%;">6</span>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:0.55rem; cursor:pointer;" onclick="alert('Team Leader Desk')">
+            <div style="width:32px; height:32px; border-radius:50%; background:#ef4444; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:0.75rem; border:1px solid #fca5a5;">TL</div>
+            <div>
+              <div style="font-size:0.785rem; font-weight:700; color:#fff; line-height:1.1;">Team Leader</div>
+              <div style="font-size:0.625rem; color:#94a3b8;">NDRF Team-4</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Top 8 Impact Metric Cards Bar -->
+      <div class="r-metrics-bar" style="grid-template-columns: repeat(8, 1fr); margin-bottom: 0.35rem;">
+        <div class="r-metric-card" style="border-left: 3px solid #38bdf8; padding:0.3rem 0.45rem;">
+          <div style="font-size:0.52rem; font-weight:800; color:#38bdf8;">TOTAL AFFECTED POP.</div>
+          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-tot-pop">8.75 Lakh</div>
+          <div style="font-size:0.52rem; color:#10b981;">↑ 18% vs yesterday</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3px solid #f59e0b; padding:0.3rem 0.45rem;">
+          <div style="font-size:0.52rem; font-weight:800; color:#f59e0b;">AFFECTED FAMILIES</div>
+          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-fam">1.68 Lakh</div>
+          <div style="font-size:0.52rem; color:#10b981;">↑ 16% vs yesterday</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3px solid #ef4444; padding:0.3rem 0.45rem;">
+          <div style="font-size:0.52rem; font-weight:800; color:#ef4444;">EXPOSED VILLAGES</div>
+          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-vil">2,347</div>
+          <div style="font-size:0.52rem; color:#ef4444;">↑ 14% vs yesterday</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3px solid #ef4444; padding:0.3rem 0.45rem;">
+          <div style="font-size:0.52rem; font-weight:800; color:#ef4444;">DAMAGED HOUSES</div>
+          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-houses">18,542</div>
+          <div style="font-size:0.52rem; color:#ef4444;">↑ 22% vs yesterday</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3px solid #38bdf8; padding:0.3rem 0.45rem;">
+          <div style="font-size:0.52rem; font-weight:800; color:#38bdf8;">INFRA DAMAGE</div>
+          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-infra">₹ 1,256 Cr</div>
+          <div style="font-size:0.52rem; color:#10b981;">↑ 19% vs yesterday</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3px solid #a78bfa; padding:0.3rem 0.45rem;">
+          <div style="font-size:0.52rem; font-weight:800; color:#a78bfa;">DISPLACED PEOPLE</div>
+          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-disp">2.95 Lakh</div>
+          <div style="font-size:0.52rem; color:#10b981;">↑ 17% vs yesterday</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3px solid #ef4444; background:rgba(239,68,68,0.12); padding:0.3rem 0.45rem;">
+          <div style="font-size:0.52rem; font-weight:800; color:#ef4444;">FATALITIES</div>
+          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-fat">32</div>
+          <div style="font-size:0.52rem; color:#ef4444;">↑ 6 vs yesterday</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3px solid #eab308; padding:0.3rem 0.45rem;">
+          <div style="font-size:0.52rem; font-weight:800; color:#eab308;">LIVESTOCK AFFECTED</div>
+          <div style="font-size:1.1rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-live">12,845</div>
+          <div style="font-size:0.52rem; color:#10b981;">↑ 21% vs yesterday</div>
+        </div>
+      </div>
+
+      <!-- Main Impact Workspace 3-Row Grid -->
+      <div class="r-impact-grid">
+        
+        <!-- Row 1: 3-Column Split (Left Population Trend + Center Map + Right Tables) -->
+        <div style="display:grid; grid-template-columns: 1.05fr 1.35fr 1.15fr; gap:0.45rem;">
+          
+          <!-- Box 1: Affected Population Trend Line Graph -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.45rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.2rem;">
+              <div>
+                <div style="font-weight:800; font-size:0.75rem; color:#fff;">AFFECTED POPULATION TREND</div>
+                <div style="font-size:0.55rem; color:#94a3b8;">Statewide Progression Timeline</div>
+              </div>
+              <div style="font-size:0.52rem; display:flex; gap:0.3rem;">
+                <span style="color:#38bdf8;">● Affected</span>
+                <span style="color:#ef4444;">● Displaced</span>
+              </div>
+            </div>
+
+            <!-- SVG Multi-Line Chart -->
+            <div style="flex:1; position:relative; width:100%; height:100%;">
+              <svg width="100%" height="100%" viewBox="0 0 250 110" preserveAspectRatio="none">
+                <path d="M 20 80 Q 60 70, 100 52 T 180 30 T 240 18" fill="none" stroke="#38bdf8" stroke-width="2"/>
+                <circle cx="240" cy="18" r="3.5" fill="#38bdf8"/>
+                <text x="210" y="14" fill="#38bdf8" font-size="6" font-weight="bold">8.75 Lakh</text>
+
+                <path d="M 20 95 Q 60 88, 100 78 T 180 62 T 240 54" fill="none" stroke="#ef4444" stroke-width="2"/>
+                <circle cx="240" cy="54" r="3.5" fill="#ef4444"/>
+                <text x="210" y="50" fill="#ef4444" font-size="6" font-weight="bold">2.95 Lakh</text>
+
+                <text x="15" y="105" fill="#94a3b8" font-size="5.5">6 Aug</text>
+                <text x="52" y="105" fill="#94a3b8" font-size="5.5">7 Aug</text>
+                <text x="88" y="105" fill="#94a3b8" font-size="5.5">8 Aug</text>
+                <text x="125" y="105" fill="#94a3b8" font-size="5.5">9 Aug</text>
+                <text x="162" y="105" fill="#94a3b8" font-size="5.5">10 Aug</text>
+                <text x="198" y="105" fill="#94a3b8" font-size="5.5">11 Aug</text>
+                <text x="228" y="105" fill="#94a3b8" font-size="5.5">12 Aug</text>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Box 2: Impact Overview Interactive Satellite Map with All 21 District Pins -->
+          <div class="r-map-panel" style="display:flex; flex-direction:column; position:relative;">
+            <div style="height:28px; background:#060c1c; border-bottom:1px solid rgba(59,130,246,0.2); display:flex; align-items:center; justify-content:space-between; padding:0 0.55rem; flex-shrink:0;">
+              <span style="font-weight:800; font-size:0.75rem; color:#fff;">IMPACT OVERVIEW MAP</span>
+              <span style="font-size:0.55rem; color:#10b981;">● Satellite Extent &amp; All 21 District Pins</span>
+            </div>
+
+            <!-- Leaflet Map Canvas -->
+            <div id="impact-map-canvas" style="flex:1; width:100%; height:100%;"></div>
+
+            <!-- Floating Impact Level Legend -->
+            <div style="position:absolute; bottom:6px; right:6px; z-index:1000; background:rgba(6,12,28,0.92); border:1px solid rgba(59,130,246,0.3); border-radius:5px; padding:0.25rem 0.45rem; font-size:0.55rem; color:#cbd5e1;">
+              <div style="font-weight:800; color:#fff; margin-bottom:1px;">Impact Level</div>
+              <div><strong style="color:#ef4444;">■</strong> Severe</div>
+              <div><strong style="color:#f59e0b;">■</strong> High</div>
+              <div><strong style="color:#eab308;">■</strong> Moderate</div>
+              <div><strong style="color:#10b981;">■</strong> Low</div>
+            </div>
+          </div>
+
+          <!-- Box 3: Right Stacked Tables (Zone-Wise + Sectoral Impact) -->
+          <div style="display:flex; flex-direction:column; gap:0.4rem; height:100%; min-height:0;">
+            <!-- Zone-Wise Summary Table -->
+            <div class="r-panel-box" style="flex:1; padding:0.4rem; overflow:hidden; display:flex; flex-direction:column;">
+              <div style="font-weight:800; font-size:0.72rem; color:#fff; margin-bottom:0.2rem;">ZONE-WISE IMPACT SUMMARY</div>
+              <div style="flex:1; overflow-y:auto; font-size:0.6rem;">
+                <table style="width:100%; border-collapse:collapse;" id="zone-impact-table">
+                  <!-- Populated by JS -->
+                </table>
+              </div>
+            </div>
+
+            <!-- Sectoral Impact List -->
+            <div class="r-panel-box" style="flex:1; padding:0.4rem; overflow:hidden; display:flex; flex-direction:column;">
+              <div style="font-weight:800; font-size:0.72rem; color:#fff; margin-bottom:0.2rem;">SECTORAL IMPACT</div>
+              <div class="r-console-scroll" style="flex:1;" id="sectoral-impact-list">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Row 2: Middle Split (3 Cards: Damage Donut + Exposed Villages Bar + Top Districts Table) -->
+        <div style="display:grid; grid-template-columns: 1fr 1.15fr 1fr; gap:0.45rem;">
+          
+          <!-- Box 4: Infrastructure Damage Overview Donut Chart -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.45rem;">
+            <div style="font-weight:800; font-size:0.75rem; color:#fff; margin-bottom:0.15rem;">INFRASTRUCTURE DAMAGE OVERVIEW</div>
+
+            <div style="flex:1; display:flex; align-items:center; justify-content:space-between; padding:0 0.2rem;">
+              <!-- Donut SVG -->
+              <svg width="80" height="80" viewBox="0 0 42 42">
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#ef4444" stroke-width="5.5" stroke-dasharray="40.8 59.2" stroke-dashoffset="25"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#38bdf8" stroke-width="5.5" stroke-dasharray="19.7 80.3" stroke-dashoffset="84.2"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#f59e0b" stroke-width="5.5" stroke-dasharray="14.8 85.2" stroke-dashoffset="64.5"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#eab308" stroke-width="5.5" stroke-dasharray="12.1 87.9" stroke-dashoffset="49.7"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#2563eb" stroke-width="5.5" stroke-dasharray="12.6 87.4" stroke-dashoffset="37.6"></circle>
+                <text x="21" y="19" fill="#fff" font-size="5" font-weight="bold" text-anchor="middle">Total Damage</text>
+                <text x="21" y="24" fill="#38bdf8" font-size="4.5" font-weight="bold" text-anchor="middle">₹ 1,256 Cr</text>
+              </svg>
+
+              <!-- Legend -->
+              <div style="font-size:0.55rem; display:flex; flex-direction:column; gap:0.18rem;">
+                <div><strong style="color:#ef4444;">● Roads &amp; Bridges:</strong> ₹512 Cr (40.8%)</div>
+                <div><strong style="color:#38bdf8;">● Water Supply:</strong> ₹248 Cr (19.7%)</div>
+                <div><strong style="color:#f59e0b;">● Power Infra:</strong> ₹186 Cr (14.8%)</div>
+                <div><strong style="color:#eab308;">● Irrigation:</strong> ₹152 Cr (12.1%)</div>
+                <div><strong style="color:#2563eb;">● Other Infra:</strong> ₹158 Cr (12.6%)</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Box 5: Exposed Villages By Impact Level (Bar Chart) -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.45rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.15rem;">
+              <span style="font-weight:800; font-size:0.75rem; color:#fff;">EXPOSED VILLAGES BY IMPACT LEVEL</span>
+              <span style="font-size:0.55rem; color:#38bdf8; font-weight:700;">2,347 Total</span>
+            </div>
+
+            <!-- Vertical Bar Chart -->
+            <div style="flex:1; display:flex; align-items:flex-end; justify-content:space-between; padding:0 0.5rem 0.1rem 0.5rem;">
+              <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:1px; flex:1;">
+                <span style="font-size:0.55rem; color:#ef4444; font-weight:800;">824</span>
+                <div style="width:20px; height:65px; background:linear-gradient(180deg, #ef4444 0%, #991b1b 100%); border-radius:3px 3px 0 0;"></div>
+                <span style="font-size:0.55rem; color:#ef4444; font-weight:700;">Severe</span>
+              </div>
+
+              <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:1px; flex:1;">
+                <span style="font-size:0.55rem; color:#f59e0b; font-weight:800;">912</span>
+                <div style="width:20px; height:72px; background:linear-gradient(180deg, #f59e0b 0%, #b45309 100%); border-radius:3px 3px 0 0;"></div>
+                <span style="font-size:0.55rem; color:#f59e0b; font-weight:700;">High</span>
+              </div>
+
+              <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:1px; flex:1;">
+                <span style="font-size:0.55rem; color:#eab308; font-weight:800;">398</span>
+                <div style="width:20px; height:38px; background:linear-gradient(180deg, #eab308 0%, #854d0e 100%); border-radius:3px 3px 0 0;"></div>
+                <span style="font-size:0.55rem; color:#eab308; font-weight:700;">Moderate</span>
+              </div>
+
+              <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:1px; flex:1;">
+                <span style="font-size:0.55rem; color:#10b981; font-weight:800;">213</span>
+                <div style="width:20px; height:22px; background:linear-gradient(180deg, #10b981 0%, #065f46 100%); border-radius:3px 3px 0 0;"></div>
+                <span style="font-size:0.55rem; color:#10b981; font-weight:700;">Low</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Box 6: Top Affected Districts Table -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; overflow:hidden; padding:0.45rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.15rem;">
+              <span style="font-weight:800; font-size:0.75rem; color:#fff;">TOP AFFECTED DISTRICTS (BY POP.)</span>
+            </div>
+
+            <div style="flex:1; overflow-y:auto; font-size:0.6rem;">
+              <table style="width:100%; border-collapse:collapse;" id="top-districts-table">
+                <!-- Populated by JS -->
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Row 3: Bottom Analytics Consoles Grid (3 Panels) -->
+        <div style="display:grid; grid-template-columns: 1.15fr 1fr 1.35fr; gap:0.45rem;">
+          
+          <!-- Box 7: Village Exposure Summary -->
+          <div class="r-console-panel" style="padding:0.4rem;">
+            <div style="font-weight:800; font-size:0.72rem; color:#fff; margin-bottom:0.1rem;">VILLAGE EXPOSURE SUMMARY</div>
+
+            <div style="display:flex; align-items:center; justify-content:space-between; height:100%; padding:0 0.2rem;">
+              <div>
+                <div style="font-size:1.2rem; font-weight:800; color:#fff; line-height:1;">2,347</div>
+                <div style="font-size:0.55rem; color:#94a3b8;">Total Exposed Villages</div>
+              </div>
+
+              <div style="display:flex; gap:0.5rem; text-align:center;">
+                <div>
+                  <div style="font-size:0.85rem; font-weight:800; color:#ef4444;">824</div>
+                  <div style="font-size:0.52rem; color:#ef4444; font-weight:700;">Severe (35.1%)</div>
+                </div>
+                <div>
+                  <div style="font-size:0.85rem; font-weight:800; color:#f59e0b;">912</div>
+                  <div style="font-size:0.52rem; color:#f59e0b; font-weight:700;">High (38.9%)</div>
+                </div>
+                <div>
+                  <div style="font-size:0.85rem; font-weight:800; color:#eab308;">398</div>
+                  <div style="font-size:0.52rem; color:#eab308; font-weight:700;">Mod (17.0%)</div>
+                </div>
+                <div>
+                  <div style="font-size:0.85rem; font-weight:800; color:#10b981;">213</div>
+                  <div style="font-size:0.52rem; color:#10b981; font-weight:700;">Low (9.0%)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Box 8: Damage By Infrastructure Type -->
+          <div class="r-console-panel" style="padding:0.4rem;">
+            <div style="font-weight:800; font-size:0.72rem; color:#fff; margin-bottom:0.2rem;">DAMAGE BY INFRASTRUCTURE TYPE</div>
+            <div style="display:flex; flex-direction:column; gap:0.2rem; font-size:0.58rem;" id="damage-by-type-container">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Box 9: Impact Forecast (Next 72 Hours) -->
+          <div class="r-console-panel" style="padding:0.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.2rem;">
+              <span style="font-weight:800; font-size:0.72rem; color:#fff;">IMPACT FORECAST</span>
+              <span style="font-size:0.55rem; color:#94a3b8;">NEXT 72 HOURS</span>
+            </div>
+
+            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:0.3rem; height:70px;" id="impact-forecast-container">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Sticky Bottom Meta Footer -->
+      <footer class="r-footer-bar">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.25)"/>
+          </svg>
+          <span><strong>AEGIS Rescue Command System</strong> &bull; Empowering Teams. Saving Lives.</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <span><i class="fa-solid fa-shield-halved" style="color:#10b981;"></i> Secure</span>
+          <span>&bull;</span>
+          <span><i class="fa-solid fa-lock" style="color:#38bdf8;"></i> Encrypted</span>
+          <span>&bull;</span>
+          <span><i class="fa-solid fa-location-crosshairs" style="color:#f59e0b;"></i> GPS Tracking</span>
+          <span>&bull;</span>
+          <span><i class="fa-solid fa-arrows-rotate" style="color:#a78bfa;"></i> Real-time Sync</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span>Data Source: ASDMA | CWC | IMD | Local Authorities</span>
+          <span>&bull;</span>
+          <span>Last Updated: 12 Aug 2026, 10:40 AM</span>
+          <span>&bull;</span>
+          <span style="color:#10b981; font-weight:700;">🟢 Live</span>
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- Data & Map Interactivity Logic -->
+  <script src="js/rescue-impact-data.js"></script>
+  <script src="js/rescue-map-data.js"></script>
+
+  <script>
+    let impactMap = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Render Summary KPIs
+      const k = rescueImpactData.summaryKpis;
+      document.getElementById('kpi-tot-pop').innerText = k.totalAffectedPopulation;
+      document.getElementById('kpi-fam').innerText = k.affectedFamilies;
+      document.getElementById('kpi-vil').innerText = k.exposedVillages;
+      document.getElementById('kpi-houses').innerText = k.damagedHouses;
+      document.getElementById('kpi-infra').innerText = k.infrastructureDamage;
+      document.getElementById('kpi-disp').innerText = k.displacedPeople;
+      document.getElementById('kpi-fat').innerText = k.fatalities;
+      document.getElementById('kpi-live').innerText = k.livestockAffected;
+
+      // 2. Initialize Leaflet Impact Map with All 21 District Pins
+      initImpactMap();
+
+      // 3. Render Zone-Wise Summary Table & Sectoral Impact List
+      renderZoneWiseTable();
+      renderSectoralImpactList();
+
+      // 4. Render Top Affected Districts & Damage By Type Bars
+      renderTopDistrictsTable();
+      renderDamageByType();
+      renderImpactForecast();
+    });
+
+    function initImpactMap() {
+      impactMap = L.map('impact-map-canvas', {
+        center: [26.2500, 92.8000],
+        zoom: 7.2,
+        minZoom: 6.5,
+        maxZoom: 14,
+        zoomControl: false
+      });
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; CartoDB',
+        maxZoom: 19
+      }).addTo(impactMap);
+
+      L.control.zoom({ position: 'topleft' }).addTo(impactMap);
+
+      const assamBounds = L.latLngBounds(L.latLng(23.8000, 89.2000), L.latLng(28.4000, 96.5000));
+      impactMap.setMaxBounds(assamBounds);
+
+      // Add Thermal Heatmap overlay for inundation extent across Assam
+      if (typeof L.heatLayer === 'function' && window.rescueMapData) {
+        L.heatLayer(rescueMapData.statewideGisThermalPoints, {
+          radius: 38,
+          blur: 24,
+          maxZoom: 13,
+          gradient: {
+            0.15: '#10b981',
+            0.35: '#eab308',
+            0.65: '#f59e0b',
+            1.0: '#ef4444'
+          }
+        }).addTo(impactMap);
+      }
+
+      // Plot Interactive Marker Pins for ALL 21 Districts of Assam
+      if (window.rescueMapData && rescueMapData.allDistrictsPins) {
+        rescueMapData.allDistrictsPins.forEach(loc => {
+          const icon = L.divIcon({
+            className: 'custom-map-icon',
+            html: `<div style="background:${loc.riskColor}; color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:1.5px solid #fff; box-shadow:0 0 8px ${loc.riskColor};"><i class="fa-solid fa-location-dot" style="font-size:9px;"></i></div>`,
+            iconSize: [22, 22]
+          });
+
+          L.marker(loc.coords, { icon }).addTo(impactMap).bindPopup(`
+            <div style="font-family:'Plus Jakarta Sans',sans-serif; color:#fff; padding:2px;">
+              <b style="color:${loc.riskColor}; font-size:12px;">${loc.name} (${loc.district})</b><br>
+              <span style="font-size:10px; color:#cbd5e1;">Impact Status: <strong>${loc.riskLevel}</strong></span><br>
+              <span style="font-size:10px; color:#38bdf8;">Water Depth: <strong>${loc.waterDepth}</strong></span>
+            </div>
+          `);
+        });
+      }
+
+      setTimeout(() => impactMap.invalidateSize(), 300);
+    }
+
+    function renderZoneWiseTable() {
+      const table = document.getElementById('zone-impact-table');
+      table.innerHTML = `
+        <thead>
+          <tr style="border-bottom:1px solid rgba(59,130,246,0.2); color:#94a3b8; font-size:0.55rem; text-align:left;">
+            <th style="padding:1.5px 3px;">Zone</th>
+            <th style="padding:1.5px 3px;">Affected Pop</th>
+            <th style="padding:1.5px 3px;">Villages</th>
+            <th style="padding:1.5px 3px;">Damage (₹ Cr)</th>
+            <th style="padding:1.5px 3px;">Level</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `;
+
+      const tbody = table.querySelector('tbody');
+      rescueImpactData.zoneWiseSummary.forEach(z => {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid rgba(255,255,255,0.04)';
+        tr.innerHTML = `
+          <td style="padding:2px 3px; font-weight:700; color:#fff;">${z.zone}</td>
+          <td style="padding:2px 3px; color:#cbd5e1;">${z.affectedPop}</td>
+          <td style="padding:2px 3px; color:#cbd5e1;">${z.villagesExposed}</td>
+          <td style="padding:2px 3px; font-weight:800; color:#38bdf8;">₹${z.damageCr}</td>
+          <td style="padding:2px 3px;"><span style="color:${z.color}; font-weight:800;">${z.level}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderSectoralImpactList() {
+      const container = document.getElementById('sectoral-impact-list');
+      container.innerHTML = '';
+
+      rescueImpactData.sectoralImpact.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'r-sector-row';
+        div.innerHTML = `
+          <div style="display:flex; align-items:center; gap:0.3rem;">
+            <strong style="color:#fff; min-width:85px;">${s.sector}</strong>
+            <span style="background:rgba(${hexToRgb(s.color)},0.2); color:${s.color}; font-size:0.52rem; font-weight:800; padding:1px 4px; border-radius:3px;">${s.level}</span>
+          </div>
+          <div style="color:#cbd5e1; font-size:0.55rem;">${s.details}</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderTopDistrictsTable() {
+      const table = document.getElementById('top-districts-table');
+      table.innerHTML = `
+        <thead>
+          <tr style="border-bottom:1px solid rgba(59,130,246,0.2); color:#94a3b8; font-size:0.55rem; text-align:left;">
+            <th style="padding:1.5px 3px;">District</th>
+            <th style="padding:1.5px 3px;">Affected Pop</th>
+            <th style="padding:1.5px 3px;">% Impact</th>
+            <th style="padding:1.5px 3px;">Level</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `;
+
+      const tbody = table.querySelector('tbody');
+      rescueImpactData.topAffectedDistricts.forEach(d => {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid rgba(255,255,255,0.04)';
+        tr.innerHTML = `
+          <td style="padding:2px 3px; font-weight:700; color:#fff;">${d.district}</td>
+          <td style="padding:2px 3px; color:#cbd5e1;">${d.affectedPop}</td>
+          <td style="padding:2px 3px; font-weight:800; color:#38bdf8;">${d.pctTotal}</td>
+          <td style="padding:2px 3px;"><span style="color:${d.color}; font-weight:800;">${d.level}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderDamageByType() {
+      const container = document.getElementById('damage-by-type-container');
+      container.innerHTML = '';
+
+      rescueImpactData.damageByType.forEach(d => {
+        const div = document.createElement('div');
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; margin-bottom:1px;">
+            <span style="color:#cbd5e1;">${d.type}</span>
+            <strong style="color:${d.color};">${d.count}</strong>
+          </div>
+          <div style="background:rgba(255,255,255,0.08); height:4px; border-radius:2px; overflow:hidden;">
+            <div style="width:${Math.min(100, (d.count / 250) * 100)}%; background:${d.color}; height:100%;"></div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderImpactForecast() {
+      const container = document.getElementById('impact-forecast-container');
+      container.innerHTML = '';
+
+      rescueImpactData.impactForecast72h.forEach(f => {
+        const div = document.createElement('div');
+        div.style.background = `rgba(${hexToRgb(f.color)}, 0.12)`;
+        div.style.border = `1px solid rgba(${hexToRgb(f.color)}, 0.35)`;
+        div.style.borderRadius = '5px';
+        div.style.padding = '0.3rem';
+        div.style.display = 'flex';
+        div.style.flexDirection = 'column';
+        div.style.justifyContent = 'space-between';
+        div.style.textAlign = 'center';
+
+        div.innerHTML = `
+          <div style="font-size:0.52rem; color:${f.color}; font-weight:800;"><i class="fa-solid ${f.icon}"></i> ${f.label}</div>
+          <div style="font-size:0.75rem; font-weight:800; color:#fff; margin:1px 0;">${f.val}</div>
+          <div style="font-size:0.5rem; color:#cbd5e1;">${f.sub}</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function hexToRgb(hex) {
+      if (hex === '#ef4444') return '239, 68, 68';
+      if (hex === '#f59e0b') return '245, 158, 11';
+      if (hex === '#eab308') return '234, 179, 8';
+      if (hex === '#10b981') return '16, 185, 129';
+      if (hex === '#38bdf8') return '56, 189, 248';
+      return '59, 130, 246';
+    }
+  </script>
+</body>
+</html>

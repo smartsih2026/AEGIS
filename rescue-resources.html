@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resource Command Center - AEGIS Rescue Command System</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Leaflet & Heatmap Libraries -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+  <!-- Rescue Master Stylesheet & Script -->
+  <link rel="stylesheet" href="rescue-styles.css">
+  <script src="js/rescue-common.js?v=3.0"></script>
+
+  <style>
+    /* Quick Action Buttons */
+    .r-quick-btn {
+      width: 100%;
+      background: rgba(15,23,42,0.8);
+      border: 1px solid rgba(59,130,246,0.3);
+      color: #cbd5e1;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 0.32rem 0.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.18s;
+    }
+    .r-quick-btn:hover {
+      background: rgba(37,99,235,0.25);
+      color: #fff;
+      border-color: #3b82f6;
+    }
+
+    /* Zero-Scroll 3-Row Grid Layout for Resources Page */
+    .r-resources-grid {
+      display: grid;
+      grid-template-rows: 1.15fr 0.95fr 115px;
+      gap: 0.45rem;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* Checkbox list on map */
+    .r-layer-chk {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.55rem;
+      color: #cbd5e1;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="r-layout-container">
+    <!-- Left Navigation Sidebar -->
+    <aside class="r-sidebar">
+      <div class="r-sidebar-logo">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.25)"/>
+          <path d="M12 8v8M8 12h8" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <div style="font-weight: 800; font-size: 1.15rem; color: #fff; line-height: 1;">AEGIS</div>
+          <div style="font-size: 0.58rem; color: #94a3b8; font-weight: 500;">Stronger Together, Safer Assam.</div>
+        </div>
+      </div>
+
+      <!-- Exact 12 User-Specified Pages Navigation Menu -->
+      <nav class="r-nav-menu">
+        <a class="r-nav-item" href="rescue-dashboard.html"><i class="fa-solid fa-gauge-high"></i> Command Dashboard</a>
+        <a class="r-nav-item" href="rescue-map.html"><i class="fa-solid fa-map-location-dot"></i> Flood Risk Map</a>
+        <a class="r-nav-item" href="rescue-priority.html"><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i> Emergency Priority Zones</a>
+        <a class="r-nav-item" href="rescue-analysis.html"><i class="fa-solid fa-chart-line"></i> Flood Risk Analysis</a>
+        <a class="r-nav-item" href="rescue-impact.html"><i class="fa-solid fa-house-crack"></i> Impact Assessment</a>
+        <a class="r-nav-item active" href="rescue-resources.html"><i class="fa-solid fa-boxes-packing"></i> Resource Command Center</a>
+        <a class="r-nav-item" href="rescue-sos.html"><i class="fa-solid fa-circle-exclamation" style="color:#ef4444;"></i> Citizen SOS Center <span class="r-nav-badge">12</span></a>
+        <a class="r-nav-item" href="rescue-shelters.html"><i class="fa-solid fa-campground"></i> Shelter Network Management</a>
+        <a class="r-nav-item" href="rescue-operations.html"><i class="fa-solid fa-person-shelter"></i> Live Rescue Operations</a>
+        <a class="r-nav-item" href="rescue-analytics.html"><i class="fa-solid fa-chart-pie"></i> Analytics &amp; Reports</a>
+        <a class="r-nav-item" href="rescue-teams.html"><i class="fa-solid fa-users-gear"></i> Team Management</a>
+        <a class="r-nav-item" href="rescue-notifications.html"><i class="fa-solid fa-bullhorn" style="color:#f59e0b;"></i> Notifications &amp; Communication <span class="r-nav-badge">5</span></a>
+        <a class="r-nav-item" href="index.html" style="margin-top:auto; color:#ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Settings / Exit</a>
+      </nav>
+
+      <!-- Sidebar Emergency Hotline Box -->
+      <div class="r-sidebar-hotline">
+        <div style="font-size: 0.625rem; color: #fca5a5; font-weight: 700;">EMERGENCY HOTLINE</div>
+        <div style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin: 0.15rem 0;">
+          <i class="fa-solid fa-phone-volume" style="color:#ef4444"></i> 112
+        </div>
+        <div style="font-size: 0.6rem; color: #cbd5e1;">Emergency Call</div>
+        
+        <button class="r-push-talk-btn" onclick="alert('Push-To-Talk Radio Active...')">
+          <i class="fa-solid fa-microphone"></i> Push to Talk
+        </button>
+      </div>
+
+      <!-- Quick Actions Sidebar Panel -->
+      <div style="margin-top:0.3rem; background:rgba(6,12,28,0.7); border:1px solid rgba(59,130,246,0.2); border-radius:8px; padding:0.35rem 0.5rem; display:flex; flex-direction:column; gap:0.25rem;">
+        <div style="font-size:0.58rem; font-weight:800; color:#94a3b8;">QUICK ACTIONS</div>
+        <button class="r-quick-btn" style="border-left:3px solid #2563eb;" onclick="alert('Opening Resource Requisition Form...')">
+          <i class="fa-solid fa-box" style="color:#38bdf8;"></i> Request Resources
+        </button>
+        <button class="r-quick-btn" style="border-left:3px solid #a78bfa;" onclick="alert('Initiating Logistics Convoy Request...')">
+          <i class="fa-solid fa-truck" style="color:#a78bfa;"></i> Logistics Request
+        </button>
+        <button class="r-quick-btn" style="border-left:3px solid #10b981;" onclick="alert('Add New Boat/Team/Ambulance Inventory Item...')">
+          <i class="fa-solid fa-plus-circle" style="color:#10b981;"></i> Add New Resource
+        </button>
+        <button class="r-quick-btn" style="border-left:3px solid #06b6d4;" onclick="window.print()">
+          <i class="fa-solid fa-chart-simple" style="color:#06b6d4;"></i> Resource Report
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Container -->
+    <main class="r-main-area">
+      <!-- Top Header Bar -->
+      <header class="r-topbar" style="margin-bottom: 0.35rem;">
+        <div style="display:flex; align-items:center; gap:0.65rem;">
+          <div>
+            <div style="font-weight:800; font-size:1.1rem; color:#fff; line-height:1.1; display:flex; align-items:center; gap:0.45rem;">
+              Resource Command Center
+              <span style="color:#10b981; font-size:0.65rem; font-weight:700;">● Live</span>
+            </div>
+            <div style="font-size:0.685rem; color:#94a3b8;">Real-time resource tracking, management and AI-powered deployment</div>
+          </div>
+        </div>
+
+        <!-- Center Location Pill -->
+        <div style="display:flex; align-items:center; gap:0.45rem; background:rgba(15,23,42,0.9); border:1px solid rgba(59,130,246,0.3); border-radius:6px; padding:0.25rem 0.65rem;">
+          <i class="fa-solid fa-location-dot" style="color:#ef4444;"></i>
+          <span style="font-size:0.75rem; font-weight:700; color:#fff;">Assam, India</span>
+        </div>
+
+        <!-- Right Utilities -->
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <div class="r-top-utility-box">
+            <i class="fa-solid fa-cloud-showers-heavy" style="color:#38bdf8;"></i>
+            <span><strong>25°C</strong> Heavy Rain</span>
+          </div>
+
+          <div style="background:rgba(239,68,68,0.2); border:1px solid #ef4444; border-radius:6px; padding:0.25rem 0.6rem; font-size:0.65rem; font-weight:800; color:#ef4444; display:flex; align-items:center; gap:0.35rem;">
+            <i class="fa-solid fa-triangle-exclamation"></i> Flood Alert Level 4 - Severe
+          </div>
+
+          <div class="r-top-utility-box">
+            <i class="fa-solid fa-radio" style="color:#10b981;"></i>
+            <span>Radio Comms <strong style="color:#38bdf8;">Channel 2</strong></span>
+            <span style="color:#10b981; font-size:0.65rem;"><i class="fa-solid fa-signal"></i></span>
+          </div>
+
+          <div style="position:relative; cursor:pointer;" onclick="location.href='rescue-notifications.html'">
+            <i class="fa-solid fa-bell" style="color:#94a3b8; font-size:1.05rem;"></i>
+            <span style="position:absolute; top:-4px; right:-6px; background:#ef4444; color:#fff; font-size:0.55rem; font-weight:800; padding:1px 4px; border-radius:50%;">6</span>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:0.55rem; cursor:pointer;" onclick="alert('Command Officer Desk')">
+            <div style="width:32px; height:32px; border-radius:50%; background:#ef4444; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:0.75rem; border:1px solid #fca5a5;">CO</div>
+            <div>
+              <div style="font-size:0.785rem; font-weight:700; color:#fff; line-height:1.1;">Command Officer</div>
+              <div style="font-size:0.625rem; color:#94a3b8;">NDRF Team-4</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Top 8 Resource Summary KPI Cards Bar -->
+      <div class="r-metrics-bar" style="grid-template-columns: repeat(8, 1fr); margin-bottom: 0.35rem;">
+        <div class="r-metric-card" style="border-left: 3px solid #38bdf8; padding:0.3rem 0.45rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.52rem; font-weight:800; color:#38bdf8;">RESCUE BOATS</span>
+            <i class="fa-solid fa-sailboat" style="color:#38bdf8;"></i>
+          </div>
+          <div style="font-size:1.15rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-boats">48</div>
+          <div style="font-size:0.52rem; color:#10b981;">32 Active | 16 Standby</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3px solid #10b981; padding:0.3rem 0.45rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.52rem; font-weight:800; color:#10b981;">RESCUE TEAMS</span>
+            <i class="fa-solid fa-users-gear" style="color:#10b981;"></i>
+          </div>
+          <div style="font-size:1.15rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-teams">124</div>
+          <div style="font-size:0.52rem; color:#10b981;">85 Deployed | 39 Avail</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3px solid #ef4444; padding:0.3rem 0.45rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.52rem; font-weight:800; color:#ef4444;">AMBULANCES</span>
+            <i class="fa-solid fa-truck-medical" style="color:#ef4444;"></i>
+          </div>
+          <div style="font-size:1.15rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-amb">68</div>
+          <div style="font-size:0.52rem; color:#ef4444;">42 Deployed | 26 Avail</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3px solid #f59e0b; padding:0.3rem 0.45rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.52rem; font-weight:800; color:#f59e0b;">RELIEF TRUCKS</span>
+            <i class="fa-solid fa-truck-field" style="color:#f59e0b;"></i>
+          </div>
+          <div style="font-size:1.15rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-trucks">36</div>
+          <div style="font-size:0.52rem; color:#f59e0b;">21 On Route | 15 Avail</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3px solid #38bdf8; padding:0.3rem 0.45rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.52rem; font-weight:800; color:#38bdf8;">FOOD SUPPLIES</span>
+            <i class="fa-solid fa-boxes-packing" style="color:#38bdf8;"></i>
+          </div>
+          <div style="font-size:1.15rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-food">158.7 Tons</div>
+          <div style="font-size:0.52rem; color:#10b981;">For 2.8 Lakh People</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3px solid #a78bfa; padding:0.3rem 0.45rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.52rem; font-weight:800; color:#a78bfa;">MEDICAL SUPPLIES</span>
+            <i class="fa-solid fa-kit-medical" style="color:#a78bfa;"></i>
+          </div>
+          <div style="font-size:1.15rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-med">85%</div>
+          <div style="font-size:0.52rem; color:#10b981;">Stock Adequate</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3px solid #eab308; padding:0.3rem 0.45rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.52rem; font-weight:800; color:#eab308;">FUEL RESERVES</span>
+            <i class="fa-solid fa-gas-pump" style="color:#eab308;"></i>
+          </div>
+          <div style="font-size:1.15rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-fuel">72%</div>
+          <div style="font-size:0.52rem; color:#eab308;">Sufficient for 5 Days</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3px solid #2563eb; padding:0.3rem 0.45rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.52rem; font-weight:800; color:#2563eb;">TOTAL PERSONNEL</span>
+            <i class="fa-solid fa-user-shield" style="color:#2563eb;"></i>
+          </div>
+          <div style="font-size:1.15rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-personnel">1,256</div>
+          <div style="font-size:0.52rem; color:#10b981;">Active Personnel</div>
+        </div>
+      </div>
+
+      <!-- Main Resources Workspace 3-Row Grid -->
+      <div class="r-resources-grid">
+        
+        <!-- Row 1: Main Split (Live Resource Tracking Map + AI Recommendation Panel) -->
+        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:0.45rem;">
+          
+          <!-- Panel 1: Live Resource Tracking GIS Map -->
+          <div class="r-map-panel" style="display:flex; flex-direction:column; position:relative;">
+            <div style="height:28px; background:#060c1c; border-bottom:1px solid rgba(59,130,246,0.2); display:flex; align-items:center; justify-content:space-between; padding:0 0.55rem; flex-shrink:0;">
+              <span style="font-weight:800; font-size:0.75rem; color:#fff;">LIVE RESOURCE TRACKING</span>
+              <span style="font-size:0.55rem; color:#10b981;">● All 21 District Fleet Assets Live</span>
+            </div>
+
+            <!-- Leaflet Map Canvas -->
+            <div id="resources-map-canvas" style="flex:1; width:100%; height:100%;"></div>
+
+            <!-- Floating Left Map Overlay Panel (Layers & Legend) -->
+            <div style="position:absolute; top:36px; left:10px; z-index:1000; background:rgba(6,12,28,0.92); border:1px solid rgba(59,130,246,0.3); border-radius:6px; padding:0.35rem 0.55rem; font-size:0.55rem; width:130px;">
+              <div style="font-weight:800; color:#fff; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:2px; margin-bottom:3px;">Map Layers</div>
+              <label class="r-layer-chk"><input type="checkbox" checked> Flooded Areas</label>
+              <label class="r-layer-chk"><input type="checkbox"> Roads</label>
+              <label class="r-layer-chk"><input type="checkbox"> Bridges</label>
+              <label class="r-layer-chk"><input type="checkbox"> Shelters</label>
+              <label class="r-layer-chk"><input type="checkbox"> Hospitals</label>
+              <label class="r-layer-chk"><input type="checkbox" checked> Resources</label>
+              <label class="r-layer-chk"><input type="checkbox"> SOS Locations</label>
+
+              <div style="font-weight:800; color:#fff; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:2px; margin:5px 0 3px 0;">Resource Legend</div>
+              <div><i class="fa-solid fa-sailboat" style="color:#38bdf8;"></i> Rescue Boat</div>
+              <div><i class="fa-solid fa-users-gear" style="color:#10b981;"></i> Rescue Team</div>
+              <div><i class="fa-solid fa-truck-medical" style="color:#ef4444;"></i> Ambulance</div>
+              <div><i class="fa-solid fa-truck-field" style="color:#f59e0b;"></i> Relief Truck</div>
+              <div><i class="fa-solid fa-user-nurse" style="color:#06b6d4;"></i> Medical Team</div>
+              <div><i class="fa-solid fa-helicopter" style="color:#eab308;"></i> Helicopter</div>
+              <div><i class="fa-solid fa-gas-pump" style="color:#a78bfa;"></i> Fuel Tanker</div>
+            </div>
+          </div>
+
+          <!-- Panel 2: AI Deployment Recommendation Box -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.45rem; background:rgba(6,12,28,0.95); border:1px solid rgba(59,130,246,0.35);">
+            <div style="display:flex; align-items:center; gap:0.4rem; margin-bottom:0.2rem;">
+              <i class="fa-solid fa-brain" style="color:#38bdf8; font-size:0.9rem;"></i>
+              <span style="font-weight:800; font-size:0.75rem; color:#fff;">AI DEPLOYMENT RECOMMENDATION</span>
+            </div>
+
+            <div style="font-size:0.58rem; color:#cbd5e1; background:rgba(37,99,235,0.15); border-left:3px solid #2563eb; padding:0.25rem 0.4rem; border-radius:3px; margin-bottom:0.35rem;" id="ai-recommendation-summary">
+              High severity in Golaghat, Jorhat &amp; Darrang districts. Resources should be prioritized to these areas.
+            </div>
+
+            <div style="font-size:0.58rem; font-weight:800; color:#fff; margin-bottom:0.2rem;">Recommended Deployment</div>
+            <div style="display:flex; flex-direction:column; gap:0.2rem; font-size:0.55rem; flex:1;" id="ai-recommendations-list">
+              <!-- Populated by JS -->
+            </div>
+
+            <div style="font-size:0.58rem; font-weight:800; color:#fff; margin:0.3rem 0 0.15rem 0;">Deployment Priority Zones</div>
+            <div style="display:flex; flex-direction:column; gap:0.18rem; font-size:0.55rem;" id="ai-priority-zones-list">
+              <!-- Populated by JS -->
+            </div>
+
+            <div style="display:flex; gap:0.35rem; margin-top:0.4rem;">
+              <button style="flex:1.2; background:#10b981; border:none; color:#fff; font-size:0.6rem; font-weight:800; padding:0.35rem; border-radius:5px; cursor:pointer;" onclick="executeResourcePlan()">
+                <i class="fa-solid fa-check-circle"></i> Approve AI Recommendation
+              </button>
+              <button style="flex:1; background:transparent; border:1px solid #38bdf8; color:#38bdf8; font-size:0.6rem; font-weight:700; padding:0.35rem; border-radius:5px; cursor:pointer;" onclick="alert('Opening Custom Deployment Override Matrix...')">
+                Customize Deployment
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Row 2: 4 Breakdown Consoles Grid -->
+        <div style="display:grid; grid-template-columns: 1.05fr 1.6fr 1fr 1fr; gap:0.45rem;">
+          
+          <!-- Box 3: Resource Status Breakdown Donut Chart -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.45rem;">
+            <div style="font-weight:800; font-size:0.72rem; color:#fff; margin-bottom:0.15rem;">RESOURCE STATUS BREAKDOWN</div>
+
+            <div style="flex:1; display:flex; align-items:center; justify-content:space-between;">
+              <svg width="70" height="70" viewBox="0 0 42 42">
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#2563eb" stroke-width="5.5" stroke-dasharray="59 41" stroke-dashoffset="25"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#10b981" stroke-width="5.5" stroke-dasharray="26 74" stroke-dashoffset="66"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#f59e0b" stroke-width="5.5" stroke-dasharray="10 90" stroke-dashoffset="40"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#ef4444" stroke-width="5.5" stroke-dasharray="5 95" stroke-dashoffset="30"></circle>
+                <text x="21" y="19" fill="#fff" font-size="5" font-weight="bold" text-anchor="middle">415</text>
+                <text x="21" y="24" fill="#94a3b8" font-size="3.5" text-anchor="middle">Total</text>
+              </svg>
+
+              <div style="font-size:0.55rem; display:flex; flex-direction:column; gap:0.18rem;">
+                <div><strong style="color:#2563eb;">● Deployed:</strong> 246 (59%)</div>
+                <div><strong style="color:#10b981;">● Available:</strong> 107 (26%)</div>
+                <div><strong style="color:#f59e0b;">● On Route:</strong> 42 (10%)</div>
+                <div><strong style="color:#ef4444;">● Maintenance:</strong> 20 (5%)</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Box 4: Resource Deployment Status Table -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; overflow:hidden; padding:0.45rem;">
+            <div style="font-weight:800; font-size:0.72rem; color:#fff; margin-bottom:0.15rem;">RESOURCE DEPLOYMENT STATUS</div>
+            <div style="flex:1; overflow-y:auto; font-size:0.58rem;">
+              <table style="width:100%; border-collapse:collapse;" id="resource-deployment-table">
+                <!-- Populated by JS -->
+              </table>
+            </div>
+          </div>
+
+          <!-- Box 5: Supply Inventory Level -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.45rem;">
+            <div style="font-weight:800; font-size:0.72rem; color:#fff; margin-bottom:0.2rem;">SUPPLY INVENTORY LEVEL</div>
+            <div style="display:flex; flex-direction:column; gap:0.18rem; font-size:0.55rem; flex:1;" id="supply-inventory-container">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Box 6: Fuel Monitoring Telemetry -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.45rem;">
+            <div style="font-weight:800; font-size:0.72rem; color:#fff; margin-bottom:0.15rem;">FUEL MONITORING</div>
+            
+            <div style="flex:1; display:flex; align-items:center; justify-content:space-between; padding:0 0.15rem;">
+              <div>
+                <div style="font-size:0.52rem; color:#94a3b8;">Total Fuel Available</div>
+                <div style="font-size:1.1rem; font-weight:800; color:#fff;" id="fuel-pct">72%</div>
+                <div style="font-size:0.5rem; color:#10b981;" id="fuel-liters">(1,44,000 Liters)</div>
+
+                <div style="font-size:0.52rem; font-weight:800; color:#ef4444; margin-top:0.25rem;">Low Fuel Alerts</div>
+                <div style="font-size:0.5rem; color:#cbd5e1;" id="fuel-alerts-list">&bull; Dima Hasao, Karimganj, Dhemaji</div>
+              </div>
+
+              <!-- Fuel Gauge Ring -->
+              <svg width="55" height="55" viewBox="0 0 36 36">
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3.5" />
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#10b981" stroke-width="4" stroke-dasharray="72, 100" />
+              </svg>
+            </div>
+            
+            <button style="width:100%; background:rgba(37,99,235,0.2); border:1px solid rgba(59,130,246,0.3); color:#38bdf8; font-size:0.55rem; font-weight:700; padding:0.2rem; border-radius:4px; cursor:pointer; margin-top:auto;" onclick="alert('Displaying 24 Fuel Supply Depots across Assam...')">
+              View Fuel Stations
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Row 3: 3 Bottom Activity & Alert Consoles -->
+        <div style="display:grid; grid-template-columns: 1fr 1.6fr 1fr; gap:0.45rem;">
+          
+          <!-- Box 7: Recent Activity Log -->
+          <div class="r-console-panel" style="padding:0.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.15rem;">
+              <span style="font-weight:800; font-size:0.72rem; color:#fff;">RECENT ACTIVITY</span>
+              <a href="#" style="font-size:0.55rem; color:#38bdf8; text-decoration:none; font-weight:700;">View All</a>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:0.15rem; font-size:0.55rem;" id="recent-activity-container">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Box 8: Active Alerts Grid -->
+          <div class="r-console-panel" style="padding:0.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.15rem;">
+              <span style="font-weight:800; font-size:0.72rem; color:#fff;">ACTIVE ALERTS</span>
+              <a href="#" style="font-size:0.55rem; color:#38bdf8; text-decoration:none; font-weight:700;">View All Alerts</a>
+            </div>
+
+            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:0.3rem;" id="active-alerts-container">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Box 9: Communication Status -->
+          <div class="r-console-panel" style="padding:0.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.15rem;">
+              <span style="font-weight:800; font-size:0.72rem; color:#fff;">COMMUNICATION STATUS</span>
+              <a href="#" style="font-size:0.55rem; color:#38bdf8; text-decoration:none; font-weight:700;">View Comms</a>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:0.15rem; font-size:0.55rem;" id="communication-status-container">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Sticky Bottom Meta Footer -->
+      <footer class="r-footer-bar">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.25)"/>
+          </svg>
+          <span><strong>AEGIS Rescue Command System</strong> &bull; Empowering Teams. Saving Lives.</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <span><i class="fa-solid fa-shield-halved" style="color:#10b981;"></i> Secure</span>
+          <span>&bull;</span>
+          <span><i class="fa-solid fa-lock" style="color:#38bdf8;"></i> Encrypted</span>
+          <span>&bull;</span>
+          <span><i class="fa-solid fa-location-crosshairs" style="color:#f59e0b;"></i> GPS Tracking</span>
+          <span>&bull;</span>
+          <span><i class="fa-solid fa-arrows-rotate" style="color:#a78bfa;"></i> Real-time Sync</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span>Data Source: ASDMA | CWC | IMD | Local Authorities</span>
+          <span>&bull;</span>
+          <span>Last Updated: 12 Aug 2026, 10:40 AM</span>
+          <span>&bull;</span>
+          <span style="color:#10b981; font-weight:700;">🟢 Live</span>
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- Advanced AI Resource Execution Modal -->
+  <div id="ai-resource-modal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(3,7,18,0.85); backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:1.5rem;">
+    <div style="background:#060c1c; border:1px solid #38bdf8; border-radius:12px; width:100%; max-width:750px; padding:1.2rem; box-shadow:0 0 30px rgba(56,189,248,0.3); color:#fff; display:flex; flex-direction:column; gap:0.75rem;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(59,130,246,0.3); padding-bottom:0.5rem;">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <i class="fa-solid fa-bolt" style="color:#10b981; font-size:1.2rem;"></i>
+          <span style="font-size:1rem; font-weight:800; color:#fff;">⚡ AEGIS AI OPTIMIZED RESOURCE DISPATCH EXECUTED</span>
+        </div>
+        <button onclick="document.getElementById('ai-resource-modal').style.display='none'" style="background:transparent; border:none; color:#cbd5e1; font-size:1.2rem; cursor:pointer;">&times;</button>
+      </div>
+
+      <!-- Modal Body -->
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.75rem;">
+        <!-- Left: Pie Chart Resource Allocation -->
+        <div style="background:rgba(15,23,42,0.8); border:1px solid rgba(59,130,246,0.2); border-radius:8px; padding:0.65rem; text-align:center;">
+          <div style="font-size:0.75rem; font-weight:800; color:#38bdf8; margin-bottom:0.4rem;">OPTIMIZED ASSET ALLOCATION</div>
+          <svg width="110" height="110" viewBox="0 0 42 42" style="margin:0 auto;">
+            <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#38bdf8" stroke-width="6" stroke-dasharray="35 65" stroke-dashoffset="25"></circle>
+            <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#10b981" stroke-width="6" stroke-dasharray="25 75" stroke-dashoffset="90"></circle>
+            <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#ef4444" stroke-width="6" stroke-dasharray="20 80" stroke-dashoffset="65"></circle>
+            <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#f59e0b" stroke-width="6" stroke-dasharray="20 80" stroke-dashoffset="45"></circle>
+          </svg>
+          <div style="font-size:0.6rem; color:#cbd5e1; margin-top:0.4rem; display:flex; justify-content:space-around;">
+            <span style="color:#38bdf8;">■ Boats (35%)</span>
+            <span style="color:#10b981;">■ Teams (25%)</span>
+            <span style="color:#ef4444;">■ Medical (20%)</span>
+            <span style="color:#f59e0b;">■ Trucks (20%)</span>
+          </div>
+        </div>
+
+        <!-- Right: Dispatch Telemetry -->
+        <div style="background:rgba(15,23,42,0.8); border:1px solid rgba(59,130,246,0.2); border-radius:8px; padding:0.65rem; font-size:0.65rem; display:flex; flex-direction:column; justify-content:space-between;">
+          <div style="font-weight:800; color:#10b981;">DISPATCH TELEMETRY LOG</div>
+          <div>&bull; <strong>Golaghat &amp; Morigaon:</strong> 8 Boats en route (ETA 18 mins)</div>
+          <div>&bull; <strong>Jorhat &amp; Sivasagar:</strong> 16 Rescue Teams deployed</div>
+          <div>&bull; <strong>Darrang &amp; Nagaon:</strong> 6 Ambulances dispatched</div>
+          <div>&bull; <strong>Lakhimpur &amp; Dhemaji:</strong> 5 Relief Convoys active</div>
+          <div style="color:#38bdf8; font-weight:700; margin-top:0.2rem;">ESTIMATED EFFICIENCY GAIN: +42% SAVED HOURS</div>
+        </div>
+      </div>
+
+      <button onclick="document.getElementById('ai-resource-modal').style.display='none'" style="background:#10b981; border:none; color:#fff; font-size:0.75rem; font-weight:800; padding:0.5rem; border-radius:6px; cursor:pointer; width:100%;">
+        Acknowledge &amp; Lock Deployment
+      </button>
+    </div>
+  </div>
+
+  <!-- Data & Map Interactivity Logic -->
+  <script src="js/rescue-resources-data.js"></script>
+  <script src="js/rescue-map-data.js"></script>
+
+  <script>
+    let resourcesMap = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Render Summary KPIs
+      const k = rescueResourcesData.summaryKpis;
+      document.getElementById('kpi-boats').innerText = k.rescueBoats;
+      document.getElementById('kpi-teams').innerText = k.rescueTeams;
+      document.getElementById('kpi-amb').innerText = k.ambulances;
+      document.getElementById('kpi-trucks').innerText = k.reliefTrucks;
+      document.getElementById('kpi-food').innerText = k.foodSupplies;
+      document.getElementById('kpi-med').innerText = k.medicalSupplies;
+      document.getElementById('kpi-fuel').innerText = k.fuelReserves;
+      document.getElementById('kpi-personnel').innerText = k.totalPersonnel;
+
+      // 2. Initialize Leaflet Resources Map with ALL 21 District Pins
+      initResourcesMap();
+
+      // 3. Render AI Deployment Panel
+      renderAiDeploymentPanel();
+
+      // 4. Render Deployment Table, Inventory Bars & Consoles
+      renderDeploymentTable();
+      renderSupplyInventory();
+      renderRecentActivity();
+      renderActiveAlerts();
+      renderCommunicationStatus();
+    });
+
+    function initResourcesMap() {
+      resourcesMap = L.map('resources-map-canvas', {
+        center: [26.2500, 92.8000],
+        zoom: 7.2,
+        minZoom: 6.5,
+        maxZoom: 14,
+        zoomControl: false
+      });
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; CartoDB',
+        maxZoom: 19
+      }).addTo(resourcesMap);
+
+      L.control.zoom({ position: 'topleft' }).addTo(resourcesMap);
+
+      const assamBounds = L.latLngBounds(L.latLng(23.8000, 89.2000), L.latLng(28.4000, 96.5000));
+      resourcesMap.setMaxBounds(assamBounds);
+
+      // Add Thermal Heatmap overlay for inundation extent across Assam
+      if (typeof L.heatLayer === 'function' && window.rescueMapData) {
+        L.heatLayer(rescueMapData.statewideGisThermalPoints, {
+          radius: 36,
+          blur: 22,
+          maxZoom: 13,
+          gradient: {
+            0.15: '#0284c7',
+            0.35: '#1d4ed8',
+            0.65: '#f59e0b',
+            1.0: '#ef4444'
+          }
+        }).addTo(resourcesMap);
+      }
+
+      // Plot Interactive Marker Pins with Realistic Resource Type Icons across ALL 21 Assam Districts
+      if (rescueResourcesData.districtResourcePins) {
+        rescueResourcesData.districtResourcePins.forEach(loc => {
+          const icon = L.divIcon({
+            className: 'custom-map-icon',
+            html: `<div style="background:${loc.color}; color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:1.5px solid #fff; box-shadow:0 0 8px ${loc.color};"><i class="fa-solid ${loc.icon}" style="font-size:9px;"></i></div>`,
+            iconSize: [22, 22]
+          });
+
+          L.marker(loc.coords, { icon }).addTo(resourcesMap).bindPopup(`
+            <div style="font-family:'Plus Jakarta Sans',sans-serif; color:#fff; padding:2px;">
+              <b style="color:${loc.color}; font-size:12px;">${loc.name} (${loc.district})</b><br>
+              <span style="font-size:10px; color:#cbd5e1;">Resource Status: <strong>${loc.status}</strong></span>
+            </div>
+          `);
+        });
+      }
+
+      setTimeout(() => resourcesMap.invalidateSize(), 300);
+    }
+
+    function renderAiDeploymentPanel() {
+      // Recommendations list
+      const recList = document.getElementById('ai-recommendations-list');
+      recList.innerHTML = '';
+      rescueResourcesData.aiRecommendation.recommendations.forEach(r => {
+        const div = document.createElement('div');
+        div.style.display = 'flex';
+        div.style.alignItems = 'center';
+        div.style.justifyContent = 'space-between';
+        div.style.background = 'rgba(255,255,255,0.03)';
+        div.style.padding = '2px 4px';
+        div.style.borderRadius = '3px';
+
+        div.innerHTML = `
+          <div style="display:flex; align-items:center; gap:0.25rem;">
+            <i class="fa-solid ${r.icon}" style="color:${r.color}; width:12px;"></i>
+            <span>${r.type}</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.25rem;">
+            <strong style="color:${r.color};">${r.qty}</strong>
+            <i class="fa-solid fa-arrow-right" style="color:#64748b; font-size:7px;"></i>
+            <span style="color:#cbd5e1;">${r.target}</span>
+          </div>
+        `;
+        recList.appendChild(div);
+      });
+
+      // Priority Zones List
+      const zList = document.getElementById('ai-priority-zones-list');
+      zList.innerHTML = '';
+      rescueResourcesData.aiRecommendation.priorityZones.forEach(z => {
+        const div = document.createElement('div');
+        div.style.display = 'flex';
+        div.style.alignItems = 'center';
+        div.style.justifyContent = 'space-between';
+        div.style.background = 'rgba(255,255,255,0.03)';
+        div.style.padding = '2px 4px';
+        div.style.borderRadius = '3px';
+
+        div.innerHTML = `
+          <div style="display:flex; align-items:center; gap:0.25rem;">
+            <span style="background:${z.color}; color:#fff; font-size:0.5rem; font-weight:800; width:12px; height:12px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;">${z.id}</span>
+            <strong style="color:#fff;">${z.district}</strong>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.4rem;">
+            <span style="color:${z.color}; font-weight:800;">${z.level}</span>
+            <span style="color:#94a3b8;">${z.score}</span>
+          </div>
+        `;
+        zList.appendChild(div);
+      });
+    }
+
+    function renderDeploymentTable() {
+      const table = document.getElementById('resource-deployment-table');
+      table.innerHTML = `
+        <thead>
+          <tr style="border-bottom:1px solid rgba(59,130,246,0.2); color:#94a3b8; font-size:0.55rem; text-align:left;">
+            <th style="padding:1.5px 3px;">Resource Type</th>
+            <th style="padding:1.5px 3px;">Deployed</th>
+            <th style="padding:1.5px 3px;">Available</th>
+            <th style="padding:1.5px 3px;">On Route</th>
+            <th style="padding:1.5px 3px;">Maint.</th>
+            <th style="padding:1.5px 3px;">Utilization</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `;
+
+      const tbody = table.querySelector('tbody');
+      rescueResourcesData.deploymentTable.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid rgba(255,255,255,0.04)';
+        tr.innerHTML = `
+          <td style="padding:2px 3px; font-weight:700; color:#fff;">
+            <i class="fa-solid ${row.icon}" style="color:${row.color}; width:12px;"></i> ${row.type}
+          </td>
+          <td style="padding:2px 3px; font-weight:800; color:#2563eb;">${row.deployed}</td>
+          <td style="padding:2px 3px; font-weight:800; color:#10b981;">${row.available}</td>
+          <td style="padding:2px 3px; color:#f59e0b;">${row.onRoute}</td>
+          <td style="padding:2px 3px; color:#ef4444;">${row.maintenance}</td>
+          <td style="padding:2px 3px;">
+            <div style="display:flex; align-items:center; gap:0.25rem;">
+              <div style="flex:1; background:rgba(255,255,255,0.1); height:4px; border-radius:2px; overflow:hidden;">
+                <div style="width:${row.utilization}%; background:${row.color}; height:100%;"></div>
+              </div>
+              <span style="font-weight:800; color:${row.color};">${row.utilization}%</span>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderSupplyInventory() {
+      const container = document.getElementById('supply-inventory-container');
+      container.innerHTML = '';
+
+      rescueResourcesData.supplyInventory.forEach(s => {
+        const div = document.createElement('div');
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; margin-bottom:1px;">
+            <span style="color:#cbd5e1;">${s.name}</span>
+            <strong style="color:#38bdf8;">${s.qty} &bull; ${s.pct}%</strong>
+          </div>
+          <div style="background:rgba(255,255,255,0.08); height:4px; border-radius:2px; overflow:hidden;">
+            <div style="width:${s.pct}%; background:${s.color}; height:100%;"></div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderRecentActivity() {
+      const container = document.getElementById('recent-activity-container');
+      container.innerHTML = '';
+
+      rescueResourcesData.recentActivity.forEach(act => {
+        const div = document.createElement('div');
+        div.style.display = 'flex';
+        div.style.gap = '0.35rem';
+        div.style.alignItems = 'center';
+
+        div.innerHTML = `
+          <span style="color:#38bdf8; font-weight:800; min-width:45px;">${act.time}</span>
+          <span style="color:#cbd5e1;">${act.text}</span>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderActiveAlerts() {
+      const container = document.getElementById('active-alerts-container');
+      container.innerHTML = '';
+
+      rescueResourcesData.activeAlerts.forEach(al => {
+        const div = document.createElement('div');
+        div.style.background = al.bg;
+        div.style.border = `1px solid ${al.border}`;
+        div.style.borderRadius = '5px';
+        div.style.padding = '0.25rem 0.35rem';
+        div.style.display = 'flex';
+        div.style.flexDirection = 'column';
+        div.style.justifyContent = 'space-between';
+
+        div.innerHTML = `
+          <div style="font-size:0.55rem; color:${al.color}; font-weight:800;"><i class="fa-solid ${al.icon}"></i> ${al.type}</div>
+          <div style="font-size:0.52rem; font-weight:700; color:#fff; margin:1px 0;">${al.location}</div>
+          <div style="font-size:0.48rem; color:#cbd5e1;">${al.detail}</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderCommunicationStatus() {
+      const container = document.getElementById('communication-status-container');
+      container.innerHTML = '';
+
+      rescueResourcesData.communicationStatus.forEach(cs => {
+        const div = document.createElement('div');
+        div.style.display = 'flex';
+        div.style.justifyContent = 'space-between';
+        div.style.alignItems = 'center';
+
+        div.innerHTML = `
+          <div style="display:flex; align-items:center; gap:0.25rem;">
+            <i class="fa-solid ${cs.icon}" style="color:${cs.color}; width:12px;"></i>
+            <span style="color:#cbd5e1;">${cs.name}</span>
+          </div>
+          <span style="color:${cs.color}; font-weight:800;">${cs.status}</span>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function executeResourcePlan() {
+      document.getElementById('ai-resource-modal').style.display = 'flex';
+    }
+  </script>
+</body>
+</html>

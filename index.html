@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>AEGIS - AI-Powered Flood Response Platform</title>
+
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Leaflet Heatmap Plugin -->
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Firebase SDK (Compat Version) & Auth Module -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="js/firebase-auth.js?v=3.0"></script>
+
+  <!-- Master Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Top Navigation Header Bar -->
+  <header class="navbar">
+    <a href="#" class="brand-logo" onclick="app.showPage('landing-page')">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.25)" stroke="#3b82f6"/>
+        <path d="M12 8v8M8 12h8" stroke="#3b82f6" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="brand-title">AEGIS</div>
+        <div class="brand-subtitle">AI-Powered Flood Response Platform</div>
+      </div>
+    </a>
+
+    <ul class="nav-links" id="public-nav-links">
+      <li><a href="#" class="active" onclick="app.showPage('landing-page')">Home</a></li>
+      <li><a href="#about-section">About</a></li>
+      <li><a href="#updates-section">Live Updates</a></li>
+      <li><a href="#shelters-section">Shelters</a></li>
+      <li><a href="#resources-section">Resources</a></li>
+      <li><a href="#" onclick="app.openAuthModal('rescue')">AI Command Center</a></li>
+      <li><a href="#contact-section">Contact</a></li>
+    </ul>
+
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <span id="user-status-badge" class="badge badge-warning hidden">
+        <i class="fa-solid fa-circle-user"></i> <span id="user-status-text">Citizen</span>
+      </span>
+      <button class="btn btn-primary btn-pill" id="main-dash-btn" onclick="app.openAuthModal('citizen')">
+        Enter Dashboard &rarr;
+      </button>
+    </div>
+  </header>
+
+  <!-- ================= PUBLIC LANDING PAGE ================= -->
+  <main id="landing-page" class="page-view">
+    
+    <!-- Spacious Hero Section with Background Video + Right-Aligned Map Card -->
+    <section class="hero-section">
+      <video class="hero-bg-media" autoplay loop muted playsinline poster="https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=1600&q=80">
+        <source src="v.mp4" type="video/mp4">
+      </video>
+      <div class="hero-overlay"></div>
+
+      <div class="hero-container">
+        <!-- Hero Left Column -->
+        <div class="hero-left">
+          <div class="badge badge-live">
+            <span class="pulse-dot"></span> LIVE • Real-time Flood Monitoring Across Assam State
+          </div>
+
+          <h1 class="hero-title">
+            Stronger Together,<br><span class="blue-text">Safer Together.</span>
+          </h1>
+
+          <p class="hero-desc">
+            AEGIS is an AI-powered platform that connects citizens, rescue teams, and government authorities in real-time to respond faster, coordinate better, and save lives.
+          </p>
+
+          <div class="hero-buttons">
+            <button class="btn btn-primary btn-pill" style="padding: 0.75rem 1.8rem;" onclick="app.openAuthModal('citizen')">
+              Enter Dashboard &rarr;
+            </button>
+            <button class="btn btn-outline btn-pill" style="padding: 0.75rem 1.6rem;" onclick="document.getElementById('about-section').scrollIntoView({behavior:'smooth'})">
+              <i class="fa-solid fa-circle-play"></i> Learn More
+            </button>
+          </div>
+        </div>
+
+        <!-- Hero Right Column: Full Floating Live Flood Map Card & District Status Panel -->
+        <div class="hero-map-wrapper">
+          <!-- Left: Map Container -->
+          <div>
+            <div class="map-header-title">
+              <span>LIVE FLOOD MAP - ASSAM STATE</span>
+              <span class="badge badge-success" style="font-size:0.65rem;"><span class="pulse-dot" style="background:#10b981"></span> ASSAM BOUNDS LOCKED</span>
+            </div>
+
+            <div id="landing-map" class="map-container-box"></div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 0.65rem; font-size: 0.75rem; color: #94a3b8;">
+              <div>Risk Level: <span style="color:#ef4444">● Critical</span> <span style="color:#f97316">● High</span> <span style="color:#eab308">● Moderate</span> <span style="color:#38bdf8">● Low</span></div>
+            </div>
+          </div>
+
+          <!-- Right: District Status & Weather Alert Panel -->
+          <div class="district-panel">
+            <div class="panel-title">DISTRICT STATUS</div>
+
+            <div class="district-list">
+              <div class="district-item">
+                <span>🔴 Golaghat</span>
+                <span style="color:#ef4444">Critical</span>
+              </div>
+              <div class="district-item">
+                <span>🟠 Jorhat</span>
+                <span style="color:#f97316">High</span>
+              </div>
+              <div class="district-item">
+                <span>🟠 Dibrugarh</span>
+                <span style="color:#f97316">High</span>
+              </div>
+              <div class="district-item">
+                <span>🟠 Sivasagar</span>
+                <span style="color:#f97316">High</span>
+              </div>
+              <div class="district-item">
+                <span>🟠 Dhemaji</span>
+                <span style="color:#f97316">High</span>
+              </div>
+              <div class="district-item">
+                <span>🟠 Lakhimpur</span>
+                <span style="color:#f97316">High</span>
+              </div>
+              <div class="district-item">
+                <span>🟡 Nagaon</span>
+                <span style="color:#eab308">Moderate</span>
+              </div>
+              <div class="district-item">
+                <span>🟡 Darrang</span>
+                <span style="color:#eab308">Moderate</span>
+              </div>
+            </div>
+
+            <a href="#" style="color:#3b82f6; text-decoration:none; font-size:0.75rem; font-weight:700; margin-bottom: 0.85rem;" onclick="app.openAuthModal('rescue')">
+              View Full Map &rarr;
+            </a>
+
+            <!-- Weather Alert Card -->
+            <div class="weather-alert-card">
+              <div class="weather-title">WEATHER ALERT</div>
+              <div style="display:flex; gap:0.6rem; align-items:center;">
+                <i class="fa-solid fa-cloud-showers-heavy" style="font-size:1.4rem; color:#60a5fa"></i>
+                <div style="font-size:0.725rem; color:#cbd5e1; line-height:1.35;">
+                  Heavy rainfall expected in Assam for next 24 hours.<br>
+                  <strong style="color:#ef4444">Stay alert. Stay safe.</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 Stat Cards Grid UNDER the Video Section -->
+    <section class="stats-under-video-section">
+      <div class="stats-grid-row">
+        <div class="stat-box">
+          <div class="stat-icon-wrap" style="background: rgba(37,99,235,0.15); color: #3b82f6;">
+            <i class="fa-solid fa-users"></i>
+          </div>
+          <div>
+            <div style="font-size:0.7rem; color:#94a3b8;">People Affected</div>
+            <div class="stat-number">1.4 Lakh+</div>
+            <div class="stat-sublabel">Across 7 Primary Districts</div>
+          </div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-icon-wrap" style="background: rgba(16,185,129,0.15); color: #10b981;">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+          <div>
+            <div style="font-size:0.7rem; color:#94a3b8;">Active Shelters</div>
+            <div class="stat-number">182</div>
+            <div class="stat-sublabel">Across Assam</div>
+          </div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-icon-wrap" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+          <div>
+            <div style="font-size:0.7rem; color:#94a3b8;">SOS Requests</div>
+            <div class="stat-number">1,248</div>
+            <div class="stat-sublabel">In Last 24 Hours</div>
+          </div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-icon-wrap" style="background: rgba(139,92,246,0.15); color: #8b5cf6;">
+            <i class="fa-solid fa-user-shield"></i>
+          </div>
+          <div>
+            <div style="font-size:0.7rem; color:#94a3b8;">Rescue Teams Deployed</div>
+            <div class="stat-number">115</div>
+            <div class="stat-sublabel">NDRF • SDRF • Civil Defence</div>
+          </div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-icon-wrap" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+            <i class="fa-solid fa-sailboat"></i>
+          </div>
+          <div>
+            <div style="font-size:0.7rem; color:#94a3b8;">Boats & Vehicles</div>
+            <div class="stat-number">212</div>
+            <div class="stat-sublabel">Available</div>
+          </div>
+        </div>
+
+        <div class="stat-box">
+          <div class="stat-icon-wrap" style="background: rgba(6,182,212,0.15); color: #06b6d4;">
+            <i class="fa-solid fa-heart-pulse"></i>
+          </div>
+          <div>
+            <div style="font-size:0.7rem; color:#94a3b8;">Lives Saved</div>
+            <div class="stat-number">3,842</div>
+            <div class="stat-sublabel">Till Now</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section + Live Updates Sidebar -->
+    <section id="about-section" class="features-section">
+      <div class="features-header-tag">POWERED BY AI. DRIVEN BY COMPASSION.</div>
+
+      <div class="features-grid-wrapper">
+        <!-- 6 Feature Cards Row -->
+        <div class="features-six-grid">
+          <div class="feature-item-card">
+            <div class="feature-circle-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+              <i class="fa-solid fa-brain"></i>
+            </div>
+            <div class="feature-item-title">AI Risk Prediction</div>
+            <div class="feature-item-desc">Predict flood spread and identify high-risk zones using AI models.</div>
+          </div>
+
+          <div class="feature-item-card">
+            <div class="feature-circle-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+              <i class="fa-solid fa-circle-exclamation"></i>
+            </div>
+            <div class="feature-item-title">Smart SOS System</div>
+            <div class="feature-item-desc">Citizens can send SOS with location, details & images in real-time.</div>
+          </div>
+
+          <div class="feature-item-card">
+            <div class="feature-circle-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+              <i class="fa-solid fa-route"></i>
+            </div>
+            <div class="feature-item-title">Intelligent Routing</div>
+            <div class="feature-item-desc">AI finds the safest routes to shelters avoiding flooded areas.</div>
+          </div>
+
+          <div class="feature-item-card">
+            <div class="feature-circle-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
+              <i class="fa-solid fa-house-chimney-medical"></i>
+            </div>
+            <div class="feature-item-title">Shelter Network</div>
+            <div class="feature-item-desc">Find nearby shelters, check capacity, facilities and contact details.</div>
+          </div>
+
+          <div class="feature-item-card">
+            <div class="feature-circle-icon" style="background: rgba(6,182,212,0.12); color: #06b6d4;">
+              <i class="fa-solid fa-bell"></i>
+            </div>
+            <div class="feature-item-title">Real-time Updates</div>
+            <div class="feature-item-desc">Get instant alerts, rescue updates, and weather warnings.</div>
+          </div>
+
+          <div class="feature-item-card">
+            <div class="feature-circle-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+              <i class="fa-solid fa-comments"></i>
+            </div>
+            <div class="feature-item-title">Two-way Communication</div>
+            <div class="feature-item-desc">Rescue teams respond back with ETA, help type, and shelter information.</div>
+          </div>
+        </div>
+
+        <!-- Live Flood Updates Widget -->
+        <div id="updates-section" class="updates-card">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 0.75rem;">
+            <div style="font-size:0.8rem; font-weight:800; color:#ffffff;">LIVE FLOOD UPDATES</div>
+            <a href="#" style="font-size:0.75rem; color:#3b82f6; text-decoration:none; font-weight:600;">View All &rarr;</a>
+          </div>
+
+          <div id="live-updates-container">
+            <div class="update-row">
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                <i class="fa-solid fa-water" style="color:#ef4444"></i>
+                <span>Water level rising in Golaghat district</span>
+              </div>
+              <span style="color:#64748b; font-size:0.7rem;">10:25 AM</span>
+            </div>
+            <div class="update-row">
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                <i class="fa-solid fa-road-barrier" style="color:#f59e0b"></i>
+                <span>Road blocked near NH-715, Jorhat</span>
+              </div>
+              <span style="color:#64748b; font-size:0.7rem;">09:48 AM</span>
+            </div>
+            <div class="update-row">
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                <i class="fa-solid fa-campground" style="color:#10b981"></i>
+                <span>Relief camp opened in Nagaon</span>
+              </div>
+              <span style="color:#64748b; font-size:0.7rem;">09:15 AM</span>
+            </div>
+            <div class="update-row">
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                <i class="fa-solid fa-truck-medical" style="color:#3b82f6"></i>
+                <span>NDRF team deployed to Karbi Anglong</span>
+              </div>
+              <span style="color:#64748b; font-size:0.7rem;">08:40 AM</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SHELTERS SECTION ================= -->
+    <section id="shelters-section" class="landing-content-section" style="padding: 4rem 2.5rem; max-width: 1480px; margin: 0 auto;">
+      <div style="text-align: center; margin-bottom: 2.5rem;">
+        <div class="badge badge-success" style="margin-bottom: 0.6rem;">
+          <i class="fa-solid fa-house-chimney-medical"></i> OPERATIONAL RELIEF CAMPS &bull; ASSAM STATE
+        </div>
+        <h2 style="font-size: 2.25rem; font-weight: 800; color: #fff; margin-bottom: 0.5rem;">
+          Find Operational Emergency Shelters
+        </h2>
+        <p style="color: #94a3b8; font-size: 0.95rem; max-width: 620px; margin: 0 auto;">
+          Real-time bed availability, medical stock, and emergency food rations across 182 verified relief centers in Assam.
+        </p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem;">
+        <!-- Shelter 1 -->
+        <div class="landing-shelter-card">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+            <div>
+              <div style="font-weight:800; font-size:1.05rem; color:#fff; display:flex; align-items:center; gap:0.4rem;">
+                Golaghat Relief Camp <span class="badge badge-success" style="font-size:0.55rem; padding:0.15rem 0.4rem;">OPEN</span>
+              </div>
+              <div style="font-size:0.725rem; color:#94a3b8; margin-top:2px;">Golaghat Town Center &bull; High School Ground</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:1.1rem; font-weight:800; color:#10b981;">182 Beds</div>
+              <div style="font-size:0.65rem; color:#64748b;">Available / 500</div>
+            </div>
+          </div>
+          <div style="background:rgba(255,255,255,0.04); border-radius:6px; height:8px; overflow:hidden; margin-bottom:0.85rem;">
+            <div style="background:#10b981; width:63.6%; height:100%;"></div>
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:0.35rem; margin-bottom:0.85rem;">
+            <span class="shelter-tag"><i class="fa-solid fa-notes-medical" style="color:#ef4444"></i> Medical Bay</span>
+            <span class="shelter-tag"><i class="fa-solid fa-bowl-rice" style="color:#f59e0b"></i> Hot Meals</span>
+            <span class="shelter-tag"><i class="fa-solid fa-faucet-drip" style="color:#38bdf8"></i> Clean Water</span>
+            <span class="shelter-tag"><i class="fa-solid fa-bolt" style="color:#eab308"></i> Generator</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.08); padding-top:0.65rem;">
+            <div style="font-size:0.725rem; color:#cbd5e1;"><i class="fa-solid fa-phone" style="color:#38bdf8; margin-right:4px;"></i> Officer K. Borah (+91 94350 12345)</div>
+            <button class="btn btn-primary" style="padding:0.35rem 0.85rem; font-size:0.725rem;" onclick="app.openAuthModal('citizen')">Directions &rarr;</button>
+          </div>
+        </div>
+
+        <!-- Shelter 2 -->
+        <div class="landing-shelter-card">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+            <div>
+              <div style="font-weight:800; font-size:1.05rem; color:#fff; display:flex; align-items:center; gap:0.4rem;">
+                Jorhat Engineering College <span class="badge badge-success" style="font-size:0.55rem; padding:0.15rem 0.4rem;">OPEN</span>
+              </div>
+              <div style="font-size:0.725rem; color:#94a3b8; margin-top:2px;">Garmur, Jorhat District</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:1.1rem; font-weight:800; color:#10b981;">95 Beds</div>
+              <div style="font-size:0.65rem; color:#64748b;">Available / 650</div>
+            </div>
+          </div>
+          <div style="background:rgba(255,255,255,0.04); border-radius:6px; height:8px; overflow:hidden; margin-bottom:0.85rem;">
+            <div style="background:#f59e0b; width:85.3%; height:100%;"></div>
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:0.35rem; margin-bottom:0.85rem;">
+            <span class="shelter-tag"><i class="fa-solid fa-helicopter" style="color:#38bdf8"></i> Helipad</span>
+            <span class="shelter-tag"><i class="fa-solid fa-baby" style="color:#a78bfa"></i> Pediatric Care</span>
+            <span class="shelter-tag"><i class="fa-solid fa-sailboat" style="color:#10b981"></i> Boats Stationed</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.08); padding-top:0.65rem;">
+            <div style="font-size:0.725rem; color:#cbd5e1;"><i class="fa-solid fa-phone" style="color:#38bdf8; margin-right:4px;"></i> Dr. P. Dutta (+91 94351 98765)</div>
+            <button class="btn btn-primary" style="padding:0.35rem 0.85rem; font-size:0.725rem;" onclick="app.openAuthModal('citizen')">Directions &rarr;</button>
+          </div>
+        </div>
+
+        <!-- Shelter 3 -->
+        <div class="landing-shelter-card">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+            <div>
+              <div style="font-weight:800; font-size:1.05rem; color:#fff; display:flex; align-items:center; gap:0.4rem;">
+                Dibrugarh Stadium Camp <span class="badge badge-success" style="font-size:0.55rem; padding:0.15rem 0.4rem;">OPEN</span>
+              </div>
+              <div style="font-size:0.725rem; color:#94a3b8; margin-top:2px;">Chowkidinghee, Dibrugarh</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:1.1rem; font-weight:800; color:#10b981;">170 Beds</div>
+              <div style="font-size:0.65rem; color:#64748b;">Available / 450</div>
+            </div>
+          </div>
+          <div style="background:rgba(255,255,255,0.04); border-radius:6px; height:8px; overflow:hidden; margin-bottom:0.85rem;">
+            <div style="background:#10b981; width:62.2%; height:100%;"></div>
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:0.35rem; margin-bottom:0.85rem;">
+            <span class="shelter-tag"><i class="fa-solid fa-shield-halved" style="color:#3b82f6"></i> NDRF Base</span>
+            <span class="shelter-tag"><i class="fa-solid fa-utensils" style="color:#f59e0b"></i> Kitchen</span>
+            <span class="shelter-tag"><i class="fa-solid fa-kit-medical" style="color:#ef4444"></i> First-Aid</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.08); padding-top:0.65rem;">
+            <div style="font-size:0.725rem; color:#cbd5e1;"><i class="fa-solid fa-phone" style="color:#38bdf8; margin-right:4px;"></i> Capt. S. Saikia (+91 94352 55443)</div>
+            <button class="btn btn-primary" style="padding:0.35rem 0.85rem; font-size:0.725rem;" onclick="app.openAuthModal('citizen')">Directions &rarr;</button>
+          </div>
+        </div>
+
+        <!-- Shelter 4 -->
+        <div class="landing-shelter-card">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+            <div>
+              <div style="font-weight:800; font-size:1.05rem; color:#fff; display:flex; align-items:center; gap:0.4rem;">
+                Nagaon High School Safe Site <span class="badge badge-success" style="font-size:0.55rem; padding:0.15rem 0.4rem;">OPEN</span>
+              </div>
+              <div style="font-size:0.725rem; color:#94a3b8; margin-top:2px;">Town Center, Nagaon District</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:1.1rem; font-weight:800; color:#10b981;">140 Beds</div>
+              <div style="font-size:0.65rem; color:#64748b;">Available / 300</div>
+            </div>
+          </div>
+          <div style="background:rgba(255,255,255,0.04); border-radius:6px; height:8px; overflow:hidden; margin-bottom:0.85rem;">
+            <div style="background:#10b981; width:53.3%; height:100%;"></div>
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:0.35rem; margin-bottom:0.85rem;">
+            <span class="shelter-tag"><i class="fa-solid fa-person-breastfeeding" style="color:#a78bfa"></i> Maternal Unit</span>
+            <span class="shelter-tag"><i class="fa-solid fa-glass-water" style="color:#38bdf8"></i> Water Station</span>
+            <span class="shelter-tag"><i class="fa-solid fa-video" style="color:#10b981"></i> CCTV Monitored</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.08); padding-top:0.65rem;">
+            <div style="font-size:0.725rem; color:#cbd5e1;"><i class="fa-solid fa-phone" style="color:#38bdf8; margin-right:4px;"></i> Ms. M. Gogoi (+91 94353 11223)</div>
+            <button class="btn btn-primary" style="padding:0.35rem 0.85rem; font-size:0.725rem;" onclick="app.openAuthModal('citizen')">Directions &rarr;</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= RESOURCES SECTION ================= -->
+    <section id="resources-section" class="landing-content-section" style="padding: 4rem 2.5rem; background: rgba(6, 12, 23, 0.7); border-top: 1px solid rgba(59, 130, 246, 0.18); border-bottom: 1px solid rgba(59, 130, 246, 0.18);">
+      <div style="max-width: 1480px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 2.5rem;">
+          <div class="badge badge-warning" style="margin-bottom: 0.6rem;">
+            <i class="fa-solid fa-boxes-packing"></i> RELIEF LOGISTICS &amp; EQUIPMENT INVENTORY
+          </div>
+          <h2 style="font-size: 2.25rem; font-weight: 800; color: #fff; margin-bottom: 0.5rem;">
+            Statewide Rescue Assets &amp; Relief Stock
+          </h2>
+          <p style="color: #94a3b8; font-size: 0.95rem; max-width: 620px; margin: 0 auto;">
+            Live telemetry tracking of boats, medical trauma teams, dry rations, and satellite telemetry across Assam districts.
+          </p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
+          <!-- Resource 1 -->
+          <div class="landing-resource-card">
+            <div style="width:44px; height:44px; border-radius:10px; background:rgba(37,99,235,0.2); color:#38bdf8; display:flex; align-items:center; justify-content:center; font-size:1.35rem; margin-bottom:0.85rem;">
+              <i class="fa-solid fa-sailboat"></i>
+            </div>
+            <h3 style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:0.35rem;">Watercraft &amp; Rescue Boats</h3>
+            <div style="font-size:0.8rem; color:#cbd5e1; line-height:1.5; margin-bottom:0.85rem;">
+              <strong>212 Motorized OBM Boats &amp; Jet Skis</strong> deployed across Golaghat, Jorhat, Dibrugarh &amp; Nagaon for high-current evacuations.
+            </div>
+            <div style="font-size:0.725rem; color:#10b981; font-weight:700; display:flex; align-items:center; gap:0.4rem;">
+              <i class="fa-solid fa-circle-check"></i> 18 Batches Active in Field Operations
+            </div>
+          </div>
+
+          <!-- Resource 2 -->
+          <div class="landing-resource-card">
+            <div style="width:44px; height:44px; border-radius:10px; background:rgba(245,158,11,0.2); color:#f59e0b; display:flex; align-items:center; justify-content:center; font-size:1.35rem; margin-bottom:0.85rem;">
+              <i class="fa-solid fa-wheat-awn"></i>
+            </div>
+            <h3 style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:0.35rem;">Dry Rations &amp; Drinking Water</h3>
+            <div style="font-size:0.8rem; color:#cbd5e1; line-height:1.5; margin-bottom:0.85rem;">
+              <strong>45,000 Food Packets</strong> + 12 Mobile Water Purification Units providing 120,000 Liters of safe drinking water daily.
+            </div>
+            <div style="font-size:0.725rem; color:#10b981; font-weight:700; display:flex; align-items:center; gap:0.4rem;">
+              <i class="fa-solid fa-circle-check"></i> 24x7 Supply Chain Active
+            </div>
+          </div>
+
+          <!-- Resource 3 -->
+          <div class="landing-resource-card">
+            <div style="width:44px; height:44px; border-radius:10px; background:rgba(239,68,68,0.2); color:#ef4444; display:flex; align-items:center; justify-content:center; font-size:1.35rem; margin-bottom:0.85rem;">
+              <i class="fa-solid fa-kit-medical"></i>
+            </div>
+            <h3 style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:0.35rem;">Medical Trauma &amp; Vaccination</h3>
+            <div style="font-size:0.8rem; color:#cbd5e1; line-height:1.5; margin-bottom:0.85rem;">
+              <strong>34 Medical Field Camps</strong> equipped with Anti-Venom, Cholera vaccines, oxygen kits, and emergency surgical supplies.
+            </div>
+            <div style="font-size:0.725rem; color:#10b981; font-weight:700; display:flex; align-items:center; gap:0.4rem;">
+              <i class="fa-solid fa-circle-check"></i> 120 Doctors &amp; Nurses On-Call
+            </div>
+          </div>
+
+          <!-- Resource 4 -->
+          <div class="landing-resource-card">
+            <div style="width:44px; height:44px; border-radius:10px; background:rgba(139,92,246,0.2); color:#a78bfa; display:flex; align-items:center; justify-content:center; font-size:1.35rem; margin-bottom:0.85rem;">
+              <i class="fa-solid fa-satellite-dish"></i>
+            </div>
+            <h3 style="font-size:1.1rem; font-weight:800; color:#fff; margin-bottom:0.35rem;">Thermal Drones &amp; Telemetry</h3>
+            <div style="font-size:0.8rem; color:#cbd5e1; line-height:1.5; margin-bottom:0.85rem;">
+              <strong>18 Night-Vision Drones</strong> scanning submerged causeways + 45 Portable Diesel Generators maintaining power to control towers.
+            </div>
+            <div style="font-size:0.725rem; color:#10b981; font-weight:700; display:flex; align-items:center; gap:0.4rem;">
+              <i class="fa-solid fa-circle-check"></i> Satellite Relay Link Active
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CONTACT SECTION ================= -->
+    <section id="contact-section" class="landing-content-section" style="padding: 4rem 2.5rem; max-width: 1480px; margin: 0 auto;">
+      <div style="text-align: center; margin-bottom: 2.5rem;">
+        <div class="badge badge-danger" style="margin-bottom: 0.6rem;">
+          <i class="fa-solid fa-headset"></i> 24x7 DISASTER RESPONSE CONTROL ROOMS
+        </div>
+        <h2 style="font-size: 2.25rem; font-weight: 800; color: #fff; margin-bottom: 0.5rem;">
+          Get Immediate Emergency Assistance
+        </h2>
+        <p style="color: #94a3b8; font-size: 0.95rem; max-width: 620px; margin: 0 auto;">
+          Contact state disaster management authorities, police control desks, or send direct inquiries to the AEGIS command team.
+        </p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 2rem;">
+        <!-- Left: Hotlines Directory Cards -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="contact-card-box">
+            <div style="font-size:0.725rem; font-weight:800; color:#ef4444;">🚨 NATIONAL EMERGENCY RESPONSE</div>
+            <div style="font-size:1.5rem; font-weight:800; color:#fff; margin:4px 0;">Dial 112</div>
+            <div style="font-size:0.725rem; color:#94a3b8;">Toll-free 24x7 Dispatch Center</div>
+          </div>
+
+          <div class="contact-card-box">
+            <div style="font-size:0.725rem; font-weight:800; color:#f59e0b;">🌊 ASSAM DISASTER MGMT (ASDMA)</div>
+            <div style="font-size:1.3rem; font-weight:800; color:#fff; margin:4px 0;">1078 / 0361-2237011</div>
+            <div style="font-size:0.725rem; color:#94a3b8;">State Flood Control Room Dispur</div>
+          </div>
+
+          <div class="contact-card-box">
+            <div style="font-size:0.725rem; font-weight:800; color:#10b981;">🚑 MEDICAL AMBULANCE</div>
+            <div style="font-size:1.5rem; font-weight:800; color:#fff; margin:4px 0;">Dial 108</div>
+            <div style="font-size:0.725rem; color:#94a3b8;">Mrityunjoy Emergency Service</div>
+          </div>
+
+          <div class="contact-card-box">
+            <div style="font-size:0.725rem; font-weight:800; color:#38bdf8;">🚤 NDRF 1st BATTALION COMMAND</div>
+            <div style="font-size:1.2rem; font-weight:800; color:#fff; margin:4px 0;">+91 94350 12345</div>
+            <div style="font-size:0.725rem; color:#94a3b8;">Upper Assam Tactical HQ</div>
+          </div>
+        </div>
+
+        <!-- Right: Inquiry Form Card -->
+        <div style="background: rgba(12, 21, 39, 0.85); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 16px; padding: 1.5rem; backdrop-filter: blur(16px);">
+          <div style="font-weight:800; font-size:1.1rem; color:#fff; margin-bottom:0.2rem;">Send Direct Message to AEGIS Command</div>
+          <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:1rem;">Submit non-emergency queries, supply requests or shelter feedback.</div>
+
+          <form onsubmit="event.preventDefault(); alert('✅ Inquiry transmitted to AEGIS Command Desk. We will get back to you shortly.');">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.75rem;">
+              <div>
+                <label style="font-size:0.725rem; color:#94a3b8; display:block; margin-bottom:4px;">Full Name</label>
+                <input type="text" class="form-control" placeholder="Ravi Das" value="Ravi Das" required style="padding:0.5rem 0.75rem; font-size:0.8rem;">
+              </div>
+              <div>
+                <label style="font-size:0.725rem; color:#94a3b8; display:block; margin-bottom:4px;">Phone / Email</label>
+                <input type="text" class="form-control" placeholder="+91 98765 43210" value="+91 98765 43210" required style="padding:0.5rem 0.75rem; font-size:0.8rem;">
+              </div>
+            </div>
+
+            <div style="margin-bottom:0.75rem;">
+              <label style="font-size:0.725rem; color:#94a3b8; display:block; margin-bottom:4px;">District / Region</label>
+              <select class="form-control" style="padding:0.5rem 0.75rem; font-size:0.8rem;">
+                <option>Golaghat District</option>
+                <option>Jorhat District</option>
+                <option>Dibrugarh District</option>
+                <option>Sivasagar District</option>
+                <option>Nagaon District</option>
+              </select>
+            </div>
+
+            <div style="margin-bottom:1rem;">
+              <label style="font-size:0.725rem; color:#94a3b8; display:block; margin-bottom:4px;">Your Message / Requisition</label>
+              <textarea class="form-control" rows="3" placeholder="Specify shelter inquiry, dry ration requisition, or general question..." style="padding:0.5rem 0.75rem; font-size:0.8rem; outline:none; resize:none;"></textarea>
+            </div>
+
+            <button class="btn btn-primary" style="width:100%; font-size:0.85rem; font-weight:800; padding:0.65rem;">
+              Submit Inquiry to Command &rarr;
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom Emergency Helpline Banner Bar -->
+    <section class="helpline-footer-bar">
+      <div class="helpline-container">
+        <div style="display:flex; align-items:center; gap:1rem;">
+          <i class="fa-solid fa-hand-holding-heart" style="font-size:2rem; color:#3b82f6"></i>
+          <div>
+            <div style="font-size:1.05rem; font-weight:800; color:#ffffff;">Every Second Counts. Every Action Matters.</div>
+            <div style="font-size:0.8rem; color:#94a3b8;">AEGIS connects you with the right help at the right time.</div>
+          </div>
+        </div>
+
+        <div class="helpline-phone-box">
+          <i class="fa-solid fa-phone-volume" style="font-size:1.8rem; color:#ef4444"></i>
+          <div>
+            <div style="font-size:0.7rem; color:#94a3b8;">In case of emergency, call</div>
+            <div class="helpline-number">112</div>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:1rem;">
+          <span style="font-size:0.8rem; color:#94a3b8;">or use AEGIS to send SOS</span>
+          <button class="btn btn-primary btn-pill" style="background:#ef4444; padding: 0.7rem 1.6rem;" onclick="app.openAuthModal('citizen')">
+            <span class="pulse-dot" style="background:#fff"></span> Send SOS Now
+          </button>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <i class="fa-solid fa-shield-heart" style="font-size:1.75rem; color:#3b82f6"></i>
+          <div>
+            <div style="font-size:0.85rem; font-weight:800; color:#ffffff;">Stay informed. Stay safe.</div>
+            <div style="font-size:0.75rem; color:#94a3b8;">Together, we can overcome any flood.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom Copyright -->
+    <footer class="bottom-copyright-bar">
+      <div>© 2026 AEGIS Flood Response Platform. All rights reserved.</div>
+      <div style="display:flex; align-items:center; gap:0.5rem;">
+        <i class="fa-solid fa-building-columns"></i> Government of Assam Initiative
+      </div>
+    </footer>
+  </main>
+
+  <!-- ================= AUTHENTICATION MODAL ================= -->
+  <div id="auth-modal-backdrop" class="modal-backdrop">
+    <div class="auth-modal">
+      <button class="close-modal" onclick="app.closeAuthModal()"><i class="fa-solid fa-xmark"></i></button>
+
+      <div style="text-align: center; margin-bottom: 1.25rem;">
+        <div class="brand-title" style="margin-bottom:0.25rem;">AEGIS</div>
+        <div style="font-size: 0.8rem; color: #94a3b8;">Select your portal role to sign in</div>
+      </div>
+
+      <div class="role-tabs">
+        <button id="tab-citizen" class="role-tab active" onclick="app.switchAuthTab('citizen')">
+          <i class="fa-solid fa-user"></i> Sign in as Citizen
+        </button>
+        <button id="tab-rescue" class="role-tab" onclick="app.switchAuthTab('rescue')">
+          <i class="fa-solid fa-shield-halved"></i> Sign in as Rescue Team
+        </button>
+      </div>
+
+      <form id="citizen-auth-form" onsubmit="app.handleCitizenAuth(event)">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="citizen-name" class="form-control" placeholder="e.g. Ravi Das" value="Ravi Das" required>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="citizen-email" class="form-control" placeholder="name@example.com" value="ravi.das@email.com" required>
+        </div>
+        <div class="form-group">
+          <label>Assam Location / District</label>
+          <select id="citizen-location" class="form-control">
+            <optgroup label="📍 Upper Assam Division">
+              <option value="Golaghat">Golaghat (Critical • 26.40°N, 94.03°E)</option>
+              <option value="Jorhat">Jorhat (26.75°N, 94.20°E)</option>
+              <option value="Dibrugarh">Dibrugarh (27.48°N, 94.90°E)</option>
+              <option value="Sivasagar">Sivasagar (26.98°N, 94.64°E)</option>
+              <option value="Tinsukia">Tinsukia (27.50°N, 95.36°E)</option>
+              <option value="Dhemaji">Dhemaji (27.48°N, 94.59°E)</option>
+              <option value="Lakhimpur">Lakhimpur (27.23°N, 94.09°E)</option>
+            </optgroup>
+            <optgroup label="📍 Central Assam Division">
+              <option value="Nagaon">Nagaon (26.34°N, 92.68°E)</option>
+              <option value="Hojai">Hojai (26.00°N, 92.84°E)</option>
+              <option value="Morigaon">Morigaon (26.25°N, 92.33°E)</option>
+              <option value="Dima Hasao">Dima Hasao (25.40°N, 93.07°E)</option>
+              <option value="Karbi Anglong">East Karbi Anglong (26.13°N, 93.57°E)</option>
+            </optgroup>
+            <optgroup label="📍 Lower & North Assam Divisions">
+              <option value="Kamrup Metro">Guwahati / Kamrup Metro (26.14°N, 91.73°E)</option>
+              <option value="Darrang">Darrang (26.44°N, 92.02°E)</option>
+              <option value="Barpeta">Barpeta (26.31°N, 90.98°E)</option>
+              <option value="Sonitpur">Sonitpur (26.75°N, 92.85°E)</option>
+              <option value="Dhubri">Dhubri (26.01°N, 89.99°E)</option>
+              <option value="Goalpara">Goalpara (26.17°N, 90.62°E)</option>
+            </optgroup>
+            <optgroup label="📍 Barak Valley Division">
+              <option value="Cachar">Cachar (24.83°N, 92.77°E)</option>
+              <option value="Hailakandi">Hailakandi (24.68°N, 92.57°E)</option>
+              <option value="Karimganj">Karimganj (24.86°N, 92.35°E)</option>
+            </optgroup>
+          </select>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.4rem;">
+          Enter Citizen Dashboard &rarr;
+        </button>
+
+        <div style="text-align: center; margin: 0.75rem 0; font-size: 0.75rem; color: #64748b;">OR</div>
+
+        <button type="button" class="btn btn-google" onclick="loginWithGoogleFirebase()">
+          <svg width="18" height="18" viewBox="0 0 18 18" style="margin-right:8px;"><path fill="#4285F4" d="M17.64 9.2c0-.74-.06-1.28-.19-1.84H9v3.34h4.96c-.1.83-.64 2.08-1.84 2.92l2.84 2.2c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.84-2.2c-.76.53-1.78.9-3.12.9-2.38 0-4.41-1.57-5.13-3.74L.97 13.04C2.45 15.98 5.48 18 9 18z"/><path fill="#FBBC05" d="M3.87 10.78c-.18-.53-.29-1.1-.29-1.78s.11-1.25.29-1.78L.97 4.96C.35 6.18 0 7.55 0 9s.35 2.82.97 4.04l2.9-2.26z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.45 2.02.97 4.96l2.9 2.26C4.59 5.05 6.62 3.58 9 3.58z"/></svg>
+          Sign in with Google
+        </button>
+      </form>
+
+      <form id="rescue-auth-form" class="hidden" onsubmit="app.handleRescueAuth(event); return false;">
+        <div class="form-group">
+          <label>Rescue Unit Official ID / Email</label>
+          <input type="email" id="rescue-email" class="form-control" value="ndrf.golaghat@gov.in" required>
+        </div>
+        <div class="form-group">
+          <label>Authorization Password</label>
+          <input type="password" class="form-control" value="••••••••" required>
+        </div>
+        <div class="form-group">
+          <label>Command Division</label>
+          <select class="form-control" id="rescue-division">
+            <option value="Golaghat">NDRF 1st Battalion - Golaghat Division</option>
+            <option value="Jorhat">SDRF 2nd Unit - Jorhat Division</option>
+            <option value="Sivasagar">NDRF 3rd Battalion - Sivasagar Sector</option>
+          </select>
+        </div>
+
+        <button type="button" onclick="app.handleRescueAuth(event)" class="btn btn-primary" style="width: 100%; background:#ef4444; margin-top: 0.4rem;">
+          Login to Rescue Command Center &rarr;
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= DASHBOARD APP CONTAINER ================= -->
+  <div id="app-portal" class="app-container page-view hidden">
+    <aside class="sidebar">
+      <div id="citizen-menu">
+        <div style="font-size: 0.675rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 0.75rem;">Citizen Hub</div>
+        <div class="sidebar-nav-item active" onclick="app.showPortalTab('citizen-dash', this)">
+          <i class="fa-solid fa-house"></i> Overview Dashboard
+        </div>
+        <div class="sidebar-nav-item" onclick="app.showPortalTab('citizen-intel', this)">
+          <i class="fa-solid fa-map-location-dot"></i> Intelligence Hub (Routes)
+        </div>
+        <div class="sidebar-nav-item" onclick="app.showPortalTab('citizen-sos', this)">
+          <i class="fa-solid fa-circle-exclamation" style="color:#ef4444"></i> Smart SOS Reporter
+        </div>
+        <div class="sidebar-nav-item" onclick="app.showPortalTab('citizen-track', this)">
+          <i class="fa-solid fa-clock-rotate-left"></i> My SOS & Live Tracking
+        </div>
+      </div>
+
+      <div id="rescue-menu" class="hidden">
+        <div style="font-size: 0.675rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 0.75rem;">Rescue Command</div>
+        <div class="sidebar-nav-item active" onclick="app.showPortalTab('rescue-dash', this)">
+          <i class="fa-solid fa-chart-line"></i> Command Dashboard
+        </div>
+        <div class="sidebar-nav-item" onclick="app.showPortalTab('rescue-risk', this)">
+          <i class="fa-solid fa-layer-group"></i> Flood Risk & Priority
+        </div>
+        <div class="sidebar-nav-item" onclick="app.showPortalTab('rescue-sos-center', this)">
+          <i class="fa-solid fa-bell" style="color:#ef4444"></i> Citizen SOS Queue
+        </div>
+        <div class="sidebar-nav-item" onclick="app.showPortalTab('rescue-shelters', this)">
+          <i class="fa-solid fa-campground"></i> Shelter Management
+        </div>
+        <div class="sidebar-nav-item" onclick="app.showPortalTab('rescue-resources', this)">
+          <i class="fa-solid fa-boxes-stacked"></i> Resource Command
+        </div>
+        <div class="sidebar-nav-item" onclick="app.showPortalTab('rescue-analytics', this)">
+          <i class="fa-solid fa-chart-pie"></i> Analytics & Reports
+        </div>
+      </div>
+
+      <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+        <button class="btn btn-outline" style="width: 100%;" onclick="app.logout()">
+          <i class="fa-solid fa-right-from-bracket"></i> Exit to Landing
+        </button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div id="citizen-dash" class="portal-tab">
+        <div class="view-header">
+          <div>
+            <h2 class="view-title">Welcome back, <span id="citizen-welcome-name">Ravi Das</span></h2>
+            <div class="view-subtitle">Current Location: <strong style="color:#ffffff" id="citizen-location-text">Golaghat (Worst-hit district)</strong></div>
+          </div>
+          <button class="btn btn-primary" style="background:#ef4444;" onclick="app.showPortalTab('citizen-sos')">
+            <i class="fa-solid fa-triangle-exclamation"></i> Send SOS Emergency
+          </button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+          <div>
+            <div class="card" style="background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.3);">
+              <div class="badge badge-danger" style="margin-bottom: 0.4rem;">CRITICAL FLOOD WARNING</div>
+              <h3 style="font-size: 1.2rem; font-weight: 800; color: #fca5a5;">Golaghat Water Level Rising (4.8m)</h3>
+              <p style="color: #94a3b8; font-size: 0.85rem; margin-top: 0.25rem;">Dhansiri river overflowed embankment. Stay on upper floors or evacuate via recommended safe route to Golaghat Relief Camp.</p>
+            </div>
+
+            <div class="card">
+              <h3 style="font-size:1rem; font-weight:700; margin-bottom:1rem;"><i class="fa-solid fa-cloud-showers-heavy" style="color:#3b82f6"></i> Live Local Telemetry</h3>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; text-align: center;">
+                <div style="background: rgba(0,0,0,0.3); padding: 0.85rem; border-radius: var(--radius-md);">
+                  <div style="font-size: 0.75rem; color: #94a3b8;">24h Rainfall</div>
+                  <div style="font-size: 1.4rem; font-weight: 800; color: #3b82f6;">186 mm</div>
+                </div>
+                <div style="background: rgba(0,0,0,0.3); padding: 0.85rem; border-radius: var(--radius-md);">
+                  <div style="font-size: 0.75rem; color: #94a3b8;">River Gauge</div>
+                  <div style="font-size: 1.4rem; font-weight: 800; color: #ef4444;">4.8 m</div>
+                </div>
+                <div style="background: rgba(0,0,0,0.3); padding: 0.85rem; border-radius: var(--radius-md);">
+                  <div style="font-size: 0.75rem; color: #94a3b8;">Road Conditions</div>
+                  <div style="font-size: 1.1rem; font-weight: 700; color: #f59e0b; margin-top: 0.2rem;">NH-715 Blocked</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card">
+              <h3 style="font-size:1rem; font-weight:700; margin-bottom:0.75rem;"><i class="fa-solid fa-house-medical" style="color:#10b981"></i> Nearest Relief Camp</h3>
+              <div style="font-weight: 700; font-size: 1rem;">Golaghat Relief Camp</div>
+              <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.65rem;">Degree College Campus (2.4 km away)</div>
+              
+              <div style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); padding: 0.65rem; border-radius: var(--radius-md); margin-bottom: 0.85rem;">
+                <div style="font-size: 0.75rem; color: #10b981; font-weight: 700;">CAPACITY: 182 BEDS AVAILABLE</div>
+                <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-top: 0.35rem; overflow: hidden;">
+                  <div style="width: 64%; height: 100%; background: #10b981;"></div>
+                </div>
+              </div>
+
+              <div style="font-size: 0.775rem; color: #94a3b8; margin-bottom: 0.85rem;">
+                Officer Contact: <strong>Dr. A. K. Saikia</strong><br>
+                Phone: <strong style="color:#ffffff">+91 94350 12345</strong>
+              </div>
+
+              <button class="btn btn-outline" style="width: 100%;" onclick="app.showPortalTab('citizen-intel')">
+                <i class="fa-solid fa-route"></i> Navigate Safe Route
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="citizen-intel" class="portal-tab hidden">
+        <div class="view-header">
+          <div>
+            <h2 class="view-title">Intelligence Hub - Safe Routes & Shelters</h2>
+            <div class="view-subtitle">AI plots the safest route avoiding submerged roads and barricades</div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+          <div class="card" style="padding: 0; overflow: hidden;">
+            <div id="citizen-intel-map" style="height: 500px; width: 100%;"></div>
+          </div>
+
+          <div>
+            <div class="card">
+              <h3 style="font-size:1rem; font-weight:700; margin-bottom:0.75rem;"><i class="fa-solid fa-route" style="color:#10b981"></i> Recommended Safe Route</h3>
+              
+              <div style="margin-bottom: 0.85rem;">
+                <div style="font-size: 0.75rem; color: #94a3b8;">From:</div>
+                <div style="font-weight: 700; font-size:0.9rem;">My Location (Golaghat)</div>
+                <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.35rem;">To:</div>
+                <div style="font-weight: 700; font-size:0.9rem; color: #10b981;">Golaghat Relief Camp</div>
+              </div>
+
+              <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
+                <div style="flex:1; background: rgba(0,0,0,0.3); padding: 0.65rem; border-radius: var(--radius-md); text-align: center;">
+                  <div style="font-size: 0.7rem; color: #94a3b8;">Distance</div>
+                  <div style="font-size: 1.1rem; font-weight: 800; color: #3b82f6;">2.4 km</div>
+                </div>
+                <div style="flex:1; background: rgba(0,0,0,0.3); padding: 0.65rem; border-radius: var(--radius-md); text-align: center;">
+                  <div style="font-size: 0.7rem; color: #94a3b8;">Est. Time</div>
+                  <div style="font-size: 1.1rem; font-weight: 800; color: #10b981;">18 mins</div>
+                </div>
+              </div>
+
+              <button class="btn btn-primary" style="width: 100%;" onclick="app.showPortalTab('citizen-sos')">
+                Request Rescue Transport (SOS)
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="citizen-sos" class="portal-tab hidden">
+        <div class="view-header">
+          <div>
+            <h2 class="view-title">Smart SOS Reporter</h2>
+            <div class="view-subtitle">Send instant distress signal to NDRF & SDRF rescue teams</div>
+          </div>
+        </div>
+
+        <div style="max-width: 650px; margin: 0 auto;">
+          <div class="card" style="border-color: rgba(239,68,68,0.3);">
+            <h3 style="font-size:1.1rem; font-weight:700; color:#ef4444; margin-bottom:1rem;">
+              <i class="fa-solid fa-triangle-exclamation"></i> Emergency Request Form
+            </h3>
+
+            <form onsubmit="app.handleSOSSubmit(event)">
+              <div class="form-group">
+                <label>Your Name</label>
+                <input type="text" id="sos-name" class="form-control" value="Ravi Das & Family" required>
+              </div>
+
+              <div class="form-group">
+                <label>Contact Phone Number</label>
+                <input type="text" id="sos-phone" class="form-control" value="+91 98765 43210" required>
+              </div>
+
+              <div class="form-group">
+                <label>Current District & Specific Location</label>
+                <input type="text" id="sos-location-text" class="form-control" value="Golaghat, Ward 4, Near Dhansiri River Bank" required>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                  <label>Emergency Category</label>
+                  <select id="sos-category" class="form-control" onchange="app.updateAIPreviewScore()">
+                    <option value="Trapped / Water Level Rising">Trapped / Water Level Rising</option>
+                    <option value="Medical Emergency">Medical Crisis / Hospital Evacuation</option>
+                    <option value="Food & Water Needed">Food & Drinking Water Shortage</option>
+                    <option value="Elderly / Infant Assistance">Elderly / Infant Assistance</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Number of Family Members</label>
+                  <input type="number" id="sos-members" class="form-control" value="5" min="1" max="50" onchange="app.updateAIPreviewScore()" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Details of Emergency Situation</label>
+                <textarea id="sos-desc" class="form-control" rows="3" required>Water entered first floor. 2 elderly members and 1 infant trapped on roof. Need immediate boat rescue.</textarea>
+              </div>
+
+              <button type="submit" class="btn btn-primary" style="width: 100%; background:#ef4444; padding: 0.75rem;">
+                <i class="fa-solid fa-paper-plane"></i> Submit SOS Emergency Request
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div id="citizen-track" class="portal-tab hidden">
+        <div class="view-header">
+          <div>
+            <h2 class="view-title">My SOS Status & Live Tracker</h2>
+            <div class="view-subtitle">Real-time updates directly from NDRF & SDRF command team</div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 1.5rem;">
+          <div>
+            <div class="card">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+                <h3 style="font-size:1.05rem; font-weight:700; margin:0;">Request: <span id="track-sos-id">SOS-1087</span></h3>
+                <span class="badge badge-danger" id="track-status-badge">NEW / PROCESSING</span>
+              </div>
+
+              <div class="timeline" id="track-timeline">
+                <div class="timeline-item completed">
+                  <div class="timeline-dot"></div>
+                  <div style="font-weight:700; font-size:0.85rem;">SOS Submitted</div>
+                  <div style="font-size:0.7rem; color:#94a3b8;" id="track-time-submitted">Today, 10:22 AM</div>
+                </div>
+                <div class="timeline-item completed">
+                  <div class="timeline-dot"></div>
+                  <div style="font-weight:700; font-size:0.85rem;">AI Analyzed & Prioritized</div>
+                  <div style="font-size:0.7rem; color:#8b5cf6;">Score: 95/100 (Critical Priority)</div>
+                </div>
+                <div class="timeline-item active" id="tl-step-accepted">
+                  <div class="timeline-dot"></div>
+                  <div style="font-weight:700; font-size:0.85rem;">Accepted by Rescue Team</div>
+                  <div style="font-size:0.7rem; color:#94a3b8;" id="track-team-name">Waiting for Commander Assignment...</div>
+                </div>
+                <div class="timeline-item" id="tl-step-enroute">
+                  <div class="timeline-dot"></div>
+                  <div style="font-weight:700; font-size:0.85rem;">Rescue Unit En-Route</div>
+                  <div style="font-size:0.7rem; color:#94a3b8;" id="track-eta">ETA: Calculating...</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card" id="assigned-team-box">
+              <h3 style="font-size:0.95rem; font-weight:700; margin-bottom:0.65rem;"><i class="fa-solid fa-shield-halved" style="color:#3b82f6"></i> Response Team Info</h3>
+              <div style="font-size: 0.825rem; line-height: 1.7;">
+                Assigned Team: <strong id="info-team-name" style="color:#3b82f6">NDRF Team-4 (Golaghat)</strong><br>
+                Assigned Vehicle: <strong id="info-vehicle">Rescue Boat-2 (Inflatable)</strong><br>
+                Allocated Shelter: <strong id="info-shelter">Golaghat Relief Camp (Degree College)</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="padding: 0; overflow: hidden;">
+            <div id="citizen-tracking-map" style="height: 480px; width: 100%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="rescue-dash" class="portal-tab hidden">
+        <div class="view-header">
+          <div>
+            <h2 class="view-title">Command Dashboard - Situation Overview</h2>
+            <div class="view-subtitle">Commander Division: <strong style="color:#3b82f6">NDRF 1st Battalion (Golaghat HQ)</strong></div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+          <div class="card" style="margin: 0; padding: 1rem;">
+            <div style="font-size: 0.75rem; color: #94a3b8;">Total SOS Received</div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: #3b82f6;" id="dash-total-sos">143</div>
+          </div>
+          <div class="card" style="margin: 0; padding: 1rem;">
+            <div style="font-size: 0.75rem; color: #94a3b8;">Critical SOS Active</div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: #ef4444;" id="dash-critical-sos">37</div>
+          </div>
+          <div class="card" style="margin: 0; padding: 1rem;">
+            <div style="font-size: 0.75rem; color: #94a3b8;">Active Rescue Teams</div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: #10b981;">12 Teams</div>
+          </div>
+          <div class="card" style="margin: 0; padding: 1rem;">
+            <div style="font-size: 0.75rem; color: #94a3b8;">Total People Affected</div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: #f59e0b;">1,42,560</div>
+          </div>
+        </div>
+
+        <div class="card" style="padding: 0; overflow: hidden;">
+          <div id="command-master-map" style="height: 460px; width: 100%;"></div>
+        </div>
+      </div>
+
+      <div id="rescue-risk" class="portal-tab hidden">
+        <div class="view-header">
+          <div>
+            <h2 class="view-title">Flood Risk Map & District Exposure</h2>
+            <div class="view-subtitle">AI risk ranking across all affected districts in Assam</div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+          <div class="card">
+            <h3 style="font-size:1rem; font-weight:700; margin-bottom:0.75rem;">Assam District Risk Ranking</h3>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>District</th>
+                  <th>Status</th>
+                  <th>Risk Score</th>
+                  <th>Water Level</th>
+                </tr>
+              </thead>
+              <tbody id="risk-ranking-tbody"></tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <h3 style="font-size:1rem; font-weight:700; margin-bottom:0.75rem;">Population Exposure Chart</h3>
+            <canvas id="chart-exposure" height="220"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div id="rescue-sos-center" class="portal-tab hidden">
+        <div class="view-header">
+          <div>
+            <h2 class="view-title">Citizen SOS Queue</h2>
+            <div class="view-subtitle">Review incoming distress signals and dispatch teams</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>SOS ID</th>
+                <th>Citizen Name</th>
+                <th>Location</th>
+                <th>Category</th>
+                <th>Members</th>
+                <th>AI Priority</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="sos-queue-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="rescue-shelters" class="portal-tab hidden">
+        <div class="view-header">
+          <div>
+            <h2 class="view-title">Shelter Network Management</h2>
+            <div class="view-subtitle">Monitor capacity and AI evacuation load balancing</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Shelter ID</th>
+                <th>Shelter Name</th>
+                <th>District</th>
+                <th>Capacity</th>
+                <th>Occupied</th>
+                <th>Available</th>
+                <th>Facilities</th>
+              </tr>
+            </thead>
+            <tbody id="shelters-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="rescue-resources" class="portal-tab hidden">
+        <div class="view-header">
+          <div>
+            <h2 class="view-title">Resource Command</h2>
+            <div class="view-subtitle">Fleet matrix for rescue boats and medical kits</div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+          <div class="card">
+            <h3 style="font-size:1rem; font-weight:700; margin-bottom:0.5rem;"><i class="fa-solid fa-sailboat" style="color:#3b82f6"></i> Rescue Boats</h3>
+            <div style="font-size: 1.8rem; font-weight: 800; color: #3b82f6;">12 Available</div>
+            <div style="font-size: 0.8rem; color: #94a3b8;">36 Deployed across Golaghat & Jorhat</div>
+          </div>
+          <div class="card">
+            <h3 style="font-size:1rem; font-weight:700; margin-bottom:0.5rem;"><i class="fa-solid fa-truck" style="color:#f59e0b"></i> 4x4 Trucks</h3>
+            <div style="font-size: 1.8rem; font-weight: 800; color: #f59e0b;">12 Available</div>
+            <div style="font-size: 0.8rem; color: #94a3b8;">20 Deployed in Sivasagar</div>
+          </div>
+          <div class="card">
+            <h3 style="font-size:1rem; font-weight:700; margin-bottom:0.5rem;"><i class="fa-solid fa-helicopter" style="color:#10b981"></i> Helicopters</h3>
+            <div style="font-size: 1.8rem; font-weight: 800; color: #10b981;">4 Available</div>
+            <div style="font-size: 0.8rem; color: #94a3b8;">2 Standby at Tezpur Airfield</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="rescue-analytics" class="portal-tab hidden">
+        <div class="view-header">
+          <div>
+            <h2 class="view-title">Analytics & Reports</h2>
+            <div class="view-subtitle">Comprehensive metrics on response time and SOS trends</div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+          <div class="card">
+            <h3 style="font-size:1rem; font-weight:700; margin-bottom:0.75rem;">24-Hour SOS Volume Trend</h3>
+            <canvas id="chart-sos-trend" height="200"></canvas>
+          </div>
+          <div class="card">
+            <h3 style="font-size:1rem; font-weight:700; margin-bottom:0.75rem;">Emergency Type Breakdown</h3>
+            <canvas id="chart-emergency-type" height="200"></canvas>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="dispatch-modal-backdrop" class="modal-backdrop">
+    <div class="auth-modal" style="max-width: 540px;">
+      <button class="close-modal" onclick="app.closeDispatchModal()"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 0.85rem;">
+        <i class="fa-solid fa-truck-fast" style="color:#3b82f6"></i> Assign & Dispatch Rescue Team
+      </h3>
+
+      <div style="background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.3); border-radius: var(--radius-md); padding: 0.75rem; margin-bottom: 1rem;">
+        <div style="font-size: 0.7rem; color: #8b5cf6; font-weight: 800; margin-bottom: 0.2rem;">AI DISPATCH RECOMMENDATION</div>
+        <div style="font-size: 0.8rem; color: #ffffff;" id="dispatch-ai-recommendation">
+          Deploy 1 Inflatable Rescue Boat, 1 Medical Kit. Assign NDRF Team-4. Target Shelter: Golaghat Relief Camp (Degree College - 2.4 km).
+        </div>
+      </div>
+
+      <form onsubmit="app.confirmDispatch(event)">
+        <input type="hidden" id="dispatch-target-sos-id">
+        <div class="form-group">
+          <label>Assign Rescue Unit</label>
+          <select id="dispatch-team-select" class="form-control">
+            <option value="NDRF-T4">NDRF Team-4 (Golaghat Battalion)</option>
+            <option value="SDRF-U2">SDRF Unit-2 (Jorhat Rapid Response)</option>
+            <option value="NDRF-T1">NDRF Team-1 (Sivasagar Unit)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Vehicle / Transport Type</label>
+          <select id="dispatch-vehicle-select" class="form-control">
+            <option value="Rescue Boat-2 (Inflatable Motorboat)">Rescue Boat-2 (Inflatable Motorboat)</option>
+            <option value="High-Ground 4x4 Rescue Truck">High-Ground 4x4 Rescue Truck</option>
+            <option value="Air Rescue Helicopter Unit">Air Rescue Helicopter Unit</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Target Relief Camp Allocation</label>
+          <select id="dispatch-shelter-select" class="form-control">
+            <option value="Golaghat Relief Camp (Degree College)">Golaghat Relief Camp (Degree College Campus)</option>
+            <option value="Jorhat Relief Camp (JB College)">Jorhat Relief Camp (JB College Campus)</option>
+            <option value="Sivasagar Town Relief Center">Sivasagar Town Relief Center</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Estimated Arrival Time (Minutes)</label>
+          <input type="number" id="dispatch-eta-input" class="form-control" value="20" min="5" max="120" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; background:#ef4444; margin-top: 0.4rem;">
+          Confirm & Dispatch Rescue Team &rarr;
+        </button>
+      </form>
+    </div>
+  </div>
+
+
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Core Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/app.js?v=2.5"></script>
+</body>
+</html>

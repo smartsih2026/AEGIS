@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Citizen SOS Center - AEGIS Rescue Command System</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Leaflet & Heatmap Libraries -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+  <!-- Rescue Master Stylesheet & Script -->
+  <link rel="stylesheet" href="rescue-styles.css">
+  <script src="js/rescue-common.js?v=3.0"></script>
+
+  <style>
+    /* Quick Filter Selects */
+    .r-filter-select {
+      width: 100%;
+      background: rgba(15,23,42,0.8);
+      border: 1px solid rgba(59,130,246,0.3);
+      color: #cbd5e1;
+      font-size: 0.625rem;
+      padding: 0.3rem 0.45rem;
+      border-radius: 5px;
+      outline: none;
+    }
+
+    /* Zero-Scroll 3-Row Grid Layout for SOS Page */
+    .r-sos-grid {
+      display: grid;
+      grid-template-rows: 1.25fr 115px;
+      gap: 0.45rem;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* SOS Table Styling */
+    .r-sos-table-row {
+      display: grid;
+      grid-template-columns: 85px 75px 120px 75px 70px 1.4fr 100px;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.45rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 0.58rem;
+    }
+
+    /* Upload Image Preview Box */
+    .r-image-dropzone {
+      border: 2px dashed rgba(56,189,248,0.4);
+      background: rgba(15,23,42,0.6);
+      border-radius: 8px;
+      padding: 0.75rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .r-image-dropzone:hover {
+      border-color: #38bdf8;
+      background: rgba(37,99,235,0.15);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="r-layout-container">
+    <!-- Left Navigation Sidebar -->
+    <aside class="r-sidebar">
+      <div class="r-sidebar-logo">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.25)"/>
+          <path d="M12 8v8M8 12h8" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <div style="font-weight: 800; font-size: 1.15rem; color: #fff; line-height: 1;">AEGIS</div>
+          <div style="font-size: 0.58rem; color: #94a3b8; font-weight: 500;">Stronger Together, Safer Assam.</div>
+        </div>
+      </div>
+
+      <!-- Exact 12 User-Specified Pages Navigation Menu -->
+      <nav class="r-nav-menu">
+        <a class="r-nav-item" href="rescue-dashboard.html"><i class="fa-solid fa-gauge-high"></i> Command Dashboard</a>
+        <a class="r-nav-item" href="rescue-map.html"><i class="fa-solid fa-map-location-dot"></i> Flood Risk Map</a>
+        <a class="r-nav-item" href="rescue-priority.html"><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i> Emergency Priority Zones</a>
+        <a class="r-nav-item" href="rescue-analysis.html"><i class="fa-solid fa-chart-line"></i> Flood Risk Analysis</a>
+        <a class="r-nav-item" href="rescue-impact.html"><i class="fa-solid fa-house-crack"></i> Impact Assessment</a>
+        <a class="r-nav-item" href="rescue-resources.html"><i class="fa-solid fa-boxes-packing"></i> Resource Command Center</a>
+        <a class="r-nav-item active" href="rescue-sos.html"><i class="fa-solid fa-circle-exclamation" style="color:#ef4444;"></i> Citizen SOS Center <span class="r-nav-badge" id="sidebar-sos-badge">28</span></a>
+        <a class="r-nav-item" href="rescue-shelters.html"><i class="fa-solid fa-campground"></i> Shelter Network Management</a>
+        <a class="r-nav-item" href="rescue-operations.html"><i class="fa-solid fa-person-shelter"></i> Live Rescue Operations</a>
+        <a class="r-nav-item" href="rescue-analytics.html"><i class="fa-solid fa-chart-pie"></i> Analytics &amp; Reports</a>
+        <a class="r-nav-item" href="rescue-teams.html"><i class="fa-solid fa-users-gear"></i> Team Management</a>
+        <a class="r-nav-item" href="rescue-notifications.html"><i class="fa-solid fa-bullhorn" style="color:#f59e0b;"></i> Notifications &amp; Communication <span class="r-nav-badge">5</span></a>
+        <a class="r-nav-item" href="index.html" style="margin-top:auto; color:#ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Settings / Exit</a>
+      </nav>
+
+      <!-- Sidebar Emergency Hotline Box -->
+      <div class="r-sidebar-hotline">
+        <div style="font-size: 0.625rem; color: #fca5a5; font-weight: 700;">EMERGENCY HOTLINE</div>
+        <div style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin: 0.15rem 0;">
+          <i class="fa-solid fa-phone-volume" style="color:#ef4444"></i> 112
+        </div>
+        <div style="font-size: 0.6rem; color: #cbd5e1;">Emergency Call</div>
+        
+        <button class="r-push-talk-btn" onclick="alert('Push-To-Talk Radio Active...')">
+          <i class="fa-solid fa-microphone"></i> Push to Talk
+        </button>
+      </div>
+
+      <!-- Filter SOS Requests Left Panel -->
+      <div style="margin-top:0.3rem; background:rgba(6,12,28,0.7); border:1px solid rgba(59,130,246,0.2); border-radius:8px; padding:0.35rem 0.5rem; display:flex; flex-direction:column; gap:0.25rem;">
+        <div style="font-size:0.58rem; font-weight:800; color:#94a3b8;">FILTER SOS REQUESTS</div>
+        <select class="r-filter-select"><option>All Severity</option><option>Critical (90-100)</option><option>High (70-89)</option><option>Moderate (40-69)</option><option>Low (0-39)</option></select>
+        <select class="r-filter-select"><option>All Status</option><option>Pending</option><option>In Progress</option><option>Resolved</option></select>
+        <select class="r-filter-select"><option>All Districts</option><option>Golaghat</option><option>Jorhat</option><option>Sivasagar</option><option>Darrang</option><option>Nagaon</option></select>
+        <select class="r-filter-select"><option>All Zones</option><option>Zone A</option><option>Zone B</option><option>Zone C</option></select>
+        <button style="background:transparent; border:1px solid rgba(59,130,246,0.3); color:#94a3b8; font-size:0.55rem; padding:0.2rem; border-radius:4px; cursor:pointer;" onclick="location.reload()">Clear Filters</button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Container -->
+    <main class="r-main-area">
+      <!-- Top Header Bar -->
+      <header class="r-topbar" style="margin-bottom: 0.35rem;">
+        <div style="display:flex; align-items:center; gap:0.65rem;">
+          <div>
+            <div style="font-weight:800; font-size:1.1rem; color:#fff; line-height:1.1; display:flex; align-items:center; gap:0.45rem;">
+              Citizen SOS Center
+              <span style="color:#10b981; font-size:0.65rem; font-weight:700;">● Live</span>
+            </div>
+            <div style="font-size:0.685rem; color:#94a3b8;">Real-time SOS monitoring, AI analysis &amp; smart response allocation</div>
+          </div>
+        </div>
+
+        <!-- Center Location Pill -->
+        <div style="display:flex; align-items:center; gap:0.45rem; background:rgba(15,23,42,0.9); border:1px solid rgba(59,130,246,0.3); border-radius:6px; padding:0.25rem 0.65rem;">
+          <i class="fa-solid fa-location-dot" style="color:#ef4444;"></i>
+          <span style="font-size:0.75rem; font-weight:700; color:#fff;">Assam, India</span>
+        </div>
+
+        <!-- Right Utilities -->
+        <div style="display:flex; align-items:center; gap:0.65rem;">
+
+          <div class="r-top-utility-box">
+            <i class="fa-solid fa-cloud-showers-heavy" style="color:#38bdf8;"></i>
+            <span><strong>25°C</strong> Heavy Rain</span>
+          </div>
+
+          <div style="background:rgba(239,68,68,0.2); border:1px solid #ef4444; border-radius:6px; padding:0.25rem 0.6rem; font-size:0.65rem; font-weight:800; color:#ef4444; display:flex; align-items:center; gap:0.35rem;">
+            <i class="fa-solid fa-triangle-exclamation"></i> Flood Alert Level 4 - Severe
+          </div>
+
+          <div class="r-top-utility-box">
+            <i class="fa-solid fa-radio" style="color:#10b981;"></i>
+            <span>Radio Comms <strong style="color:#38bdf8;">Channel 2</strong></span>
+            <span style="color:#10b981; font-size:0.65rem;"><i class="fa-solid fa-signal"></i></span>
+          </div>
+
+          <div style="position:relative; cursor:pointer;" onclick="location.href='rescue-notifications.html'">
+            <i class="fa-solid fa-bell" style="color:#94a3b8; font-size:1.05rem;"></i>
+            <span style="position:absolute; top:-4px; right:-6px; background:#ef4444; color:#fff; font-size:0.55rem; font-weight:800; padding:1px 4px; border-radius:50%;">6</span>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:0.55rem; cursor:pointer;" onclick="alert('Command Officer Desk')">
+            <div style="width:32px; height:32px; border-radius:50%; background:#ef4444; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:0.75rem; border:1px solid #fca5a5;">CO</div>
+            <div>
+              <div style="font-size:0.785rem; font-weight:700; color:#fff; line-height:1.1;">Command Officer</div>
+              <div style="font-size:0.625rem; color:#94a3b8;">NDRF Team-4</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Top 6 SOS Summary KPI Cards Bar -->
+      <div class="r-metrics-bar" style="grid-template-columns: repeat(6, 1fr); margin-bottom: 0.35rem;">
+        <div class="r-metric-card" style="border-left: 3.5px solid #ef4444; background:rgba(239,68,68,0.12); padding:0.35rem 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.58rem; font-weight:800; color:#ef4444;">TOTAL SOS REQUESTS</span>
+            <i class="fa-solid fa-circle-exclamation" style="color:#ef4444;"></i>
+          </div>
+          <div style="font-size:1.25rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-total-sos">128</div>
+          <div style="font-size:0.55rem; color:#ef4444;">↑ 18 in last 1 hour</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3.5px solid #f59e0b; padding:0.35rem 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.58rem; font-weight:800; color:#f59e0b;">PENDING</span>
+            <i class="fa-solid fa-clock" style="color:#f59e0b;"></i>
+          </div>
+          <div style="font-size:1.25rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-pending">28</div>
+          <div style="font-size:0.55rem; color:#ef4444;">High Priority</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3.5px solid #38bdf8; padding:0.35rem 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.58rem; font-weight:800; color:#38bdf8;">IN PROGRESS</span>
+            <i class="fa-solid fa-spinner" style="color:#38bdf8;"></i>
+          </div>
+          <div style="font-size:1.25rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-progress">62</div>
+          <div style="font-size:0.55rem; color:#10b981;">Rescue Assigned</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3.5px solid #10b981; padding:0.35rem 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.58rem; font-weight:800; color:#10b981;">RESOLVED</span>
+            <i class="fa-solid fa-circle-check" style="color:#10b981;"></i>
+          </div>
+          <div style="font-size:1.25rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-resolved">38</div>
+          <div style="font-size:0.55rem; color:#10b981;">↑ 12 in last 3 hrs</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3.5px solid #a78bfa; padding:0.35rem 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.58rem; font-weight:800; color:#a78bfa;">PEOPLE AFFECTED</span>
+            <i class="fa-solid fa-users" style="color:#a78bfa;"></i>
+          </div>
+          <div style="font-size:1.25rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-people">1,856</div>
+          <div style="font-size:0.55rem; color:#cbd5e1;">Across All Districts</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3.5px solid #10b981; padding:0.35rem 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.58rem; font-weight:800; color:#10b981;">AVG RESPONSE TIME (AI)</span>
+            <i class="fa-solid fa-stopwatch" style="color:#10b981;"></i>
+          </div>
+          <div style="font-size:1.25rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-time">18.6 min</div>
+          <div style="font-size:0.55rem; color:#10b981;">↓ 15% vs yesterday</div>
+        </div>
+      </div>
+
+      <!-- Main SOS Workspace 2-Row Grid -->
+      <div class="r-sos-grid">
+        
+        <!-- Row 1: Main Split (Live SOS Table + Right Map & AI Panel) -->
+        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:0.45rem;">
+          
+          <!-- Box 1: LIVE SOS REQUESTS Table with Citizen Photo Upload Streams -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; overflow:hidden; padding:0.45rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
+              <div style="font-weight:800; font-size:0.75rem; color:#fff;">LIVE SOS REQUESTS</div>
+              <div style="display:flex; align-items:center; gap:0.4rem; font-size:0.55rem; color:#cbd5e1;">
+                <span>Auto Refresh</span>
+                <input type="checkbox" checked style="accent-color:#10b981;">
+                <i class="fa-solid fa-rotate" style="color:#38bdf8; cursor:pointer;" onclick="location.reload()"></i>
+              </div>
+            </div>
+
+            <!-- SOS Requests Table Header -->
+            <div style="background:#060c1c; border-bottom:1px solid rgba(59,130,246,0.3); padding:0.25rem 0.45rem; font-size:0.55rem; font-weight:800; color:#94a3b8; display:grid; grid-template-columns: 85px 75px 120px 75px 70px 1.4fr 100px; gap:0.4rem;">
+              <div>ID</div>
+              <div>TIME</div>
+              <div>LOCATION</div>
+              <div>SEVERITY</div>
+              <div>PEOPLE</div>
+              <div>REQUEST DETAILS</div>
+              <div>STATUS</div>
+            </div>
+
+            <!-- Table Rows Container -->
+            <div style="flex:1; overflow-y:auto;" id="sos-requests-table-body">
+              <!-- Populated by JS -->
+            </div>
+
+            <!-- Pagination Footer -->
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.55rem; color:#94a3b8; padding-top:0.25rem; border-top:1px solid rgba(255,255,255,0.05);">
+              <span>Showing 1 to 5 of 128 requests</span>
+              <div style="display:flex; gap:0.25rem;">
+                <button style="background:rgba(255,255,255,0.05); border:none; color:#cbd5e1; padding:2px 6px; border-radius:3px;">&lt;</button>
+                <button style="background:#2563eb; border:none; color:#fff; font-weight:800; padding:2px 6px; border-radius:3px;">1</button>
+                <button style="background:rgba(255,255,255,0.05); border:none; color:#cbd5e1; padding:2px 6px; border-radius:3px;">2</button>
+                <button style="background:rgba(255,255,255,0.05); border:none; color:#cbd5e1; padding:2px 6px; border-radius:3px;">3</button>
+                <button style="background:rgba(255,255,255,0.05); border:none; color:#cbd5e1; padding:2px 6px; border-radius:3px;">4</button>
+                <button style="background:rgba(255,255,255,0.05); border:none; color:#cbd5e1; padding:2px 6px; border-radius:3px;">5</button>
+                <span>... 26</span>
+                <button style="background:rgba(255,255,255,0.05); border:none; color:#cbd5e1; padding:2px 6px; border-radius:3px;">&gt;</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Box 2: Right Stacked Panels (SOS Map + AI Recommendations) -->
+          <div style="display:flex; flex-direction:column; gap:0.45rem; height:100%; min-height:0;">
+            
+            <!-- SOS Requests On Map -->
+            <div class="r-map-panel" style="flex:1.1; display:flex; flex-direction:column; position:relative;">
+              <div style="height:26px; background:#060c1c; border-bottom:1px solid rgba(59,130,246,0.2); display:flex; align-items:center; justify-content:space-between; padding:0 0.55rem; flex-shrink:0;">
+                <span style="font-weight:800; font-size:0.72rem; color:#fff;">SOS REQUESTS ON MAP</span>
+                <span style="font-size:0.52rem; color:#10b981;">● All 21 Assam District Clusters Live</span>
+              </div>
+
+              <!-- Leaflet Map Canvas -->
+              <div id="sos-map-canvas" style="flex:1; width:100%; height:100%;"></div>
+
+              <!-- Floating Legend -->
+              <div style="position:absolute; bottom:6px; right:6px; z-index:1000; background:rgba(6,12,28,0.92); border:1px solid rgba(59,130,246,0.3); border-radius:5px; padding:0.25rem 0.45rem; font-size:0.52rem; color:#cbd5e1;">
+                <div style="font-weight:800; color:#fff; margin-bottom:1px;">SOS Severity</div>
+                <div><strong style="color:#ef4444;">■</strong> Critical (90-100)</div>
+                <div><strong style="color:#f59e0b;">■</strong> High (70-89)</div>
+                <div><strong style="color:#eab308;">■</strong> Moderate (40-69)</div>
+                <div><strong style="color:#10b981;">■</strong> Low (0-39)</div>
+              </div>
+            </div>
+
+            <!-- AI Recommendations Panel -->
+            <div class="r-panel-box" style="flex:1; display:flex; flex-direction:column; padding:0.4rem; background:rgba(6,12,28,0.95); border:1px solid rgba(59,130,246,0.35);">
+              <div style="display:flex; align-items:center; gap:0.35rem; margin-bottom:0.15rem;">
+                <i class="fa-solid fa-brain" style="color:#38bdf8; font-size:0.85rem;"></i>
+                <span style="font-weight:800; font-size:0.72rem; color:#fff;">AI RECOMMENDATIONS</span>
+              </div>
+
+              <div style="font-size:0.55rem; color:#cbd5e1; background:rgba(37,99,235,0.15); border-left:3px solid #2563eb; padding:0.2rem 0.35rem; border-radius:3px; margin-bottom:0.25rem;" id="ai-sos-summary">
+                Golaghat and Jorhat districts have highest severity SOS requests. Immediate deployment of boats and medical teams recommended.
+              </div>
+
+              <div style="display:flex; flex-direction:column; gap:0.18rem; font-size:0.55rem; flex:1;" id="ai-sos-actions-list">
+                <!-- Populated by JS -->
+              </div>
+
+              <button style="width:100%; background:#10b981; border:none; color:#fff; font-size:0.6rem; font-weight:800; padding:0.3rem; border-radius:5px; cursor:pointer; margin-top:0.3rem;" onclick="alert('✅ Transmitted AI Emergency Dispatches for Golaghat & Jorhat SOS Clusters!')">
+                <i class="fa-solid fa-check-circle"></i> Approve All Recommendations
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Row 2: 4 Analytics Consoles Grid -->
+        <div style="display:grid; grid-template-columns: 1.15fr 1fr 1fr 1fr; gap:0.45rem;">
+          
+          <!-- Box 3: SOS Request Trend (Last 24 Hours) -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.4rem;">
+            <div style="font-weight:800; font-size:0.72rem; color:#fff; margin-bottom:0.1rem;">SOS REQUEST TREND <small style="font-size:0.52rem; color:#94a3b8;">(Last 24 Hours)</small></div>
+            
+            <!-- SVG Line Curve Chart -->
+            <div style="flex:1; position:relative; width:100%; height:100%;">
+              <svg width="100%" height="100%" viewBox="0 0 240 60" preserveAspectRatio="none">
+                <path d="M 10 50 Q 40 38, 80 44 T 150 25 T 230 15 L 230 55 L 10 55 Z" fill="rgba(239,68,68,0.2)"/>
+                <path d="M 10 50 Q 40 38, 80 44 T 150 25 T 230 15" fill="none" stroke="#ef4444" stroke-width="2"/>
+                <circle cx="230" cy="15" r="3" fill="#ef4444"/>
+                <text x="215" y="12" fill="#ef4444" font-size="5" font-weight="bold">28</text>
+
+                <text x="8" y="58" fill="#94a3b8" font-size="4.5">10 AM</text>
+                <text x="45" y="58" fill="#94a3b8" font-size="4.5">2 PM</text>
+                <text x="80" y="58" fill="#94a3b8" font-size="4.5">6 PM</text>
+                <text x="118" y="58" fill="#94a3b8" font-size="4.5">10 PM</text>
+                <text x="155" y="58" fill="#94a3b8" font-size="4.5">2 AM</text>
+                <text x="192" y="58" fill="#94a3b8" font-size="4.5">6 AM</text>
+                <text x="220" y="58" fill="#94a3b8" font-size="4.5">10 AM</text>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Box 4: SOS By Severity Donut Chart -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.4rem;">
+            <div style="font-weight:800; font-size:0.72rem; color:#fff; margin-bottom:0.1rem;">SOS BY SEVERITY</div>
+
+            <div style="flex:1; display:flex; align-items:center; justify-content:space-between;">
+              <svg width="65" height="65" viewBox="0 0 42 42">
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#f59e0b" stroke-width="5.5" stroke-dasharray="43.8 56.2" stroke-dashoffset="25"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#ef4444" stroke-width="5.5" stroke-dasharray="21.9 78.1" stroke-dashoffset="81.2"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#eab308" stroke-width="5.5" stroke-dasharray="25.0 75.0" stroke-dashoffset="59.3"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#10b981" stroke-width="5.5" stroke-dasharray="9.3 90.7" stroke-dashoffset="34.3"></circle>
+                <text x="21" y="19" fill="#fff" font-size="5" font-weight="bold" text-anchor="middle">128</text>
+                <text x="21" y="24" fill="#94a3b8" font-size="3.5" text-anchor="middle">Total</text>
+              </svg>
+
+              <div style="font-size:0.52rem; display:flex; flex-direction:column; gap:0.12rem;">
+                <div><strong style="color:#ef4444;">● Critical (90-100):</strong> 28 (21.9%)</div>
+                <div><strong style="color:#f59e0b;">● High (70-89):</strong> 56 (43.8%)</div>
+                <div><strong style="color:#eab308;">● Moderate (40-69):</strong> 32 (25.0%)</div>
+                <div><strong style="color:#10b981;">● Low (0-39):</strong> 12 (9.3%)</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Box 5: Response Performance -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.4rem;">
+            <div style="font-weight:800; font-size:0.72rem; color:#fff; margin-bottom:0.15rem;">RESPONSE PERFORMANCE</div>
+
+            <div style="flex:1; display:flex; align-items:center; justify-content:space-between; text-align:center;">
+              <div>
+                <i class="fa-solid fa-clock-rotate-left" style="color:#38bdf8; font-size:0.8rem; margin-bottom:1px;"></i>
+                <div style="font-size:0.95rem; font-weight:800; color:#fff;">18.6 min</div>
+                <div style="font-size:0.48rem; color:#10b981;">Avg Response Time ↓15%</div>
+              </div>
+
+              <div>
+                <i class="fa-solid fa-square-check" style="color:#10b981; font-size:0.8rem; margin-bottom:1px;"></i>
+                <div style="font-size:0.95rem; font-weight:800; color:#fff;">92%</div>
+                <div style="font-size:0.48rem; color:#10b981;">Request Resolved ↑8%</div>
+              </div>
+
+              <div>
+                <i class="fa-solid fa-star" style="color:#f59e0b; font-size:0.8rem; margin-bottom:1px;"></i>
+                <div style="font-size:0.95rem; font-weight:800; color:#fff;">4.8 / 5</div>
+                <div style="font-size:0.48rem; color:#10b981;">Citizen Satisfaction ↑0.6</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Box 6: Recent Resolved SOS -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.4rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.15rem;">
+              <span style="font-weight:800; font-size:0.72rem; color:#fff;">RECENT RESOLVED SOS</span>
+              <a href="#" style="font-size:0.52rem; color:#38bdf8; text-decoration:none; font-weight:700;">View All</a>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:0.15rem; font-size:0.52rem;" id="recent-resolved-container">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Sticky Bottom Meta Footer -->
+      <footer class="r-footer-bar">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.25)"/>
+          </svg>
+          <span><strong>AEGIS Rescue Command System</strong> &bull; Empowering Teams. Saving Lives.</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <span><i class="fa-solid fa-shield-halved" style="color:#10b981;"></i> Secure</span>
+          <span>&bull;</span>
+          <span><i class="fa-solid fa-lock" style="color:#38bdf8;"></i> Encrypted</span>
+          <span>&bull;</span>
+          <span><i class="fa-solid fa-location-crosshairs" style="color:#f59e0b;"></i> GPS Tracking</span>
+          <span>&bull;</span>
+          <span><i class="fa-solid fa-arrows-rotate" style="color:#a78bfa;"></i> Real-time Sync</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span>Data Source: ASDMA | CWC | IMD | Local Authorities</span>
+          <span>&bull;</span>
+          <span>Last Updated: 12 Aug 2026, 10:40 AM</span>
+          <span>&bull;</span>
+          <span style="color:#10b981; font-weight:700;">🟢 Live</span>
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- Modal 1: Citizen SOS Upload Modal (Upload Image / General Details) -->
+  <div id="upload-sos-modal" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(3,7,18,0.85); backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:1rem;">
+    <div style="background:#060c1c; border:1px solid #ef4444; border-radius:12px; width:100%; max-width:550px; padding:1.2rem; box-shadow:0 0 35px rgba(239,68,68,0.35); color:#fff; display:flex; flex-direction:column; gap:0.75rem;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(239,68,68,0.3); padding-bottom:0.5rem;">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; font-size:1.2rem;"></i>
+          <span style="font-size:1rem; font-weight:800; color:#fff;">🚨 SUBMIT CITIZEN EMERGENCY SOS</span>
+        </div>
+        <button onclick="closeUploadSosModal()" style="background:transparent; border:none; color:#cbd5e1; font-size:1.2rem; cursor:pointer;">&times;</button>
+      </div>
+
+      <form id="sos-upload-form" onsubmit="handleSosFormSubmit(event)" style="display:flex; flex-direction:column; gap:0.65rem;">
+        <!-- Upload Image Dropzone -->
+        <div>
+          <label style="font-size:0.65rem; font-weight:800; color:#cbd5e1; display:block; margin-bottom:0.25rem;">UPLOAD EMERGENCY SITUATION PHOTO (OPTIONAL)</label>
+          <div class="r-image-dropzone" onclick="document.getElementById('sos-photo-input').click()">
+            <i class="fa-solid fa-cloud-arrow-up" style="color:#38bdf8; font-size:1.4rem; margin-bottom:0.25rem;"></i>
+            <div style="font-size:0.65rem; font-weight:700; color:#fff;" id="dropzone-text">Click or Drag &amp; Drop Image File Here</div>
+            <div style="font-size:0.55rem; color:#94a3b8;">Supports JPG, PNG, WEBP (Max 10MB)</div>
+          </div>
+          <input type="file" id="sos-photo-input" accept="image/*" style="display:none;" onchange="handlePhotoSelect(event)">
+        </div>
+
+        <!-- Form Inputs Grid -->
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.5rem;">
+          <div>
+            <label style="font-size:0.6rem; font-weight:700; color:#cbd5e1;">District Location *</label>
+            <select id="sos-district-select" required style="width:100%; background:rgba(15,23,42,0.9); border:1px solid rgba(59,130,246,0.3); color:#fff; font-size:0.65rem; padding:0.35rem; border-radius:5px;">
+              <option value="Golaghat">Golaghat District</option>
+              <option value="Jorhat">Jorhat District</option>
+              <option value="Sivasagar">Sivasagar District</option>
+              <option value="Darrang">Darrang District</option>
+              <option value="Nagaon">Nagaon District</option>
+              <option value="Dibrugarh">Dibrugarh District</option>
+              <option value="Dhemaji">Dhemaji District</option>
+              <option value="Lakhimpur">Lakhimpur District</option>
+              <option value="Cachar">Cachar District</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="font-size:0.6rem; font-weight:700; color:#cbd5e1;">People Trapped / Affected *</label>
+            <input type="number" id="sos-people-input" value="4" min="1" max="100" required style="width:100%; background:rgba(15,23,42,0.9); border:1px solid rgba(59,130,246,0.3); color:#fff; font-size:0.65rem; padding:0.35rem; border-radius:5px;">
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size:0.6rem; font-weight:700; color:#cbd5e1;">Specific Location Address / Landmarks *</label>
+          <input type="text" id="sos-address-input" placeholder="e.g. Near Kabori Bridge, Titabor, Ward 4" required style="width:100%; background:rgba(15,23,42,0.9); border:1px solid rgba(59,130,246,0.3); color:#fff; font-size:0.65rem; padding:0.35rem; border-radius:5px;">
+        </div>
+
+        <div>
+          <label style="font-size:0.6rem; font-weight:700; color:#cbd5e1;">Emergency Description &amp; Requirements *</label>
+          <textarea id="sos-details-input" rows="2" placeholder="Describe water depth, trapped elderly/children, medical or boat requirement..." required style="width:100%; background:rgba(15,23,42,0.9); border:1px solid rgba(59,130,246,0.3); color:#fff; font-size:0.65rem; padding:0.35rem; border-radius:5px; resize:none;"></textarea>
+        </div>
+
+        <button type="submit" style="background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border:none; color:#fff; font-size:0.75rem; font-weight:800; padding:0.5rem; border-radius:6px; cursor:pointer; box-shadow:0 0 15px rgba(239,68,68,0.5);">
+          🚨 Transmit Emergency SOS &amp; Trigger AI Dispatch
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Data & Map Interactivity Logic -->
+  <script src="js/rescue-sos-data.js"></script>
+  <script src="js/rescue-map-data.js"></script>
+
+  <script>
+    let sosMap = null;
+    let selectedImageBase64 = null;
+
+    function showRescueAlert(title, message, iconType = 'info') {
+      let existing = document.getElementById('rescue-custom-alert-modal');
+      if (existing) existing.remove();
+
+      const modal = document.createElement('div');
+      modal.id = 'rescue-custom-alert-modal';
+      modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(3, 7, 18, 0.82); backdrop-filter: blur(16px);
+        z-index: 99999; display: flex; align-items: center; justify-content: center;
+        animation: fadeInModal 0.25s ease-out;
+      `;
+
+      let iconHtml = '<i class="fa-solid fa-circle-info" style="color:#38bdf8; font-size:2.5rem;"></i>';
+      let badgeBorder = '#38bdf8';
+      if (iconType === 'success') {
+        iconHtml = '<i class="fa-solid fa-circle-check" style="color:#10b981; font-size:2.5rem;"></i>';
+        badgeBorder = '#10b981';
+      } else if (iconType === 'danger' || iconType === 'warning') {
+        iconHtml = '<i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; font-size:2.5rem;"></i>';
+        badgeBorder = '#ef4444';
+      }
+
+      modal.innerHTML = `
+        <div style="background:#070d1d; border:1px solid ${badgeBorder}; border-radius:16px; padding:1.75rem 2rem; max-width:420px; text-align:center; box-shadow:0 25px 60px rgba(0,0,0,0.85), 0 0 35px ${badgeBorder}44;">
+          <div style="margin-bottom:0.85rem;">${iconHtml}</div>
+          <h3 style="font-size:1.2rem; font-weight:800; color:#ffffff; margin-bottom:0.4rem;">${title}</h3>
+          <p style="font-size:0.825rem; color:#cbd5e1; line-height:1.5; margin-bottom:1.4rem;">${message}</p>
+          <button style="background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); border:none; color:#ffffff; font-weight:800; font-size:0.825rem; padding:0.6rem 1.8rem; border-radius:8px; cursor:pointer; box-shadow:0 0 15px rgba(37,99,235,0.4);" onclick="document.getElementById('rescue-custom-alert-modal').remove()">
+            Acknowledge &amp; Proceed &rarr;
+          </button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    window.alert = function(msg) {
+      showRescueAlert('Tactical System Command', msg, 'info');
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Render Summary KPIs
+      const k = rescueSosData.summaryKpis;
+      document.getElementById('kpi-total-sos').innerText = k.totalRequests;
+      document.getElementById('kpi-pending').innerText = k.pending;
+      document.getElementById('kpi-progress').innerText = k.inProgress;
+      document.getElementById('kpi-resolved').innerText = k.resolved;
+      document.getElementById('kpi-people').innerText = k.peopleAffected;
+      document.getElementById('kpi-time').innerText = k.avgResponseTime;
+
+      // 2. Initialize Leaflet SOS Clusters Map with ALL 21 District Pins
+      initSosMap();
+
+      // 3. Render Live SOS Table Rows
+      renderSosTableRows();
+
+      // 4. Render AI Recommendations & Consoles
+      renderAiSosRecommendations();
+      renderRecentResolved();
+    });
+
+    function initSosMap() {
+      sosMap = L.map('sos-map-canvas', {
+        center: [26.2500, 92.8000],
+        zoom: 7.2,
+        minZoom: 6.5,
+        maxZoom: 14,
+        zoomControl: false
+      });
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; CartoDB',
+        maxZoom: 19
+      }).addTo(sosMap);
+
+      L.control.zoom({ position: 'topleft' }).addTo(sosMap);
+
+      const assamBounds = L.latLngBounds(L.latLng(23.8000, 89.2000), L.latLng(28.4000, 96.5000));
+      sosMap.setMaxBounds(assamBounds);
+
+      // Add Thermal Heatmap overlay for inundation extent across Assam
+      if (typeof L.heatLayer === 'function' && window.rescueMapData) {
+        L.heatLayer(rescueMapData.statewideGisThermalPoints, {
+          radius: 36,
+          blur: 22,
+          maxZoom: 13,
+          gradient: {
+            0.15: '#10b981',
+            0.35: '#eab308',
+            0.65: '#f59e0b',
+            1.0: '#ef4444'
+          }
+        }).addTo(sosMap);
+      }
+
+      // Plot Interactive SOS Cluster Pins across ALL 21 Assam Districts
+      if (rescueSosData.districtSosPins) {
+        rescueSosData.districtSosPins.forEach(loc => {
+          const icon = L.divIcon({
+            className: 'custom-map-icon',
+            html: `<div style="background:${loc.color}; color:#fff; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:1.5px solid #fff; font-size:10px; font-weight:800; box-shadow:0 0 10px ${loc.color};">${loc.sosCount}</div>`,
+            iconSize: [22, 22]
+          });
+
+          L.marker(loc.coords, { icon }).addTo(sosMap).bindPopup(`
+            <div style="font-family:'Plus Jakarta Sans',sans-serif; color:#fff; padding:2px;">
+              <b style="color:${loc.color}; font-size:12px;">${loc.district} Cluster</b><br>
+              <span style="font-size:10px; color:#cbd5e1;">Active SOS Count: <strong>${loc.sosCount} Requests</strong></span><br>
+              <span style="font-size:10px; color:#ef4444;">Severity Band: <strong>${loc.severity}</strong></span>
+            </div>
+          `);
+        });
+      }
+
+      setTimeout(() => sosMap.invalidateSize(), 300);
+    }
+
+    function renderSosTableRows() {
+      const container = document.getElementById('sos-requests-table-body');
+      if (!container) return;
+      container.innerHTML = '';
+
+      let requestsToRender = [...rescueSosData.liveSosRequests];
+      const activeCitizenSosRaw = localStorage.getItem('AEGIS_ACTIVE_CITIZEN_SOS');
+      const activeStatus = localStorage.getItem('AEGIS_ACTIVE_CITIZEN_SOS_STATUS');
+
+      if (activeCitizenSosRaw) {
+        try {
+          const sos = JSON.parse(activeCitizenSosRaw);
+          const customItem = {
+            id: sos.id || 'SOS-1088',
+            time: sos.time || 'Just Now',
+            zone: 'Zone A',
+            photo: 'https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=300&q=80',
+            district: sos.district || 'Golaghat District',
+            locationName: sos.locationName || 'Kabori Pathar, Ward 4',
+            severityScore: 95,
+            severityColor: '#ef4444',
+            severityCategory: 'Critical',
+            peopleCount: sos.peopleCount || 5,
+            childrenCount: sos.childrenCount || 2,
+            details: sos.details || 'Water entered our house. We are trapped on the roof.',
+            tag: 'Flooded House',
+            status: activeStatus === 'APPROVED' ? 'IN PROGRESS' : 'PENDING',
+            aiScoreText: 'AI Score: 95/100',
+            actionText: activeStatus === 'APPROVED' ? 'Track Rescue' : 'Assign Rescue',
+            actionColor: activeStatus === 'APPROVED' ? '#f59e0b' : '#ef4444'
+          };
+          requestsToRender = [customItem, ...requestsToRender.filter(r => r.id !== customItem.id)];
+        } catch (e) {
+          console.error("Error loading active citizen SOS:", e);
+        }
+      }
+
+      requestsToRender.forEach(sos => {
+        const tr = document.createElement('div');
+        tr.className = 'r-sos-table-row';
+        
+        tr.innerHTML = `
+          <div>
+            <strong style="color:#38bdf8;">${sos.id}</strong><br>
+            <span style="color:#94a3b8; font-size:0.5rem;">${sos.time}</span><br>
+            <span style="background:rgba(37,99,235,0.2); color:#38bdf8; font-size:0.48rem; padding:1px 3px; border-radius:2px;">${sos.zone}</span>
+          </div>
+
+          <div>
+            <img src="${sos.photo}" style="width:65px; height:45px; object-fit:cover; border-radius:4px; border:1px solid rgba(255,255,255,0.2);" alt="SOS Photo">
+          </div>
+
+          <div>
+            <strong style="color:#fff;">${sos.district}</strong><br>
+            <span style="color:#94a3b8; font-size:0.5rem;">${sos.locationName}</span><br>
+            <a href="sos-route.html?id=${sos.id}" target="_blank" style="color:#38bdf8; font-size:0.5rem; text-decoration:none; font-weight:700;"><i class="fa-solid fa-map-location-dot"></i> View on Map &rarr;</a>
+          </div>
+
+          <div style="display:flex; flex-direction:column; align-items:center;">
+            <div style="position:relative; width:32px; height:32px; display:flex; align-items:center; justify-content:center;">
+              <svg width="32" height="32" viewBox="0 0 36 36">
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3.5" />
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="${sos.severityColor}" stroke-width="4" stroke-dasharray="${sos.severityScore}, 100" />
+              </svg>
+              <div style="position:absolute; font-size:0.58rem; font-weight:800; color:#fff;">${sos.severityScore}</div>
+            </div>
+            <span style="font-size:0.48rem; font-weight:800; color:${sos.severityColor};">${sos.severityCategory}</span>
+          </div>
+
+          <div>
+            <strong style="color:#fff; font-size:0.65rem;"><i class="fa-solid fa-user"></i> ${sos.peopleCount}</strong><br>
+            <span style="color:#94a3b8; font-size:0.5rem;">${sos.childrenCount} Children</span>
+          </div>
+
+          <div>
+            <div style="color:#cbd5e1; font-size:0.55rem; line-height:1.2;">${sos.details}</div>
+            <span style="background:rgba(239,68,68,0.2); color:#ef4444; font-size:0.48rem; font-weight:700; padding:1px 4px; border-radius:2px; display:inline-block; margin-top:2px;">${sos.tag}</span>
+          </div>
+
+          <div style="text-align:right;">
+            <span style="color:${sos.severityColor}; font-weight:800; font-size:0.55rem; display:block;">${sos.status}</span>
+            <span style="color:#94a3b8; font-size:0.48rem; display:block; margin-bottom:3px;">${sos.aiScoreText}</span>
+            <button style="background:${sos.actionColor}; border:none; color:#fff; font-size:0.52rem; font-weight:800; padding:2px 6px; border-radius:3px; cursor:pointer;" onclick="acceptCitizenSosRescue('${sos.id}')">${sos.actionText}</button>
+          </div>
+        `;
+
+        container.appendChild(tr);
+      });
+    }
+
+    function renderAiSosRecommendations() {
+      const container = document.getElementById('ai-sos-actions-list');
+      container.innerHTML = '';
+
+      rescueSosData.aiRecommendations.actions.forEach(a => {
+        const div = document.createElement('div');
+        div.style.display = 'flex';
+        div.style.alignItems = 'center';
+        div.style.justifyContent = 'space-between';
+        div.style.background = 'rgba(255,255,255,0.03)';
+        div.style.padding = '2px 4px';
+        div.style.borderRadius = '3px';
+
+        div.innerHTML = `
+          <div>
+            <strong style="color:#fff;">${a.action}</strong>
+            <span style="color:#cbd5e1; font-size:0.5rem; display:block;">${a.target}</span>
+          </div>
+          <span style="background:rgba(16,185,129,0.2); color:${a.color}; font-size:0.48rem; font-weight:800; padding:1px 4px; border-radius:2px;">${a.priority}</span>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderRecentResolved() {
+      const container = document.getElementById('recent-resolved-container');
+      container.innerHTML = '';
+
+      rescueSosData.recentResolved.forEach(r => {
+        const div = document.createElement('div');
+        div.style.display = 'flex';
+        div.style.justifyContent = 'space-between';
+        div.style.alignItems = 'center';
+
+        div.innerHTML = `
+          <div style="display:flex; align-items:center; gap:0.25rem;">
+            <i class="fa-solid fa-circle-check" style="color:#10b981;"></i>
+            <strong style="color:#fff;">${r.id}</strong>
+            <span style="color:#cbd5e1;">${r.district}</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.35rem;">
+            <span style="background:rgba(16,185,129,0.2); color:#10b981; font-size:0.48rem; font-weight:800; padding:1px 3px; border-radius:2px;">Resolved</span>
+            <span style="color:#94a3b8; font-size:0.48rem;">${r.time}</span>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // Modal Control Functions
+    function openUploadSosModal() {
+      document.getElementById('upload-sos-modal').style.display = 'flex';
+    }
+
+    function closeUploadSosModal() {
+      document.getElementById('upload-sos-modal').style.display = 'none';
+    }
+
+    function handlePhotoSelect(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          selectedImageBase64 = evt.target.result;
+          document.getElementById('dropzone-text').innerHTML = `✅ Photo Loaded: <strong style="color:#10b981;">${file.name}</strong>`;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function handleSosFormSubmit(e) {
+      e.preventDefault();
+      const district = document.getElementById('sos-district-select').value;
+      const people = document.getElementById('sos-people-input').value;
+      const address = document.getElementById('sos-address-input').value;
+      const details = document.getElementById('sos-details-input').value;
+
+      const newId = `SOS-${1088 + rescueSosData.liveSosRequests.length}`;
+      const newPhoto = selectedImageBase64 || "https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=300&q=80";
+
+      const newSos = {
+        id: newId,
+        time: "Just Now",
+        zone: "Zone A",
+        district: `${district} District`,
+        locationName: address,
+        coordsText: "Live GPS",
+        coords: [26.4000, 93.0000],
+        photo: newPhoto,
+        severityScore: 95,
+        severityCategory: "Critical",
+        severityColor: "#ef4444",
+        peopleCount: parseInt(people),
+        childrenCount: 1,
+        details: details,
+        tag: "Uploaded SOS",
+        status: "PENDING",
+        statusSub: "High Priority",
+        aiScoreText: "AI Score: 95/100",
+        actionText: "Assign Rescue",
+        actionColor: "#ef4444"
+      };
+
+      rescueSosData.liveSosRequests.unshift(newSos);
+      renderSosTableRows();
+
+      // Update KPI Counter
+      const totalEl = document.getElementById('kpi-total-sos');
+      totalEl.innerText = parseInt(totalEl.innerText) + 1;
+
+      closeUploadSosModal();
+      alert(`🚨 Live Citizen SOS ${newId} Transmitted! AI Neural Engine scored severity 95/100 (Critical) and queued priority dispatch!`);
+    }
+  </script>
+</body>
+</html>

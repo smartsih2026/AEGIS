@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flood Risk Map - AEGIS Rescue Command System</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Leaflet & Heatmap Libraries -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+  <!-- Rescue Master Stylesheet & Script -->
+  <link rel="stylesheet" href="rescue-styles.css">
+  <script src="js/rescue-common.js?v=3.0"></script>
+
+  <style>
+    /* 4-Panel Bottom Grid Layout for Map Page */
+    .r-map-bottom-4grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1.25fr 0.95fr 1fr;
+      gap: 0.65rem;
+      height: 185px;
+      overflow: hidden;
+    }
+
+    /* Floating Map Tool Buttons */
+    .r-map-tool-btn {
+      background: rgba(6, 12, 28, 0.85);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      color: #cbd5e1;
+      font-size: 0.72rem;
+      padding: 0.35rem 0.6rem;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-weight: 600;
+      transition: all 0.18s;
+    }
+    .r-map-tool-btn:hover {
+      background: rgba(37, 99, 235, 0.25);
+      color: #fff;
+      border-color: rgba(59, 130, 246, 0.5);
+    }
+
+    /* Time Frame Slider Button */
+    .r-time-step-btn {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .r-time-step-btn.active {
+      background: #2563eb;
+      color: #fff;
+      font-weight: 800;
+      box-shadow: 0 0 8px rgba(37, 99, 235, 0.6);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="r-layout-container">
+    <!-- Left Navigation Sidebar -->
+    <aside class="r-sidebar">
+      <div class="r-sidebar-logo">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.25)"/>
+          <path d="M12 8v8M8 12h8" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <div style="font-weight: 800; font-size: 1.15rem; color: #fff; line-height: 1;">AEGIS</div>
+          <div style="font-size: 0.58rem; color: #94a3b8; font-weight: 500;">Stronger Together, Safer Assam.</div>
+        </div>
+      </div>
+
+      <!-- Exact 12 User-Specified Pages Navigation Menu -->
+      <nav class="r-nav-menu">
+        <a class="r-nav-item" href="rescue-dashboard.html"><i class="fa-solid fa-gauge-high"></i> Command Dashboard</a>
+        <a class="r-nav-item active" href="rescue-map.html"><i class="fa-solid fa-map-location-dot"></i> Flood Risk Map</a>
+        <a class="r-nav-item" href="rescue-priority.html"><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i> Emergency Priority Zones</a>
+        <a class="r-nav-item" href="rescue-analysis.html"><i class="fa-solid fa-chart-line"></i> Flood Risk Analysis</a>
+        <a class="r-nav-item" href="rescue-impact.html"><i class="fa-solid fa-house-crack"></i> Impact Assessment</a>
+        <a class="r-nav-item" href="rescue-resources.html"><i class="fa-solid fa-boxes-packing"></i> Resource Command Center</a>
+        <a class="r-nav-item" href="rescue-sos.html"><i class="fa-solid fa-circle-exclamation" style="color:#ef4444;"></i> Citizen SOS Center <span class="r-nav-badge">12</span></a>
+        <a class="r-nav-item" href="rescue-shelters.html"><i class="fa-solid fa-campground"></i> Shelter Network Management</a>
+        <a class="r-nav-item" href="rescue-operations.html"><i class="fa-solid fa-person-shelter"></i> Live Rescue Operations</a>
+        <a class="r-nav-item" href="rescue-analytics.html"><i class="fa-solid fa-chart-pie"></i> Analytics &amp; Reports</a>
+        <a class="r-nav-item" href="rescue-teams.html"><i class="fa-solid fa-users-gear"></i> Team Management</a>
+        <a class="r-nav-item" href="rescue-notifications.html"><i class="fa-solid fa-bullhorn" style="color:#f59e0b;"></i> Notifications &amp; Communication <span class="r-nav-badge">5</span></a>
+        <a class="r-nav-item" href="index.html" style="margin-top:auto; color:#ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Settings / Exit</a>
+      </nav>
+
+      <!-- Sidebar Emergency Hotline Box -->
+      <div class="r-sidebar-hotline">
+        <div style="font-size: 0.625rem; color: #fca5a5; font-weight: 700;">EMERGENCY HOTLINE</div>
+        <div style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin: 0.15rem 0;">
+          <i class="fa-solid fa-phone-volume" style="color:#ef4444"></i> 112
+        </div>
+        <div style="font-size: 0.6rem; color: #cbd5e1;">Emergency Call</div>
+        
+        <button class="r-push-talk-btn" onclick="alert('Push-To-Talk Radio Active...')">
+          <i class="fa-solid fa-microphone"></i> Push to Talk
+        </button>
+      </div>
+
+      <!-- Sidebar Flood Risk Legend -->
+      <div style="margin-top:0.45rem; background:rgba(6,12,28,0.7); border:1px solid rgba(59,130,246,0.2); border-radius:8px; padding:0.45rem 0.6rem;">
+        <div style="font-size:0.65rem; font-weight:800; color:#94a3b8; margin-bottom:0.35rem;">FLOOD RISK LEGEND</div>
+        <div style="display:flex; flex-direction:column; gap:0.22rem; font-size:0.685rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="display:flex; align-items:center; gap:0.35rem;"><strong style="color:#ef4444;">■</strong> Very High Risk</span>
+            <small style="color:#94a3b8;">(&gt; 2.0 m)</small>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="display:flex; align-items:center; gap:0.35rem;"><strong style="color:#f59e0b;">■</strong> High Risk</span>
+            <small style="color:#94a3b8;">(1.0 - 2.0 m)</small>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="display:flex; align-items:center; gap:0.35rem;"><strong style="color:#eab308;">■</strong> Medium Risk</span>
+            <small style="color:#94a3b8;">(0.5 - 1.0 m)</small>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="display:flex; align-items:center; gap:0.35rem;"><strong style="color:#38bdf8;">■</strong> Low Risk</span>
+            <small style="color:#94a3b8;">(0.2 - 0.5 m)</small>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="display:flex; align-items:center; gap:0.35rem;"><strong style="color:#2563eb;">■</strong> Very Low Risk</span>
+            <small style="color:#94a3b8;">(&lt; 0.2 m)</small>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="display:flex; align-items:center; gap:0.35rem;"><strong style="color:#475569;">■</strong> No Data</span>
+            <small style="color:#94a3b8;">(&lt; 0.2 m)</small>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Container -->
+    <main class="r-main-area">
+      <!-- Top Header Bar -->
+      <header class="r-topbar">
+        <div style="display:flex; align-items:center; gap:0.65rem;">
+          <div>
+            <div style="font-weight:800; font-size:1.1rem; color:#fff; line-height:1.1; display:flex; align-items:center; gap:0.45rem;">
+              Flood Risk Map
+              <span style="color:#10b981; font-size:0.65rem; font-weight:700;">● Live</span>
+            </div>
+            <div style="font-size:0.685rem; color:#94a3b8;">Rescue Team POV &bull; Real-time State-Wide Flood Risk Analysis &amp; Inundation Forecast</div>
+          </div>
+        </div>
+
+        <!-- Center District Switcher -->
+        <div style="display:flex; align-items:center; gap:0.45rem; background:rgba(15,23,42,0.9); border:1px solid rgba(59,130,246,0.3); border-radius:6px; padding:0.25rem 0.65rem;">
+          <i class="fa-solid fa-location-dot" style="color:#ef4444;"></i>
+          <select id="gis-district-select" style="background:transparent; border:none; color:#fff; font-size:0.75rem; font-weight:700; outline:none; cursor:pointer;" onchange="switchDistrictMap(this.value)">
+            <option value="ALL" selected style="background:#070d1d;">🗺️ Full Assam State View</option>
+            <option value="Golaghat" style="background:#070d1d;">Golaghat District, Assam</option>
+            <option value="Jorhat" style="background:#070d1d;">Jorhat District, Assam</option>
+            <option value="Dibrugarh" style="background:#070d1d;">Dibrugarh District, Assam</option>
+            <option value="Sivasagar" style="background:#070d1d;">Sivasagar District, Assam</option>
+            <option value="Dhemaji" style="background:#070d1d;">Dhemaji District, Assam</option>
+            <option value="Lakhimpur" style="background:#070d1d;">Lakhimpur District, Assam</option>
+            <option value="Cachar" style="background:#070d1d;">Cachar District, Assam</option>
+          </select>
+        </div>
+
+        <!-- Right Utilities -->
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <div class="r-top-utility-box">
+            <i class="fa-solid fa-cloud-showers-heavy" style="color:#38bdf8;"></i>
+            <span>Weather <strong style="color:#f59e0b;">Heavy Rain</strong></span>
+          </div>
+
+          <div class="r-top-utility-box">
+            <i class="fa-solid fa-water" style="color:#ef4444;"></i>
+            <span>River Status <strong style="color:#ef4444;" id="top-river-status">Rising Fast</strong></span>
+          </div>
+
+          <div class="r-top-utility-box">
+            <i class="fa-solid fa-radio" style="color:#10b981;"></i>
+            <span>Radio Comms <strong style="color:#38bdf8;">Channel 2</strong></span>
+            <span style="color:#10b981; font-size:0.65rem;"><i class="fa-solid fa-signal"></i></span>
+          </div>
+
+          <div style="position:relative; cursor:pointer;" onclick="location.href='rescue-notifications.html'">
+            <i class="fa-solid fa-bell" style="color:#94a3b8; font-size:1.05rem;"></i>
+            <span style="position:absolute; top:-4px; right:-6px; background:#ef4444; color:#fff; font-size:0.55rem; font-weight:800; padding:1px 4px; border-radius:50%;">6</span>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:0.55rem; cursor:pointer;" onclick="alert('Team Leader Desk')">
+            <div style="width:32px; height:32px; border-radius:50%; background:#ef4444; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:0.75rem; border:1px solid #fca5a5;">TL</div>
+            <div>
+              <div style="font-size:0.785rem; font-weight:700; color:#fff; line-height:1.1;">Team Leader</div>
+              <div style="font-size:0.625rem; color:#94a3b8;">NDRF Team-4</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main GIS Workspace Grid -->
+      <div class="r-dashboard-grid" style="grid-template-rows: 1fr 185px;">
+        
+        <!-- Top Split: Center Map + Right Risk Panel -->
+        <div class="r-middle-split-grid" style="grid-template-columns: 1fr 310px;">
+          
+          <!-- Center: Interactive GIS Inundation Thermal Map -->
+          <div class="r-map-panel" style="display:flex; flex-direction:column; position:relative;">
+            
+            <!-- Map Top Bar: ONLY 2 TABS as requested by user -->
+            <div style="height:40px; background:#060c1c; border-bottom:1px solid rgba(59,130,246,0.25); display:flex; align-items:center; justify-content:space-between; padding:0 0.75rem; flex-shrink:0;">
+              <div style="display:flex; gap:0.45rem;">
+                <button id="tab-risk-map" class="btn" style="background:#2563eb; color:#fff; border:none; padding:0.28rem 0.85rem; border-radius:5px; font-size:0.75rem; font-weight:800; cursor:pointer;" onclick="setMapMode('risk')">
+                  <i class="fa-solid fa-layer-group"></i> Risk Map
+                </button>
+                <button id="tab-historical-floods" class="btn" style="background:rgba(15,23,42,0.8); color:#cbd5e1; border:1px solid rgba(255,255,255,0.1); padding:0.28rem 0.85rem; border-radius:5px; font-size:0.75rem; font-weight:700; cursor:pointer;" onclick="setMapMode('history')">
+                  <i class="fa-solid fa-clock-rotate-left"></i> Historical Floods
+                </button>
+              </div>
+
+              <div style="font-size:0.685rem; color:#94a3b8; display:flex; align-items:center; gap:0.4rem;">
+                <span style="color:#10b981;" id="map-mode-indicator">● Assam Full-Valley Mesh Active</span>
+                <span>&bull;</span>
+                <span>Grid: <strong style="color:#38bdf8;" id="sim-active-time">Now (10:40 AM)</strong></span>
+              </div>
+            </div>
+
+            <!-- Leaflet Map Container -->
+            <div id="gis-leaflet-map" style="flex:1; width:100%; height:100%;"></div>
+
+            <!-- Floating Top-Right Map Tools Panel -->
+            <div style="position:absolute; top:48px; right:12px; z-index:1000; background:rgba(6,12,28,0.9); backdrop-filter:blur(8px); border:1px solid rgba(59,130,246,0.3); border-radius:8px; padding:0.45rem; display:flex; flex-direction:column; gap:0.35rem; width:110px;">
+              <div style="font-size:0.6rem; font-weight:800; color:#94a3b8; margin-bottom:1px;">MAP TOOLS</div>
+              <button class="r-map-tool-btn" onclick="alert('Layers Control Opened')"><i class="fa-solid fa-layer-group" style="color:#38bdf8;"></i> Layers</button>
+              <button class="r-map-tool-btn" onclick="alert('Risk Legend Toggle')"><i class="fa-solid fa-list-check" style="color:#f59e0b;"></i> Risk Legend</button>
+              <button class="r-map-tool-btn" onclick="alert('Click 2 points on map to measure distance')"><i class="fa-solid fa-ruler-combined" style="color:#10b981;"></i> Measure</button>
+              <button class="r-map-tool-btn" onclick="alert('Polygon draw tool activated')"><i class="fa-solid fa-draw-polygon" style="color:#a78bfa;"></i> Draw Area</button>
+              <button class="r-map-tool-btn" onclick="alert('Alert zones highlighted')"><i class="fa-solid fa-bell" style="color:#ef4444;"></i> Alerts</button>
+              <button class="r-map-tool-btn" onclick="alert('Basemap view toggled')"><i class="fa-solid fa-map" style="color:#06b6d4;"></i> Basemap</button>
+            </div>
+
+            <!-- Floating Simulation Clock Banner on Map -->
+            <div id="sim-clock-banner" style="position:absolute; top:48px; left:12px; z-index:1000; background:rgba(6,12,28,0.92); backdrop-filter:blur(8px); border:1px solid rgba(239,68,68,0.4); border-radius:6px; padding:0.35rem 0.75rem; display:flex; align-items:center; gap:0.45rem; box-shadow:0 0 14px rgba(239,68,68,0.3);">
+              <span style="color:#ef4444; font-size:0.75rem;"><i class="fa-solid fa-clock"></i></span>
+              <span style="font-size:0.72rem; font-weight:800; color:#fff;" id="sim-clock-text">SIMULATION TIME: NOW (10:40 AM)</span>
+            </div>
+
+            <!-- Floating Bottom-Left Time Frame Simulation Scrubber -->
+            <div id="sim-scrubber-panel" style="position:absolute; bottom:12px; left:12px; z-index:1000; background:rgba(6,12,28,0.92); backdrop-filter:blur(8px); border:1px solid rgba(59,130,246,0.35); border-radius:8px; padding:0.5rem 0.75rem; width:370px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+                <span style="font-size:0.65rem; font-weight:800; color:#94a3b8;">TIME FRAME FORECAST SIMULATION</span>
+                <span style="font-size:0.6rem; color:#10b981; font-weight:700;">State-Wide Pulsing Engine</span>
+              </div>
+
+              <div style="display:flex; align-items:center; gap:0.55rem;">
+                <button style="background:#2563eb; color:#fff; border:none; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="togglePlaySimulation()">
+                  <i class="fa-solid fa-play" id="sim-play-icon" style="font-size:0.65rem;"></i>
+                </button>
+
+                <div style="flex:1; display:flex; justify-content:space-between;">
+                  <button class="r-time-step-btn active" id="sim-btn-0" onclick="setSimTime(0, this)">Now</button>
+                  <button class="r-time-step-btn" id="sim-btn-1" onclick="setSimTime(1, this)">+1hr</button>
+                  <button class="r-time-step-btn" id="sim-btn-3" onclick="setSimTime(3, this)">+3hr</button>
+                  <button class="r-time-step-btn" id="sim-btn-4" onclick="setSimTime(4, this)">+4hr</button>
+                  <button class="r-time-step-btn" id="sim-btn-5" onclick="setSimTime(5, this)">+5hr</button>
+                  <button class="r-time-step-btn" id="sim-btn-6" onclick="setSimTime(6, this)">+6hr</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Right Column: Risk Summary & At Risk Locations -->
+          <div class="r-right-col">
+            
+            <!-- Panel 1: Risk Summary 4 Cards Grid -->
+            <div class="r-panel-box">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+                <span style="font-weight:800; font-size:0.825rem; color:#fff;" id="right-panel-1-title">RISK SUMMARY</span>
+                <span style="font-size:0.625rem; color:#94a3b8;">As of 12 Aug 2026</span>
+              </div>
+
+              <!-- 4-Card Grid -->
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.4rem;" id="right-cards-container">
+                <!-- Very High -->
+                <div style="background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); border-radius:6px; padding:0.35rem 0.5rem;">
+                  <div style="font-size:0.625rem; font-weight:800; color:#ef4444;">Very High Risk</div>
+                  <div style="font-size:1.15rem; font-weight:800; color:#fff; margin:1px 0;" id="sum-very-high">12 <small style="font-size:0.65rem; color:#cbd5e1; font-weight:500;">Areas</small></div>
+                  <div style="font-size:0.58rem; color:#94a3b8;" id="sum-very-high-km">Affected: 48.6 km²</div>
+                </div>
+
+                <!-- High -->
+                <div style="background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.3); border-radius:6px; padding:0.35rem 0.5rem;">
+                  <div style="font-size:0.625rem; font-weight:800; color:#f59e0b;">High Risk</div>
+                  <div style="font-size:1.15rem; font-weight:800; color:#fff; margin:1px 0;" id="sum-high">21 <small style="font-size:0.65rem; color:#cbd5e1; font-weight:500;">Areas</small></div>
+                  <div style="font-size:0.58rem; color:#94a3b8;" id="sum-high-km">Affected: 86.3 km²</div>
+                </div>
+
+                <!-- Medium -->
+                <div style="background:rgba(234,179,8,0.12); border:1px solid rgba(234,179,8,0.3); border-radius:6px; padding:0.35rem 0.5rem;">
+                  <div style="font-size:0.625rem; font-weight:800; color:#eab308;">Medium Risk</div>
+                  <div style="font-size:1.15rem; font-weight:800; color:#fff; margin:1px 0;" id="sum-medium">35 <small style="font-size:0.65rem; color:#cbd5e1; font-weight:500;">Areas</small></div>
+                  <div style="font-size:0.58rem; color:#94a3b8;">Affected Areas</div>
+                </div>
+
+                <!-- Low -->
+                <div style="background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.3); border-radius:6px; padding:0.35rem 0.5rem;">
+                  <div style="font-size:0.625rem; font-weight:800; color:#38bdf8;">Low &amp; Very Low</div>
+                  <div style="font-size:1.15rem; font-weight:800; color:#fff; margin:1px 0;" id="sum-low">48 <small style="font-size:0.65rem; color:#cbd5e1; font-weight:500;">Areas</small></div>
+                  <div style="font-size:0.58rem; color:#94a3b8;">Buffer Zones</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Panel 2: At Risk Locations / Historical Recurrence -->
+            <div class="r-panel-box" style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+                <span style="font-weight:800; font-size:0.825rem; color:#fff;" id="right-panel-2-title">AT RISK LOCATIONS</span>
+                <a href="#" style="font-size:0.685rem; color:#38bdf8; text-decoration:none; font-weight:700;">View All</a>
+              </div>
+
+              <div class="r-console-scroll" id="at-risk-locations-list">
+                <!-- Dynamically Populated by JS -->
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Bottom 4 Panels Grid (Dynamic for Risk Map vs Historical Floods) -->
+        <div class="r-map-bottom-4grid" id="bottom-grid-container">
+          
+          <!-- Panel 1: RAINFALL FORECAST / SECTOR LOSS PIE CHART -->
+          <div class="r-console-panel" id="panel-bottom-1">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+              <span style="font-weight:800; font-size:0.785rem; color:#fff;" id="p1-title">RAINFALL FORECAST</span>
+              <span style="font-size:0.625rem; color:#38bdf8; font-weight:700;" id="p1-subtitle">Next 6 Hours</span>
+            </div>
+
+            <div id="p1-content" style="flex:1; position:relative; width:100%; height:100%;">
+              <!-- Dynamic Content -->
+            </div>
+          </div>
+
+          <!-- Panel 2: RIVER LEVEL FORECAST / HISTORICAL YEARS BAR CHART -->
+          <div class="r-console-panel" id="panel-bottom-2">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.2rem;">
+              <div>
+                <span style="font-weight:800; font-size:0.785rem; color:#fff;" id="p2-title">RIVER LEVEL FORECAST</span>
+                <div style="font-size:0.58rem; color:#94a3b8;" id="p2-desc">Dhansiri River at Golaghat</div>
+              </div>
+              <span style="font-size:0.625rem; color:#38bdf8; font-weight:700;" id="p2-subtitle">Now: 9.2m</span>
+            </div>
+
+            <div id="p2-content" style="flex:1; position:relative; width:100%; height:100%;">
+              <!-- Dynamic Content -->
+            </div>
+          </div>
+
+          <!-- Panel 3: IMPACT ANALYSIS -->
+          <div class="r-console-panel" id="panel-bottom-3">
+            <div style="font-weight:800; font-size:0.785rem; color:#fff; margin-bottom:0.15rem;" id="p3-title">IMPACT ANALYSIS</div>
+            <div style="font-size:0.58rem; color:#94a3b8; margin-bottom:0.35rem;" id="p3-subtitle">Potential Impact in High Risk Areas</div>
+
+            <div id="p3-content" style="display:flex; flex-direction:column; gap:0.28rem; font-size:0.72rem;">
+              <!-- Dynamic Content -->
+            </div>
+          </div>
+
+          <!-- Panel 4: LATEST ALERTS / ASDMA METRICS -->
+          <div class="r-console-panel" id="panel-bottom-4">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+              <span style="font-weight:800; font-size:0.785rem; color:#fff;" id="p4-title">LATEST ALERTS</span>
+              <a href="rescue-notifications.html" style="font-size:0.65rem; color:#38bdf8; text-decoration:none; font-weight:700;" id="p4-link">View All</a>
+            </div>
+
+            <div class="r-console-scroll" id="p4-content">
+              <!-- Dynamic Content -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Sticky Bottom Meta Footer -->
+      <footer class="r-footer-bar">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.25)"/>
+          </svg>
+          <span><strong>AEGIS Rescue System</strong> &bull; Rescue Team Dashboard</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <span><i class="fa-solid fa-shield-halved" style="color:#10b981;"></i> Secure</span>
+          <span>&bull;</span>
+          <span><i class="fa-solid fa-lock" style="color:#38bdf8;"></i> Encrypted</span>
+          <span>&bull;</span>
+          <span><i class="fa-solid fa-location-crosshairs" style="color:#f59e0b;"></i> GPS Enabled</span>
+          <span>|</span>
+          <span><i class="fa-solid fa-arrows-rotate" style="color:#a78bfa;"></i> Real-time Sync</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span>Data Source: ASDMA | CWC | IMD | Local Authorities</span>
+          <span>&bull;</span>
+          <span>Last Updated: 12 Aug 2026, 10:40 AM</span>
+          <span>&bull;</span>
+          <span style="color:#10b981; font-weight:700;">🟢 Live</span>
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- Data & Map Logic -->
+  <script src="js/rescue-map-data.js"></script>
+
+  <script>
+    let gisMap = null;
+    let heatLayerInstance = null;
+    let locationMarkersGroup = [];
+    let currentSimStep = 0;
+    let simInterval = null;
+    let currentMapMode = 'risk'; // 'risk' or 'history'
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Initialize GIS Thermal Map with Full State Assam Bounding
+      initGisMap();
+
+      // 2. Render Initial Risk Map View & Simulation Step 0
+      setMapMode('risk');
+    });
+
+    function initGisMap() {
+      gisMap = L.map('gis-leaflet-map', {
+        center: rescueMapData.stateMapCenter,
+        zoom: rescueMapData.stateMapZoom,
+        minZoom: 6.5,
+        maxZoom: 15,
+        zoomControl: false
+      });
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; CartoDB',
+        maxZoom: 19
+      }).addTo(gisMap);
+
+      L.control.zoom({ position: 'bottomright' }).addTo(gisMap);
+
+      // Lock Assam Bounds
+      const assamBounds = L.latLngBounds(L.latLng(23.8000, 89.2000), L.latLng(28.4000, 96.5000));
+      gisMap.setMaxBounds(assamBounds);
+
+      // Initialize Dense 120+ Heatmap Points across full Assam state
+      if (typeof L.heatLayer === 'function') {
+        heatLayerInstance = L.heatLayer(rescueMapData.statewideGisThermalPoints, {
+          radius: 45,
+          blur: 28,
+          maxZoom: 13,
+          gradient: {
+            0.15: '#2563eb',
+            0.35: '#38bdf8',
+            0.55: '#eab308',
+            0.75: '#f59e0b',
+            1.0: '#ef4444'
+          }
+        }).addTo(gisMap);
+      }
+
+      setTimeout(() => gisMap.invalidateSize(), 300);
+    }
+
+    // Switch between ONLY 2 Modes: 'risk' vs 'history'
+    function setMapMode(mode) {
+      currentMapMode = mode;
+      const rBtn = document.getElementById('tab-risk-map');
+      const hBtn = document.getElementById('tab-historical-floods');
+
+      if (mode === 'risk') {
+        rBtn.style.background = '#2563eb';
+        rBtn.style.color = '#fff';
+        hBtn.style.background = 'rgba(15,23,42,0.8)';
+        hBtn.style.color = '#cbd5e1';
+
+        document.getElementById('sim-clock-banner').style.display = 'flex';
+        document.getElementById('sim-scrubber-panel').style.display = 'block';
+        document.getElementById('map-mode-indicator').innerText = '● Assam Full-Valley Mesh Active';
+
+        // Render Risk Map Consoles & Apply Current Simulation Step
+        renderRiskConsoles();
+        applySimulationState(currentSimStep);
+
+      } else if (mode === 'history') {
+        hBtn.style.background = '#2563eb';
+        hBtn.style.color = '#fff';
+        rBtn.style.background = 'rgba(15,23,42,0.8)';
+        rBtn.style.color = '#cbd5e1';
+
+        document.getElementById('sim-clock-banner').style.display = 'none';
+        document.getElementById('sim-scrubber-panel').style.display = 'none';
+        document.getElementById('map-mode-indicator').innerText = '📜 Official ASDMA Historical Database (1998 - 2024)';
+
+        if (isPlayingSim) togglePlaySimulation();
+
+        // Render ASDMA Historical Telemetry Consoles with Donut Pie Chart & Bar Graphs
+        renderHistoricalConsoles();
+      }
+    }
+
+    // Apply Live Simulation State (Step 0 to 6)
+    function applySimulationState(stepKey) {
+      currentSimStep = parseInt(stepKey);
+      const sData = rescueMapData.simulationSteps[currentSimStep] || rescueMapData.simulationSteps[0];
+
+      // Update Simulation Clock Banner
+      document.getElementById('sim-clock-text').innerText = `SIMULATION TIME: ${sData.stepLabel.toUpperCase()} (${sData.clockTime})`;
+      document.getElementById('sim-active-time').innerText = `${sData.stepLabel} (${sData.clockTime})`;
+
+      // Highlight active scrubber button
+      document.querySelectorAll('.r-time-step-btn').forEach(b => b.classList.remove('active'));
+      const activeBtn = document.getElementById(`sim-btn-${currentSimStep}`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      // Dynamically expand heatmap radii & intensity scores across the whole map of Assam
+      if (heatLayerInstance) {
+        const scaledPts = rescueMapData.statewideGisThermalPoints.map(pt => [
+          pt[0],
+          pt[1],
+          Math.min(1.0, pt[2] * (sData.heatMultiplier || 1.0))
+        ]);
+        heatLayerInstance.setLatLngs(scaledPts);
+        heatLayerInstance.setOptions({
+          radius: Math.round(45 * (0.9 + (currentSimStep * 0.12)))
+        });
+      }
+
+      if (currentMapMode === 'risk') {
+        // Update Risk Summary Cards
+        document.getElementById('sum-very-high').innerHTML = `${sData.veryHighRiskAreas} <small style="font-size:0.65rem; color:#cbd5e1; font-weight:500;">Areas</small>`;
+        document.getElementById('sum-very-high-km').innerText = `Affected: ${sData.veryHighAreaKm}`;
+        document.getElementById('sum-high').innerHTML = `${sData.highRiskAreas} <small style="font-size:0.65rem; color:#cbd5e1; font-weight:500;">Areas</small>`;
+        document.getElementById('sum-high-km').innerText = `Affected: ${sData.highAreaKm}`;
+        document.getElementById('sum-medium').innerHTML = `${sData.mediumRiskAreas} <small style="font-size:0.65rem; color:#cbd5e1; font-weight:500;">Areas</small>`;
+        document.getElementById('sum-low').innerHTML = `${sData.lowRiskAreas} <small style="font-size:0.65rem; color:#cbd5e1; font-weight:500;">Areas</small>`;
+
+        // Update Impact Analysis Panel
+        document.getElementById('imp-people').innerText = sData.peopleAtRisk;
+        document.getElementById('imp-roads').innerText = sData.roadsAffected;
+        document.getElementById('imp-villages').innerText = sData.villagesAtRisk;
+        document.getElementById('imp-farmland').innerText = sData.farmlandAtRisk;
+
+        // Update Top Header River Status Text
+        const riverStatusElem = document.getElementById('top-river-status');
+        riverStatusElem.innerText = sData.riverStatusText;
+        riverStatusElem.style.color = sData.riverStatusColor;
+
+        // Update Hydrograph Chart Dot & Value
+        const p2Sub = document.getElementById('p2-subtitle');
+        if (p2Sub) p2Sub.innerText = `${sData.stepLabel}: ${sData.riverLevel}`;
+        const hydroDot = document.getElementById('hydro-dot');
+        if (hydroDot) {
+          const xPos = 20 + (currentSimStep * 38);
+          const yPos = Math.max(18, 52 - (currentSimStep * 5.5));
+          hydroDot.setAttribute('cx', xPos);
+          hydroDot.setAttribute('cy', yPos);
+        }
+
+        // Render At Risk Locations
+        renderAtRiskLocations(sData.atRiskList);
+      }
+    }
+
+    function renderRiskConsoles() {
+      // Panel 1: Rainfall Bar Chart
+      document.getElementById('p1-title').innerText = 'RAINFALL FORECAST';
+      document.getElementById('p1-subtitle').innerText = 'Next 6 Hours';
+      document.getElementById('p1-content').innerHTML = `
+        <div style="flex:1; position:relative; width:100%; height:100%; display:flex; align-items:flex-end; justify-content:space-between; padding:0 0.4rem 1.2rem 1.2rem;">
+          <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:2px; flex:1;">
+            <span style="font-size:0.58rem; color:#cbd5e1; font-weight:700;">38mm</span>
+            <div style="width:18px; height:45px; background:linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%); border-radius:3px 3px 0 0;"></div>
+            <span style="font-size:0.58rem; color:#94a3b8; position:absolute; bottom:2px;">Now</span>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:2px; flex:1;">
+            <span style="font-size:0.58rem; color:#cbd5e1; font-weight:700;">52mm</span>
+            <div style="width:18px; height:60px; background:linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%); border-radius:3px 3px 0 0;"></div>
+            <span style="font-size:0.58rem; color:#94a3b8; position:absolute; bottom:2px;">+1h</span>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:2px; flex:1;">
+            <span style="font-size:0.58rem; color:#38bdf8; font-weight:800;">74mm</span>
+            <div style="width:18px; height:85px; background:linear-gradient(180deg, #60a5fa 0%, #2563eb 100%); border-radius:3px 3px 0 0; box-shadow:0 0 8px rgba(56,189,248,0.5);"></div>
+            <span style="font-size:0.58rem; color:#94a3b8; position:absolute; bottom:2px;">+3h</span>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:2px; flex:1;">
+            <span style="font-size:0.58rem; color:#cbd5e1; font-weight:700;">63mm</span>
+            <div style="width:18px; height:70px; background:linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%); border-radius:3px 3px 0 0;"></div>
+            <span style="font-size:0.58rem; color:#94a3b8; position:absolute; bottom:2px;">+4h</span>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:2px; flex:1;">
+            <span style="font-size:0.58rem; color:#cbd5e1; font-weight:700;">48mm</span>
+            <div style="width:18px; height:55px; background:linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%); border-radius:3px 3px 0 0;"></div>
+            <span style="font-size:0.58rem; color:#94a3b8; position:absolute; bottom:2px;">+5h</span>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:2px; flex:1;">
+            <span style="font-size:0.58rem; color:#cbd5e1; font-weight:700;">32mm</span>
+            <div style="width:18px; height:40px; background:linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%); border-radius:3px 3px 0 0;"></div>
+            <span style="font-size:0.58rem; color:#94a3b8; position:absolute; bottom:2px;">+6h</span>
+          </div>
+        </div>
+      `;
+
+      // Panel 2: Hydrograph
+      document.getElementById('p2-title').innerText = 'RIVER LEVEL FORECAST';
+      document.getElementById('p2-desc').innerText = 'Dhansiri River at Golaghat';
+      document.getElementById('p2-content').innerHTML = `
+        <svg width="100%" height="100%" viewBox="0 0 260 90" preserveAspectRatio="none">
+          <line x1="20" y1="18" x2="255" y2="18" stroke="#ef4444" stroke-dasharray="3,3" stroke-width="1.2"/>
+          <text x="25" y="15" fill="#ef4444" font-size="7" font-weight="bold">Danger Level 12.5m</text>
+
+          <line x1="20" y1="38" x2="255" y2="38" stroke="#f59e0b" stroke-dasharray="3,3" stroke-width="1.2"/>
+          <text x="25" y="35" fill="#f59e0b" font-size="7" font-weight="bold">Warning Level 10.0m</text>
+
+          <line x1="20" y1="70" x2="255" y2="70" stroke="#10b981" stroke-dasharray="3,3" stroke-width="1.2"/>
+          <text x="25" y="67" fill="#10b981" font-size="7" font-weight="bold">Normal Level 6.0m</text>
+
+          <path d="M 20 48 Q 60 42, 100 32 T 180 20 T 255 18" fill="none" stroke="#38bdf8" stroke-width="2.5"/>
+          <circle id="hydro-dot" cx="20" cy="48" r="4.5" fill="#ef4444" stroke="#fff" stroke-width="1.5"/>
+        </svg>
+      `;
+
+      // Panel 3: Impact
+      document.getElementById('p3-title').innerText = 'IMPACT ANALYSIS';
+      document.getElementById('p3-subtitle').innerText = 'Potential Impact in High Risk Areas';
+      document.getElementById('p3-content').innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="color:#cbd5e1;"><i class="fa-solid fa-users" style="color:#38bdf8;"></i> People at Risk</span>
+          <strong style="color:#fff; font-weight:800;" id="imp-people">~ 18,450</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="color:#cbd5e1;"><i class="fa-solid fa-road-barrier" style="color:#f59e0b;"></i> Roads Affected</span>
+          <strong style="color:#fff; font-weight:800;" id="imp-roads">12</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="color:#cbd5e1;"><i class="fa-solid fa-house-chimney" style="color:#ef4444;"></i> Villages at Risk</span>
+          <strong style="color:#fff; font-weight:800;" id="imp-villages">21</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="color:#cbd5e1;"><i class="fa-solid fa-wheat-awn" style="color:#eab308;"></i> Farmland at Risk</span>
+          <strong style="color:#fff; font-weight:800;" id="imp-farmland">4,120 ha</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="color:#cbd5e1;"><i class="fa-solid fa-building" style="color:#a78bfa;"></i> Infrastructure</span>
+          <strong style="color:#fff; font-weight:800;">8 Locations</strong>
+        </div>
+      `;
+
+      // Panel 4: Latest Alerts
+      document.getElementById('p4-title').innerText = 'LATEST ALERTS';
+      document.getElementById('p4-link').style.display = 'block';
+      renderLatestAlerts();
+    }
+
+    // ASDMA Historical Mode with Donut Pie Chart & Population Bar Graph
+    function renderHistoricalConsoles() {
+      const hData = rescueMapData.historicalAssamData;
+
+      // Update Right Top Panel Title & Cards
+      document.getElementById('right-panel-1-title').innerText = 'HISTORICAL FLOOD METRICS';
+      document.getElementById('right-cards-container').innerHTML = `
+        <div style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); border-radius:6px; padding:0.35rem 0.5rem; grid-column:span 2;">
+          <div style="font-size:0.625rem; font-weight:800; color:#ef4444;">Flood-Prone State Area</div>
+          <div style="font-size:1.05rem; font-weight:800; color:#fff; margin:1px 0;">31.05 Lakh Hectares</div>
+          <div style="font-size:0.58rem; color:#fca5a5;">39.58% of Assam Land Area</div>
+        </div>
+        <div style="background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.3); border-radius:6px; padding:0.35rem 0.5rem;">
+          <div style="font-size:0.6rem; font-weight:800; color:#f59e0b;">Annual Submerged</div>
+          <div style="font-size:0.95rem; font-weight:800; color:#fff;">9.31 Lakh ha</div>
+        </div>
+        <div style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); border-radius:6px; padding:0.35rem 0.5rem;">
+          <div style="font-size:0.6rem; font-weight:800; color:#38bdf8;">Bank Erosion</div>
+          <div style="font-size:0.95rem; font-weight:800; color:#fff;">8,000 ha/yr</div>
+        </div>
+      `;
+
+      // Update Right Panel 2 Title & Content (Recurrence Rates)
+      document.getElementById('right-panel-2-title').innerText = 'DISTRICT RECURRENCE RATES';
+      const atRiskListElem = document.getElementById('at-risk-locations-list');
+      atRiskListElem.innerHTML = '';
+
+      hData.districtRecurrenceRates.forEach(rec => {
+        const div = document.createElement('div');
+        div.className = 'r-sos-item';
+        div.style.borderLeft = '3.5px solid #ef4444';
+        div.innerHTML = `
+          <div>
+            <div style="font-weight:800; color:#fff;">${rec.district}</div>
+            <div style="font-size:0.6rem; color:#cbd5e1;">${rec.status}</div>
+          </div>
+          <div style="font-size:0.75rem; font-weight:800; color:#ef4444;">
+            ${rec.annualRecurrence}
+          </div>
+        `;
+        atRiskListElem.appendChild(div);
+      });
+
+      // Bottom Panel 1: Donut Pie Chart (Sector Loss Breakdown)
+      document.getElementById('p1-title').innerText = 'SECTOR LOSS ALLOCATION';
+      document.getElementById('p1-subtitle').innerText = 'Historical Loss Breakdown';
+      document.getElementById('p1-content').innerHTML = `
+        <div style="display:flex; align-items:center; height:100%; justify-content:space-between; padding:0 0.2rem;">
+          <!-- Donut SVG -->
+          <svg width="90" height="90" viewBox="0 0 42 42">
+            <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#ef4444" stroke-width="6" stroke-dasharray="42.5 57.5" stroke-dashoffset="25"></circle>
+            <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#f59e0b" stroke-width="6" stroke-dasharray="28.2 71.8" stroke-dashoffset="82.5"></circle>
+            <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#38bdf8" stroke-width="6" stroke-dasharray="17.8 82.2" stroke-dashoffset="54.3"></circle>
+            <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#a78bfa" stroke-width="6" stroke-dasharray="11.5 88.5" stroke-dashoffset="36.5"></circle>
+            <text x="21" y="23" fill="#fff" font-size="7" font-weight="bold" text-anchor="middle">ASDMA</text>
+          </svg>
+
+          <!-- Legend Table -->
+          <div style="font-size:0.6rem; display:flex; flex-direction:column; gap:0.25rem;">
+            <div><strong style="color:#ef4444;">● Paddy Crops:</strong> 42.5% (₹3,270 Cr)</div>
+            <div><strong style="color:#f59e0b;">● Housing:</strong> 28.2% (₹2,170 Cr)</div>
+            <div><strong style="color:#38bdf8;">● Infrastructure:</strong> 17.8% (₹1,370 Cr)</div>
+            <div><strong style="color:#a78bfa;">● Livestock:</strong> 11.5% (₹880 Cr)</div>
+          </div>
+        </div>
+      `;
+
+      // Bottom Panel 2: Historical Population Affected Bar Chart (1998 - 2024)
+      document.getElementById('p2-title').innerText = 'HISTORICAL AFFECTED POPULATION';
+      document.getElementById('p2-desc').innerText = 'Major Assam Flood Events (Millions)';
+      document.getElementById('p2-subtitle').innerText = 'Peak: 5.5M (2022)';
+      document.getElementById('p2-content').innerHTML = `
+        <div style="flex:1; position:relative; width:100%; height:100%; display:flex; align-items:flex-end; justify-content:space-between; padding:0 0.4rem 1.2rem 1.2rem;">
+          <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:2px; flex:1;">
+            <span style="font-size:0.58rem; color:#cbd5e1; font-weight:700;">4.7M</span>
+            <div style="width:18px; height:70px; background:linear-gradient(180deg, #ef4444 0%, #991b1b 100%); border-radius:3px 3px 0 0;"></div>
+            <span style="font-size:0.58rem; color:#94a3b8; position:absolute; bottom:2px;">1998</span>
+          </div>
+
+          <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:2px; flex:1;">
+            <span style="font-size:0.58rem; color:#cbd5e1; font-weight:700;">4.2M</span>
+            <div style="width:18px; height:62px; background:linear-gradient(180deg, #f59e0b 0%, #b45309 100%); border-radius:3px 3px 0 0;"></div>
+            <span style="font-size:0.58rem; color:#94a3b8; position:absolute; bottom:2px;">2004</span>
+          </div>
+
+          <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:2px; flex:1;">
+            <span style="font-size:0.58rem; color:#cbd5e1; font-weight:700;">3.8M</span>
+            <div style="width:18px; height:55px; background:linear-gradient(180deg, #38bdf8 0%, #1d4ed8 100%); border-radius:3px 3px 0 0;"></div>
+            <span style="font-size:0.58rem; color:#94a3b8; position:absolute; bottom:2px;">2012</span>
+          </div>
+
+          <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:2px; flex:1;">
+            <span style="font-size:0.58rem; color:#cbd5e1; font-weight:700;">5.3M</span>
+            <div style="width:18px; height:80px; background:linear-gradient(180deg, #ef4444 0%, #991b1b 100%); border-radius:3px 3px 0 0;"></div>
+            <span style="font-size:0.58rem; color:#94a3b8; position:absolute; bottom:2px;">2019</span>
+          </div>
+
+          <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:2px; flex:1;">
+            <span style="font-size:0.58rem; color:#ef4444; font-weight:800;">5.5M</span>
+            <div style="width:18px; height:88px; background:linear-gradient(180deg, #dc2626 0%, #ef4444 100%); border-radius:3px 3px 0 0; box-shadow:0 0 10px rgba(239,68,68,0.6);"></div>
+            <span style="font-size:0.58rem; color:#ef4444; font-weight:800; position:absolute; bottom:2px;">2022</span>
+          </div>
+
+          <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:2px; flex:1;">
+            <span style="font-size:0.58rem; color:#cbd5e1; font-weight:700;">3.4M</span>
+            <div style="width:18px; height:50px; background:linear-gradient(180deg, #38bdf8 0%, #1d4ed8 100%); border-radius:3px 3px 0 0;"></div>
+            <span style="font-size:0.58rem; color:#94a3b8; position:absolute; bottom:2px;">2024</span>
+          </div>
+        </div>
+      `;
+
+      // Bottom Panel 3: Key ASDMA Records
+      document.getElementById('p3-title').innerText = 'ASDMA OFFICIAL RECORDS';
+      document.getElementById('p3-subtitle').innerText = 'State Vulnerability Assessment';
+      document.getElementById('p3-content').innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="color:#cbd5e1;"><i class="fa-solid fa-map" style="color:#ef4444;"></i> State Flood Area</span>
+          <strong style="color:#fff; font-weight:800;">31.05 Lakh ha</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="color:#cbd5e1;"><i class="fa-solid fa-percent" style="color:#f59e0b;"></i> Land Ratio</span>
+          <strong style="color:#fff; font-weight:800;">39.58%</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="color:#cbd5e1;"><i class="fa-solid fa-water" style="color:#38bdf8;"></i> Avg Submerged</span>
+          <strong style="color:#fff; font-weight:800;">9.31 Lakh ha</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="color:#cbd5e1;"><i class="fa-solid fa-hill-rockslide" style="color:#a78bfa;"></i> Bank Erosion</span>
+          <strong style="color:#fff; font-weight:800;">8,000 ha/yr</strong>
+        </div>
+      `;
+
+      // Bottom Panel 4: Historical Event Timeline List
+      document.getElementById('p4-title').innerText = 'HISTORICAL EVENT CHRONOLOGY';
+      document.getElementById('p4-link').style.display = 'none';
+
+      const p4Content = document.getElementById('p4-content');
+      p4Content.innerHTML = '';
+
+      hData.majorFloodEvents.forEach(ev => {
+        const div = document.createElement('div');
+        div.className = 'r-sos-item';
+        div.style.borderLeft = '3.5px solid #2563eb';
+        div.innerHTML = `
+          <div>
+            <div style="font-weight:800; color:#fff;">${ev.year} Flood Wave (${ev.affectedPopMillions}M Affected)</div>
+            <div style="font-size:0.6rem; color:#cbd5e1;">${ev.note}</div>
+          </div>
+          <div style="font-size:0.65rem; color:#38bdf8; font-weight:700;">
+            Loss: ₹${ev.totalLossCrores} Cr
+          </div>
+        `;
+        p4Content.appendChild(div);
+      });
+    }
+
+    function renderAtRiskLocations(listData) {
+      const list = document.getElementById('at-risk-locations-list');
+      if (!list) return;
+      list.innerHTML = '';
+
+      locationMarkersGroup.forEach(m => gisMap.removeLayer(m));
+      locationMarkersGroup = [];
+
+      const placesToRender = listData || (rescueMapData.allDistrictsPins ? rescueMapData.allDistrictsPins.slice(0, 5) : []);
+      placesToRender.forEach(loc => {
+        const div = document.createElement('div');
+        div.className = 'r-sos-item';
+        div.style.borderLeft = `3.5px solid ${loc.riskColor || '#ef4444'}`;
+        div.style.cursor = 'pointer';
+        div.onclick = () => {
+          if (gisMap && loc.coords) {
+            gisMap.flyTo(loc.coords, 12, { animate: true, duration: 1.2 });
+          }
+        };
+        div.innerHTML = `
+          <div style="display:flex; align-items:center; gap:0.4rem;">
+            <i class="fa-solid fa-location-dot" style="color:${loc.riskColor || '#ef4444'}; font-size:0.75rem;"></i>
+            <div>
+              <div style="font-weight:800; color:#fff; font-size:0.72rem;">${loc.name}</div>
+              <div style="font-size:0.58rem; color:${loc.riskColor || '#ef4444'}; font-weight:700;">${loc.riskLevel}</div>
+            </div>
+          </div>
+          <div style="font-size:0.685rem; font-weight:800; color:#38bdf8;">
+            Depth: ${loc.waterDepth}
+          </div>
+        `;
+        list.appendChild(div);
+      });
+
+      // Plot Pins across ALL 21 Districts of Assam on the Map
+      const allPins = rescueMapData.allDistrictsPins || listData;
+      allPins.forEach(loc => {
+        const icon = L.divIcon({
+          className: 'custom-map-icon',
+          html: `<div style="background:${loc.riskColor}; color:#fff; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 0 10px ${loc.riskColor};"><i class="fa-solid fa-location-dot" style="font-size:10px;"></i></div>`,
+          iconSize: [24, 24]
+        });
+
+        const m = L.marker(loc.coords, { icon }).addTo(gisMap).bindPopup(`
+          <div style="font-family:'Plus Jakarta Sans',sans-serif; color:#fff; padding:2px;">
+            <b style="color:${loc.riskColor}; font-size:13px;">${loc.name} (${loc.district})</b><br>
+            <span style="font-size:11px; color:#cbd5e1;">Status: <strong>${loc.riskLevel}</strong></span><br>
+            <span style="font-size:11px; color:#38bdf8;">Water Depth: <strong>${loc.waterDepth}</strong></span>
+          </div>
+        `);
+        locationMarkersGroup.push(m);
+      });
+    }
+
+    function renderLatestAlerts() {
+      const list = document.getElementById('p4-content');
+      if (!list) return;
+      list.innerHTML = '';
+
+      const alerts = rescueMapData.latestAlerts || [];
+      alerts.forEach(alt => {
+        const div = document.createElement('div');
+        div.className = 'r-sos-item';
+        div.style.borderLeft = `3.5px solid ${alt.severity === 'critical' ? '#ef4444' : '#f59e0b'}`;
+        div.innerHTML = `
+          <div style="display:flex; align-items:flex-start; gap:0.4rem;">
+            <i class="fa-solid fa-triangle-exclamation" style="color:${alt.severity === 'critical' ? '#ef4444' : '#f59e0b'}; font-size:0.75rem; margin-top:2px;"></i>
+            <div>
+              <div style="font-weight:800; color:#fff; font-size:0.7rem;">${alt.title}</div>
+              <div style="font-size:0.6rem; color:#cbd5e1;">${alt.note || alt.location}</div>
+            </div>
+          </div>
+          <div style="font-size:0.58rem; color:#64748b; font-weight:600; text-align:right;">${alt.time}</div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function switchDistrictMap(val) {
+      if (val === 'ALL') {
+        gisMap.setView(rescueMapData.stateMapCenter, rescueMapData.stateMapZoom, { animate: true });
+      } else {
+        gisMap.setView([26.4049, 94.0321], 12, { animate: true });
+      }
+    }
+
+    let isPlayingSim = false;
+    function togglePlaySimulation() {
+      isPlayingSim = !isPlayingSim;
+      const icon = document.getElementById('sim-play-icon');
+      if (isPlayingSim) {
+        icon.className = 'fa-solid fa-pause';
+        const stepsArr = [0, 1, 3, 4, 5, 6];
+        let idx = stepsArr.indexOf(currentSimStep);
+
+        simInterval = setInterval(() => {
+          idx = (idx + 1) % stepsArr.length;
+          applySimulationState(stepsArr[idx]);
+        }, 2000);
+      } else {
+        icon.className = 'fa-solid fa-play';
+        clearInterval(simInterval);
+      }
+    }
+
+    function setSimTime(hrs, btn) {
+      if (isPlayingSim) togglePlaySimulation();
+      applySimulationState(hrs);
+    }
+  </script>
+</body>
+</html>

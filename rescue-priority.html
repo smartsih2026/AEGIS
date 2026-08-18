@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Emergency Priority Zones - AEGIS Rescue Command System</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Rescue Master Stylesheet & Script -->
+  <link rel="stylesheet" href="rescue-styles.css">
+  <script src="js/rescue-common.js?v=3.0"></script>
+
+  <style>
+    /* Custom Table Styling for Priority Ranking */
+    .r-ranking-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.72rem;
+    }
+    .r-ranking-table th {
+      text-align: left;
+      color: #94a3b8;
+      font-weight: 700;
+      padding: 0.35rem 0.55rem;
+      border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+    }
+    .r-ranking-table td {
+      padding: 0.35rem 0.55rem;
+      color: #fff;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .r-ranking-row {
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .r-ranking-row:hover {
+      background: rgba(59, 130, 246, 0.12);
+    }
+    .r-ranking-row.selected {
+      background: rgba(37, 99, 235, 0.28);
+      border-left: 3px solid #2563eb;
+    }
+
+    /* 4-Console Bottom Grid Layout for Priority Page */
+    .r-priority-bottom-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 0.85fr 1fr 1fr;
+      gap: 0.65rem;
+      height: 185px;
+      overflow: hidden;
+    }
+
+    /* Advanced AI Action Button */
+    .r-ai-execute-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      border: 1px solid #3b82f6;
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.72rem;
+      padding: 0.38rem 0.6rem;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      box-shadow: 0 0 10px rgba(37, 99, 235, 0.5);
+      transition: all 0.2s;
+    }
+    .r-ai-execute-btn:hover {
+      background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+      box-shadow: 0 0 14px rgba(37, 99, 235, 0.8);
+      transform: translateY(-1px);
+    }
+
+    /* Advanced Modal Overlay Styles */
+    .r-modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(3, 7, 18, 0.88);
+      backdrop-filter: blur(12px);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .r-modal-backdrop.active {
+      display: flex;
+    }
+    .r-modal-content {
+      background: #060c1c;
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      box-shadow: 0 0 40px rgba(37, 99, 235, 0.35);
+      border-radius: 12px;
+      width: 820px;
+      max-width: 95vw;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes modalPop {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="r-layout-container">
+    <!-- Left Navigation Sidebar -->
+    <aside class="r-sidebar">
+      <div class="r-sidebar-logo">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.25)"/>
+          <path d="M12 8v8M8 12h8" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <div style="font-weight: 800; font-size: 1.15rem; color: #fff; line-height: 1;">AEGIS</div>
+          <div style="font-size: 0.58rem; color: #94a3b8; font-weight: 500;">Stronger Together, Safer Assam.</div>
+        </div>
+      </div>
+
+      <!-- Exact 12 User-Specified Pages Navigation Menu -->
+      <nav class="r-nav-menu">
+        <a class="r-nav-item" href="rescue-dashboard.html"><i class="fa-solid fa-gauge-high"></i> Command Dashboard</a>
+        <a class="r-nav-item" href="rescue-map.html"><i class="fa-solid fa-map-location-dot"></i> Flood Risk Map</a>
+        <a class="r-nav-item active" href="rescue-priority.html"><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i> Emergency Priority Zones</a>
+        <a class="r-nav-item" href="rescue-analysis.html"><i class="fa-solid fa-chart-line"></i> Flood Risk Analysis</a>
+        <a class="r-nav-item" href="rescue-impact.html"><i class="fa-solid fa-house-crack"></i> Impact Assessment</a>
+        <a class="r-nav-item" href="rescue-resources.html"><i class="fa-solid fa-boxes-packing"></i> Resource Command Center</a>
+        <a class="r-nav-item" href="rescue-sos.html"><i class="fa-solid fa-circle-exclamation" style="color:#ef4444;"></i> Citizen SOS Center <span class="r-nav-badge">12</span></a>
+        <a class="r-nav-item" href="rescue-shelters.html"><i class="fa-solid fa-campground"></i> Shelter Network Management</a>
+        <a class="r-nav-item" href="rescue-operations.html"><i class="fa-solid fa-person-shelter"></i> Live Rescue Operations</a>
+        <a class="r-nav-item" href="rescue-analytics.html"><i class="fa-solid fa-chart-pie"></i> Analytics &amp; Reports</a>
+        <a class="r-nav-item" href="rescue-teams.html"><i class="fa-solid fa-users-gear"></i> Team Management</a>
+        <a class="r-nav-item" href="rescue-notifications.html"><i class="fa-solid fa-bullhorn" style="color:#f59e0b;"></i> Notifications &amp; Communication <span class="r-nav-badge">5</span></a>
+        <a class="r-nav-item" href="index.html" style="margin-top:auto; color:#ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Settings / Exit</a>
+      </nav>
+
+      <!-- Sidebar Emergency Hotline Box -->
+      <div class="r-sidebar-hotline">
+        <div style="font-size: 0.625rem; color: #fca5a5; font-weight: 700;">EMERGENCY HOTLINE</div>
+        <div style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin: 0.15rem 0;">
+          <i class="fa-solid fa-phone-volume" style="color:#ef4444"></i> 112
+        </div>
+        <div style="font-size: 0.6rem; color: #cbd5e1;">Emergency Call</div>
+        
+        <button class="r-push-talk-btn" onclick="alert('Push-To-Talk Radio Active...')">
+          <i class="fa-solid fa-microphone"></i> Push to Talk
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Container -->
+    <main class="r-main-area">
+      <!-- Top Header Bar -->
+      <header class="r-topbar">
+        <div style="display:flex; align-items:center; gap:0.65rem;">
+          <div>
+            <div style="font-weight:800; font-size:1.1rem; color:#fff; line-height:1.1; display:flex; align-items:center; gap:0.45rem;">
+              Emergency Priority Zones
+              <span style="color:#10b981; font-size:0.65rem; font-weight:700;">● AEGIS AI Active</span>
+            </div>
+            <div style="font-size:0.685rem; color:#94a3b8;">AI Multi-Sensor Fusion &bull; Spatial GIS Mesh, Elevation Projections &amp; Urgency Ranking</div>
+          </div>
+        </div>
+
+        <!-- Center Location Pill -->
+        <div style="display:flex; align-items:center; gap:0.45rem; background:rgba(15,23,42,0.9); border:1px solid rgba(59,130,246,0.3); border-radius:6px; padding:0.25rem 0.65rem;">
+          <i class="fa-solid fa-location-dot" style="color:#ef4444;"></i>
+          <span style="font-size:0.75rem; font-weight:700; color:#fff;">Assam, India</span>
+        </div>
+
+        <!-- Right Utilities -->
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <div class="r-top-utility-box">
+            <i class="fa-solid fa-cloud-showers-heavy" style="color:#38bdf8;"></i>
+            <span><strong>26°C</strong> Heavy Rain</span>
+          </div>
+
+          <div class="r-top-utility-box">
+            <i class="fa-solid fa-water" style="color:#ef4444;"></i>
+            <span>Brahmaputra <strong style="color:#ef4444;">Rising Fast</strong></span>
+          </div>
+
+          <div class="r-top-utility-box">
+            <i class="fa-solid fa-radio" style="color:#10b981;"></i>
+            <span>Radio Comms <strong style="color:#38bdf8;">Channel 2</strong></span>
+            <span style="color:#10b981; font-size:0.65rem;"><i class="fa-solid fa-signal"></i></span>
+          </div>
+
+          <div style="position:relative; cursor:pointer;" onclick="location.href='rescue-notifications.html'">
+            <i class="fa-solid fa-bell" style="color:#94a3b8; font-size:1.05rem;"></i>
+            <span style="position:absolute; top:-4px; right:-6px; background:#ef4444; color:#fff; font-size:0.55rem; font-weight:800; padding:1px 4px; border-radius:50%;">6</span>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:0.55rem; cursor:pointer;" onclick="alert('Team Leader Desk')">
+            <div style="width:32px; height:32px; border-radius:50%; background:#ef4444; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:0.75rem; border:1px solid #fca5a5;">TL</div>
+            <div>
+              <div style="font-size:0.785rem; font-weight:700; color:#fff; line-height:1.1;">Team Leader</div>
+              <div style="font-size:0.625rem; color:#94a3b8;">NDRF Team-4</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Top 5 Priority Metrics Cards Bar -->
+      <div class="r-metrics-bar" style="grid-template-columns: repeat(5, 1fr);">
+        <!-- Metric 1: Critical Zones -->
+        <div class="r-metric-card" style="border-left: 3.5px solid #ef4444; background:rgba(239,68,68,0.12);">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.65rem; font-weight:800; color:#ef4444;">CRITICAL ZONES</span>
+            <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i>
+          </div>
+          <div style="font-size:1.4rem; font-weight:800; color:#fff; margin:2px 0 0 0;" id="p-critical-zones">3</div>
+          <div style="font-size:0.6rem; color:#fca5a5;">Areas Requiring Immediate Action</div>
+        </div>
+
+        <!-- Metric 2: Total People at Risk -->
+        <div class="r-metric-card" style="border-left: 3.5px solid #38bdf8;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.65rem; font-weight:800; color:#38bdf8;">TOTAL PEOPLE AT RISK</span>
+            <i class="fa-solid fa-users" style="color:#38bdf8;"></i>
+          </div>
+          <div style="font-size:1.4rem; font-weight:800; color:#fff; margin:2px 0 0 0;" id="p-people-risk">1,19,175</div>
+          <div style="font-size:0.6rem; color:#10b981;">↑ +12% from previous update</div>
+        </div>
+
+        <!-- Metric 3: Active SOS -->
+        <div class="r-metric-card" style="border-left: 3.5px solid #ef4444;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.65rem; font-weight:800; color:#ef4444;">ACTIVE SOS</span>
+            <span style="font-size:0.55rem; background:#ef4444; color:#fff; font-weight:800; padding:1px 4px; border-radius:3px;">SOS</span>
+          </div>
+          <div style="font-size:1.4rem; font-weight:800; color:#fff; margin:2px 0 0 0;" id="p-active-sos">108</div>
+          <div style="font-size:0.6rem; color:#ef4444;">↑ +18% in last 3 hours</div>
+        </div>
+
+        <!-- Metric 4: Shelter Occupancy -->
+        <div class="r-metric-card" style="border-left: 3.5px solid #f59e0b;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.65rem; font-weight:800; color:#f59e0b;">SHELTER OCCUPANCY</span>
+            <i class="fa-solid fa-house-user" style="color:#f59e0b;"></i>
+          </div>
+          <div style="font-size:1.4rem; font-weight:800; color:#fff; margin:2px 0 0 0;" id="p-shelter-occ">78%</div>
+          <div style="font-size:0.6rem; color:#f59e0b;">Near Capacity in 5 Shelters</div>
+        </div>
+
+        <!-- Metric 5: Resources Deployed -->
+        <div class="r-metric-card" style="border-left: 3.5px solid #10b981;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.65rem; font-weight:800; color:#10b981;">RESOURCES DEPLOYED</span>
+            <i class="fa-solid fa-truck-monster" style="color:#10b981;"></i>
+          </div>
+          <div style="font-size:1.4rem; font-weight:800; color:#fff; margin:2px 0 0 0;" id="p-resources-dep">28 Units</div>
+          <div style="font-size:0.6rem; color:#94a3b8;">Across 8 Districts</div>
+        </div>
+      </div>
+
+      <!-- Master Grid (Center Split & Bottom Consoles) -->
+      <div class="r-dashboard-grid" style="grid-template-rows: 1fr 185px;">
+        
+        <!-- Center Middle Split Grid -->
+        <div class="r-middle-split-grid" style="grid-template-columns: 1.3fr 0.95fr 1.15fr;">
+          
+          <!-- Column 1: AI Priority Ranking Table (Districts) -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; overflow:hidden;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+              <span style="font-weight:800; font-size:0.85rem; color:#fff; display:flex; align-items:center; gap:0.4rem;">
+                <i class="fa-solid fa-trophy" style="color:#f59e0b;"></i> AI Priority Ranking - Districts
+              </span>
+              <span style="font-size:0.625rem; color:#94a3b8;">Ranked by Severity &amp; Urgency</span>
+            </div>
+
+            <div style="flex:1; overflow-y:auto; min-height:0; padding-right:0.2rem;">
+              <table class="r-ranking-table">
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>District</th>
+                    <th>Risk Score</th>
+                    <th>Severity</th>
+                    <th>Active SOS</th>
+                    <th>People Affected</th>
+                    <th>Trend</th>
+                  </tr>
+                </thead>
+                <tbody id="ranking-table-body">
+                  <!-- Dynamically Rendered by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Column 2: Risk Score Breakdown Panel -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <div style="font-weight:800; font-size:0.85rem; color:#fff; margin-bottom:0.35rem; display:flex; align-items:center; gap:0.35rem;">
+                <i class="fa-solid fa-chart-diagram" style="color:#38bdf8;"></i> Risk Score Breakdown
+              </div>
+
+              <!-- Selected District Ring Gauge -->
+              <div style="background:rgba(15,23,42,0.8); border:1px solid rgba(59,130,246,0.25); border-radius:8px; padding:0.5rem 0.75rem; display:flex; align-items:center; justify-content:space-between; margin-bottom:0.45rem;">
+                <div>
+                  <div style="font-weight:800; font-size:1.1rem; color:#fff;" id="breakdown-district-name">Golaghat</div>
+                  <span style="background:rgba(239,68,68,0.25); color:#ef4444; font-size:0.6rem; font-weight:800; padding:1px 6px; border-radius:4px; border:1px solid rgba(239,68,68,0.4);" id="breakdown-severity-badge">
+                    Critical Priority
+                  </span>
+                </div>
+
+                <!-- Radial Gauge Circle SVG -->
+                <div style="position:relative; width:60px; height:60px; display:flex; align-items:center; justify-content:center;">
+                  <svg width="60" height="60" viewBox="0 0 36 36">
+                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3" />
+                    <path id="breakdown-circle-path" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#ef4444" stroke-width="3.5" stroke-dasharray="92, 100" />
+                  </svg>
+                  <div style="position:absolute; text-align:center;">
+                    <div style="font-size:0.75rem; font-weight:800; color:#fff;" id="breakdown-score-num">92</div>
+                    <div style="font-size:0.45rem; color:#94a3b8;">/100</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Risk Contributors Progress Bars -->
+              <div style="font-size:0.65rem; font-weight:800; color:#94a3b8; margin-bottom:0.35rem;">Risk Contributors</div>
+              <div style="display:flex; flex-direction:column; gap:0.35rem;" id="risk-contributors-container">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 3: Advanced AEGIS AI Recommendation Panel -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; justify-content:space-between; border-color:rgba(167,139,250,0.4);">
+            <div style="overflow-y:auto; padding-right:2px;">
+              
+              <!-- AI Engine Model Badge -->
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+                <span style="font-weight:800; font-size:0.85rem; color:#fff; display:flex; align-items:center; gap:0.35rem;">
+                  <i class="fa-solid fa-brain" style="color:#a78bfa;"></i> AI Recommended Action
+                </span>
+                <span style="font-size:0.55rem; color:#10b981; font-weight:800; background:rgba(16,185,129,0.18); padding:1px 5px; border-radius:4px; border:1px solid rgba(16,185,129,0.3);" id="ai-engine-model">
+                  AEGIS-v4 Neural Engine
+                </span>
+              </div>
+
+              <div style="font-weight:800; font-size:0.825rem; color:#f59e0b; margin-bottom:0.25rem;" id="ai-action-title">
+                Priority #1: Golaghat Sector
+              </div>
+
+              <!-- GIS Spatial Threat Summary Box -->
+              <div style="background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); border-radius:6px; padding:0.35rem 0.5rem; margin-bottom:0.4rem; font-size:0.625rem; color:#fca5a5;" id="ai-spatial-summary">
+                <!-- Populated by JS -->
+              </div>
+
+              <!-- Multi-Sensor Reasons List -->
+              <div style="font-size:0.65rem; color:#cbd5e1; margin-bottom:0.4rem;">
+                <div style="font-weight:800; color:#94a3b8; margin-bottom:0.2rem; font-size:0.6rem;">MULTI-SENSOR FINDINGS:</div>
+                <div style="display:flex; flex-direction:column; gap:0.22rem;" id="ai-reasons-list">
+                  <!-- Populated by JS -->
+                </div>
+              </div>
+
+              <!-- Suggested Deployment -->
+              <div style="background:rgba(15,23,42,0.85); border:1px solid rgba(59,130,246,0.3); border-radius:6px; padding:0.4rem 0.5rem; margin-bottom:0.4rem;">
+                <div style="font-size:0.6rem; font-weight:800; color:#38bdf8; margin-bottom:0.25rem;">OPTIMIZED RESOURCE DISPATCH:</div>
+                <div style="display:flex; flex-direction:column; gap:0.22rem; font-size:0.65rem; color:#fff;" id="ai-suggested-list">
+                  <!-- Populated by JS -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Exec & ETA Impact Footer -->
+            <div>
+              <div style="background:linear-gradient(180deg, rgba(245,158,11,0.15) 0%, rgba(217,119,6,0.25) 100%); border:1px solid rgba(245,158,11,0.4); border-radius:6px; padding:0.35rem; text-align:center; margin-bottom:0.35rem;">
+                <div style="font-size:0.55rem; font-weight:800; color:#f59e0b;">ESTIMATED IMPACT &amp; SPEED</div>
+                <div style="font-size:0.685rem; font-weight:800; color:#fff; margin-top:1px;" id="ai-eta-impact">
+                  ⚡ 34 stranded citizens reachable within 18 minutes via Boat Route B
+                </div>
+              </div>
+
+              <button class="r-ai-execute-btn" onclick="executeAiDeploymentModal()">
+                <i class="fa-solid fa-bolt"></i> Execute AI Deployment Plan
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Bottom 4 Consoles Grid -->
+        <div class="r-priority-bottom-grid">
+          
+          <!-- Panel 1: Zone Priority Cards (Selected District Micro-Zones) -->
+          <div class="r-console-panel">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+              <span style="font-weight:800; font-size:0.785rem; color:#fff;" id="zone-panel-title">Zone Priority - Golaghat</span>
+              <span style="font-size:0.58rem; color:#94a3b8;">AI High Impact Micro-Zones</span>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.4rem; flex:1;" id="district-zones-container">
+              <!-- Dynamically Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Panel 2: Zone Distribution Donut Chart -->
+          <div class="r-console-panel">
+            <div style="font-weight:800; font-size:0.785rem; color:#fff; margin-bottom:0.25rem;">Zone Distribution</div>
+
+            <div style="display:flex; align-items:center; justify-content:space-between; height:100%; padding:0 0.2rem;">
+              <!-- Donut SVG -->
+              <svg width="75" height="75" viewBox="0 0 42 42">
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#ef4444" stroke-width="5" stroke-dasharray="12 88" stroke-dashoffset="25"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#f59e0b" stroke-width="5" stroke-dasharray="21 79" stroke-dashoffset="13"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#eab308" stroke-width="5" stroke-dasharray="35 65" stroke-dashoffset="92"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#38bdf8" stroke-width="5" stroke-dasharray="24 76" stroke-dashoffset="57"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#2563eb" stroke-width="5" stroke-dasharray="8 92" stroke-dashoffset="33"></circle>
+                <text x="21" y="20" fill="#fff" font-size="7" font-weight="bold" text-anchor="middle">100</text>
+                <text x="21" y="25" fill="#94a3b8" font-size="3.5" text-anchor="middle">Total Zones</text>
+              </svg>
+
+              <!-- Legend -->
+              <div style="font-size:0.58rem; display:flex; flex-direction:column; gap:0.2rem;">
+                <div><strong style="color:#ef4444;">● Critical:</strong> 12 (12%)</div>
+                <div><strong style="color:#f59e0b;">● High:</strong> 21 (21%)</div>
+                <div><strong style="color:#eab308;">● Medium:</strong> 35 (35%)</div>
+                <div><strong style="color:#38bdf8;">● Low:</strong> 24 (24%)</div>
+                <div><strong style="color:#2563eb;">● Very Low:</strong> 8 (8%)</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel 3: SOS Growth & Resource Forecast Bar Charts -->
+          <div class="r-console-panel">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.2rem;">
+              <span style="font-weight:800; font-size:0.75rem; color:#fff;">SOS Growth by District</span>
+              <span style="font-size:0.58rem; color:#a78bfa; font-weight:700;">Top 5 Surge</span>
+            </div>
+
+            <!-- Vertical Bar Chart -->
+            <div style="flex:1; display:flex; align-items:flex-end; justify-content:space-between; padding:0 0.3rem 0.2rem 0.3rem;">
+              <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:2px; flex:1;">
+                <span style="font-size:0.55rem; color:#a78bfa; font-weight:800;">42</span>
+                <div style="width:16px; height:65px; background:linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%); border-radius:3px 3px 0 0;"></div>
+                <span style="font-size:0.55rem; color:#94a3b8;">Golaghat</span>
+              </div>
+              <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:2px; flex:1;">
+                <span style="font-size:0.55rem; color:#cbd5e1; font-weight:700;">31</span>
+                <div style="width:16px; height:48px; background:linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%); border-radius:3px 3px 0 0;"></div>
+                <span style="font-size:0.55rem; color:#94a3b8;">Jorhat</span>
+              </div>
+              <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:2px; flex:1;">
+                <span style="font-size:0.55rem; color:#cbd5e1; font-weight:700;">26</span>
+                <div style="width:16px; height:40px; background:linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%); border-radius:3px 3px 0 0;"></div>
+                <span style="font-size:0.55rem; color:#94a3b8;">Sivasagar</span>
+              </div>
+              <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:2px; flex:1;">
+                <span style="font-size:0.55rem; color:#cbd5e1; font-weight:700;">18</span>
+                <div style="width:16px; height:28px; background:linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%); border-radius:3px 3px 0 0;"></div>
+                <span style="font-size:0.55rem; color:#94a3b8;">Darrang</span>
+              </div>
+              <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:2px; flex:1;">
+                <span style="font-size:0.55rem; color:#cbd5e1; font-weight:700;">15</span>
+                <div style="width:16px; height:22px; background:linear-gradient(180deg, #a78bfa 0%, #7c3aed 100%); border-radius:3px 3px 0 0;"></div>
+                <span style="font-size:0.55rem; color:#94a3b8;">Nagaon</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel 4: Shelter Capacity Usage Donut Gauge -->
+          <div class="r-console-panel">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.2rem;">
+              <span style="font-weight:800; font-size:0.75rem; color:#fff;">Shelter Capacity Usage</span>
+              <span style="font-size:0.58rem; color:#f59e0b; font-weight:700;">78% Occupied</span>
+            </div>
+
+            <div style="display:flex; align-items:center; justify-content:space-between; height:100%; padding:0 0.3rem;">
+              <svg width="70" height="70" viewBox="0 0 36 36">
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3" />
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#ef4444" stroke-width="3.5" stroke-dasharray="78, 100" />
+                <text x="18" y="19" fill="#fff" font-size="7" font-weight="bold" text-anchor="middle">78%</text>
+                <text x="18" y="24" fill="#ef4444" font-size="3" text-anchor="middle">Overall</text>
+              </svg>
+
+              <div style="font-size:0.6rem; display:flex; flex-direction:column; gap:0.25rem;">
+                <div><strong style="color:#ef4444;">● Occupied:</strong> 78% (7,840)</div>
+                <div><strong style="color:#10b981;">● Available:</strong> 22% (2,160)</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Sticky Bottom Meta Footer -->
+      <footer class="r-footer-bar">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.25)"/>
+          </svg>
+          <span><strong>AEGIS Rescue Command</strong> &bull; Assam Flood Response</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <span><i class="fa-solid fa-shield-halved" style="color:#10b981;"></i> Secure</span>
+          <span>&bull;</span>
+          <span><i class="fa-solid fa-lock" stroke="#38bdf8;"></i> Encrypted</span>
+          <span>&bull;</span>
+          <span><i class="fa-solid fa-arrows-rotate" style="color:#a78bfa;"></i> Real-time Sync</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span>Last Updated: 12 Aug 2026, 10:40 AM</span>
+          <span>&bull;</span>
+          <span style="color:#10b981; font-weight:700;">🟢 Live</span>
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- ADVANCED TACTICAL AI DEPLOYMENT MODAL OVERLAY -->
+  <div class="r-modal-backdrop" id="ai-deployment-modal">
+    <div class="r-modal-content">
+      
+      <!-- Modal Header Bar -->
+      <div style="background:#070d1d; border-bottom:1px solid rgba(59,130,246,0.3); padding:0.75rem 1rem; display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex; align-items:center; gap:0.6rem;">
+          <div style="width:32px; height:32px; border-radius:50%; background:rgba(37,99,235,0.3); border:1px solid #3b82f6; display:flex; align-items:center; justify-content:center; color:#38bdf8;">
+            <i class="fa-solid fa-bolt" style="font-size:1rem;"></i>
+          </div>
+          <div>
+            <div style="font-weight:800; font-size:1rem; color:#fff; display:flex; align-items:center; gap:0.5rem;">
+              AEGIS AI TACTICAL DEPLOYMENT DISPATCH EXECUTED
+              <span style="background:rgba(16,185,129,0.2); color:#10b981; font-size:0.6rem; font-weight:800; padding:1px 6px; border-radius:4px; border:1px solid rgba(16,185,129,0.4);">
+                ● TRANSMITTED TO ALL UNITS
+              </span>
+            </div>
+            <div style="font-size:0.685rem; color:#94a3b8;" id="modal-target-subtitle">
+              Target District: Golaghat Sector &bull; AEGIS-v4 Neural Engine (98.4% Confidence)
+            </div>
+          </div>
+        </div>
+
+        <button style="background:transparent; border:none; color:#94a3b8; font-size:1.1rem; cursor:pointer;" onclick="closeAiModal()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Modal Executive Summary Banner (4 Stat Badges) -->
+      <div style="background:rgba(15,23,42,0.9); border-bottom:1px solid rgba(255,255,255,0.06); padding:0.6rem 1rem; display:grid; grid-template-columns:repeat(4, 1fr); gap:0.6rem;">
+        <div style="background:rgba(37,99,235,0.15); border:1px solid rgba(59,130,246,0.3); border-radius:6px; padding:0.35rem 0.5rem;">
+          <div style="font-size:0.58rem; font-weight:800; color:#38bdf8;">ASSET DISPATCH</div>
+          <div style="font-size:0.85rem; font-weight:800; color:#fff; margin-top:1px;" id="modal-stat-assets">2 Boats, 1 Amb, 1 Drone</div>
+        </div>
+
+        <div style="background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.3); border-radius:6px; padding:0.35rem 0.5rem;">
+          <div style="font-size:0.58rem; font-weight:800; color:#f59e0b;">EST. EVACUATION TIME</div>
+          <div style="font-size:0.85rem; font-weight:800; color:#fff; margin-top:1px;" id="modal-stat-eta">18 Minutes</div>
+        </div>
+
+        <div style="background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); border-radius:6px; padding:0.35rem 0.5rem;">
+          <div style="font-size:0.58rem; font-weight:800; color:#10b981;">CITIZENS REACHED</div>
+          <div style="font-size:0.85rem; font-weight:800; color:#fff; margin-top:1px;" id="modal-stat-people">34 People</div>
+        </div>
+
+        <div style="background:rgba(167,139,250,0.15); border:1px solid rgba(167,139,250,0.3); border-radius:6px; padding:0.35rem 0.5rem;">
+          <div style="font-size:0.58rem; font-weight:800; color:#a78bfa;">RISK MITIGATION RATE</div>
+          <div style="font-size:0.85rem; font-weight:800; color:#fff; margin-top:1px;">94.2% Success Rate</div>
+        </div>
+      </div>
+
+      <!-- Modal Main Body: Left Visual Analytics (Pie & Graphs) + Right Live Mission Log -->
+      <div style="padding:1rem; display:grid; grid-template-columns:1.15fr 1fr; gap:0.85rem; overflow-y:auto; flex:1;">
+        
+        <!-- Left Column: Visual Charts & Allocation -->
+        <div style="display:flex; flex-direction:column; gap:0.75rem;">
+          
+          <!-- Resource Breakdown Pie Chart Box -->
+          <div style="background:rgba(15,23,42,0.8); border:1px solid rgba(59,130,246,0.25); border-radius:8px; padding:0.6rem 0.75rem;">
+            <div style="font-size:0.75rem; font-weight:800; color:#fff; margin-bottom:0.4rem; display:flex; align-items:center; justify-content:space-between;">
+              <span><i class="fa-solid fa-chart-pie" style="color:#38bdf8;"></i> AI Resource Allocation Breakdown</span>
+              <span style="font-size:0.6rem; color:#94a3b8;">100% Deployed</span>
+            </div>
+
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:0 0.4rem;">
+              <!-- Donut Pie SVG -->
+              <svg width="95" height="95" viewBox="0 0 42 42">
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#2563eb" stroke-width="6" stroke-dasharray="45 55" stroke-dashoffset="25"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#10b981" stroke-width="6" stroke-dasharray="30 70" stroke-dashoffset="80"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#f59e0b" stroke-width="6" stroke-dasharray="15 85" stroke-dashoffset="50"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#a78bfa" stroke-width="6" stroke-dasharray="10 90" stroke-dashoffset="35"></circle>
+                <text x="21" y="21" fill="#fff" font-size="6" font-weight="bold" text-anchor="middle">AEGIS AI</text>
+              </svg>
+
+              <!-- Legend Table -->
+              <div style="font-size:0.625rem; display:flex; flex-direction:column; gap:0.25rem;">
+                <div><strong style="color:#2563eb;">● Inflatable Motorboats:</strong> 45% (2 Units)</div>
+                <div><strong style="color:#10b981;">● Medical Field Team:</strong> 30% (1 Squad)</div>
+                <div><strong style="color:#f59e0b;">● Aerial Drone Recon:</strong> 15% (1 Unit)</div>
+                <div><strong style="color:#a78bfa;">● Shelter Capacity Reroute:</strong> 10% (Dergaon)</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Projected Evacuation Timeline Bar Graph -->
+          <div style="background:rgba(15,23,42,0.8); border:1px solid rgba(59,130,246,0.25); border-radius:8px; padding:0.6rem 0.75rem;">
+            <div style="font-size:0.75rem; font-weight:800; color:#fff; margin-bottom:0.35rem; display:flex; align-items:center; justify-content:space-between;">
+              <span><i class="fa-solid fa-chart-column" style="color:#10b981;"></i> Projected Hourly Evacuation Curve</span>
+              <span style="font-size:0.6rem; color:#10b981; font-weight:700;">Peak Rescue @ +1h</span>
+            </div>
+
+            <!-- SVG Bar Chart -->
+            <div style="height:75px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 0.5rem 1rem 0.5rem; position:relative;">
+              <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:2px; flex:1;">
+                <span style="font-size:0.55rem; color:#cbd5e1; font-weight:700;">34</span>
+                <div style="width:18px; height:45px; background:linear-gradient(180deg, #10b981 0%, #059669 100%); border-radius:3px 3px 0 0;"></div>
+                <span style="font-size:0.55rem; color:#94a3b8; position:absolute; bottom:0;">+30m</span>
+              </div>
+
+              <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:2px; flex:1;">
+                <span style="font-size:0.55rem; color:#10b981; font-weight:800;">72</span>
+                <div style="width:18px; height:65px; background:linear-gradient(180deg, #10b981 0%, #059669 100%); border-radius:3px 3px 0 0; box-shadow:0 0 8px rgba(16,185,129,0.5);"></div>
+                <span style="font-size:0.55rem; color:#10b981; font-weight:800; position:absolute; bottom:0;">+1h</span>
+              </div>
+
+              <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:2px; flex:1;">
+                <span style="font-size:0.55rem; color:#cbd5e1; font-weight:700;">58</span>
+                <div style="width:18px; height:52px; background:linear-gradient(180deg, #38bdf8 0%, #1d4ed8 100%); border-radius:3px 3px 0 0;"></div>
+                <span style="font-size:0.55rem; color:#94a3b8; position:absolute; bottom:0;">+2h</span>
+              </div>
+
+              <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:2px; flex:1;">
+                <span style="font-size:0.55rem; color:#cbd5e1; font-weight:700;">41</span>
+                <div style="width:18px; height:38px; background:linear-gradient(180deg, #38bdf8 0%, #1d4ed8 100%); border-radius:3px 3px 0 0;"></div>
+                <span style="font-size:0.55rem; color:#94a3b8; position:absolute; bottom:0;">+3h</span>
+              </div>
+
+              <div style="display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end; gap:2px; flex:1;">
+                <span style="font-size:0.55rem; color:#cbd5e1; font-weight:700;">25</span>
+                <div style="width:18px; height:25px; background:linear-gradient(180deg, #38bdf8 0%, #1d4ed8 100%); border-radius:3px 3px 0 0;"></div>
+                <span style="font-size:0.55rem; color:#94a3b8; position:absolute; bottom:0;">+4h</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Column: Live Mission Log & Unit Transmissions -->
+        <div style="background:rgba(15,23,42,0.8); border:1px solid rgba(59,130,246,0.25); border-radius:8px; padding:0.6rem 0.75rem; display:flex; flex-direction:column;">
+          <div style="font-size:0.75rem; font-weight:800; color:#fff; margin-bottom:0.4rem; display:flex; align-items:center; justify-content:space-between;">
+            <span><i class="fa-solid fa-tower-broadcast" style="color:#ef4444;"></i> Transmitted Unit Instructions</span>
+            <span style="font-size:0.6rem; color:#10b981;">● ACKNOWLEDGED</span>
+          </div>
+
+          <div style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:0.45rem;" id="modal-units-list">
+            <!-- Dynamic Units List -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer Action Bar -->
+      <div style="background:#070d1d; border-top:1px solid rgba(59,130,246,0.3); padding:0.6rem 1rem; display:flex; justify-content:space-between; align-items:center;">
+        <div style="font-size:0.625rem; color:#94a3b8;">
+          <i class="fa-solid fa-lock" style="color:#10b981;"></i> Cryptographic Telemetry Hash: <code>AEGIS-DISPATCH-99824X</code>
+        </div>
+
+        <div style="display:flex; gap:0.55rem;">
+          <button style="background:rgba(15,23,42,0.8); border:1px solid rgba(255,255,255,0.15); color:#cbd5e1; padding:0.35rem 0.75rem; border-radius:6px; font-size:0.7rem; font-weight:700; cursor:pointer;" onclick="alert('Radio broadcast transmitted to Channel 2')">
+            <i class="fa-solid fa-radio"></i> Broadcast Radio
+          </button>
+          <button style="background:rgba(37,99,235,0.25); border:1px solid #3b82f6; color:#38bdf8; padding:0.35rem 0.75rem; border-radius:6px; font-size:0.7rem; font-weight:800; cursor:pointer;" onclick="alert('PDF Deployment Directive Generated!')">
+            <i class="fa-solid fa-file-pdf"></i> Download PDF Directive
+          </button>
+          <button style="background:#2563eb; color:#fff; border:none; padding:0.35rem 0.9rem; border-radius:6px; font-size:0.72rem; font-weight:800; cursor:pointer;" onclick="closeAiModal()">
+            <i class="fa-solid fa-check"></i> Acknowledge &amp; Close
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Data & Interactivity Logic -->
+  <script src="js/rescue-priority-data.js"></script>
+
+  <script>
+    let activeSelectedDistrict = "Golaghat";
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Render Summary Top Metrics
+      const sm = rescuePriorityData.summaryMetrics;
+      document.getElementById('p-critical-zones').innerText = sm.criticalZones;
+      document.getElementById('p-people-risk').innerText = sm.peopleAtRisk;
+      document.getElementById('p-active-sos').innerText = sm.activeSos;
+      document.getElementById('p-shelter-occ').innerText = sm.shelterOccupancy;
+      document.getElementById('p-resources-dep').innerText = `${sm.resourcesDeployed} Units`;
+
+      // 2. Render District Ranking Table
+      renderDistrictRankingTable();
+
+      // 3. Select Initial District (Golaghat)
+      selectDistrictPriority("Golaghat");
+    });
+
+    function renderDistrictRankingTable() {
+      const tbody = document.getElementById('ranking-table-body');
+      tbody.innerHTML = '';
+
+      rescuePriorityData.districtRankings.forEach(d => {
+        const tr = document.createElement('tr');
+        tr.className = `r-ranking-row ${d.id === activeSelectedDistrict ? 'selected' : ''}`;
+        tr.id = `rank-row-${d.id}`;
+        tr.onclick = () => selectDistrictPriority(d.id);
+
+        let badgeBg = 'rgba(239,68,68,0.2)';
+        let badgeColor = '#ef4444';
+        if (d.severityClass === 'orange') { badgeBg = 'rgba(245,158,11,0.2)'; badgeColor = '#f59e0b'; }
+        else if (d.severityClass === 'yellow') { badgeBg = 'rgba(234,179,8,0.2)'; badgeColor = '#eab308'; }
+        else if (d.severityClass === 'green') { badgeBg = 'rgba(16,185,129,0.2)'; badgeColor = '#10b981'; }
+
+        tr.innerHTML = `
+          <td>${d.rank === 1 ? '<i class="fa-solid fa-crown" style="color:#f59e0b;"></i> 1' : d.rank}</td>
+          <td><strong style="color:#fff;">${d.name}</strong></td>
+          <td>
+            <div style="display:flex; align-items:center; gap:0.35rem;">
+              <div style="flex:1; background:rgba(255,255,255,0.1); height:6px; border-radius:3px; overflow:hidden;">
+                <div style="width:${d.riskScore}%; background:${badgeColor}; height:100%;"></div>
+              </div>
+              <strong style="color:${badgeColor}; font-size:0.685rem;">${d.riskScore} /100</strong>
+            </div>
+          </td>
+          <td><span style="background:${badgeBg}; color:${badgeColor}; font-weight:800; font-size:0.6rem; padding:1.5px 6px; border-radius:4px;">${d.severity}</span></td>
+          <td><strong style="color:#fff;">${d.activeSos}</strong></td>
+          <td><span style="color:#cbd5e1;">${d.peopleAffected}</span></td>
+          <td><span style="color:${badgeColor}; font-weight:800;">${d.trend}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function selectDistrictPriority(distId) {
+      activeSelectedDistrict = distId;
+
+      // Highlight selected row in table
+      document.querySelectorAll('.r-ranking-row').forEach(row => row.classList.remove('selected'));
+      const activeRow = document.getElementById(`rank-row-${distId}`);
+      if (activeRow) activeRow.classList.add('selected');
+
+      const dDetails = rescuePriorityData.districtDetails[distId] || rescuePriorityData.districtDetails["Golaghat"];
+
+      // 1. Update Risk Score Breakdown Panel
+      document.getElementById('breakdown-district-name').innerText = dDetails.name;
+      document.getElementById('breakdown-severity-badge').innerText = dDetails.severity;
+      document.getElementById('breakdown-severity-badge').style.background = `rgba(${hexToRgb(dDetails.severityColor)},0.25)`;
+      document.getElementById('breakdown-severity-badge').style.color = dDetails.severityColor;
+      document.getElementById('breakdown-score-num').innerText = dDetails.riskScore;
+
+      const ringPath = document.getElementById('breakdown-circle-path');
+      ringPath.setAttribute('stroke', dDetails.severityColor);
+      ringPath.setAttribute('stroke-dasharray', `${dDetails.riskScore}, 100`);
+
+      // Risk Contributors
+      const rcContainer = document.getElementById('risk-contributors-container');
+      rcContainer.innerHTML = '';
+      dDetails.riskContributors.forEach(rc => {
+        const div = document.createElement('div');
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; margin-bottom:2px; font-size:0.65rem;">
+            <span style="color:#cbd5e1;">${rc.label}</span>
+            <strong style="color:${rc.color};">${rc.val}</strong>
+          </div>
+          <div style="background:rgba(255,255,255,0.08); height:5px; border-radius:3px; overflow:hidden;">
+            <div style="width:${rc.val}; background:${rc.color}; height:100%;"></div>
+          </div>
+        `;
+        rcContainer.appendChild(div);
+      });
+
+      // 2. Update Advanced AEGIS AI Recommendation Panel
+      const ai = dDetails.aiAction;
+      document.getElementById('ai-action-title').innerText = ai.priorityTitle;
+      document.getElementById('ai-engine-model').innerText = ai.aiEngineModel || "AEGIS-v4 Neural Engine";
+      document.getElementById('ai-spatial-summary').innerText = `📡 ${ai.threatSummary}`;
+
+      const reasonsElem = document.getElementById('ai-reasons-list');
+      reasonsElem.innerHTML = '';
+      ai.reasons.forEach(r => {
+        const div = document.createElement('div');
+        div.innerHTML = `<span style="color:#10b981;">✔</span> ${r}`;
+        reasonsElem.appendChild(div);
+      });
+
+      const sugElem = document.getElementById('ai-suggested-list');
+      sugElem.innerHTML = '';
+      ai.suggested.forEach(s => {
+        const div = document.createElement('div');
+        div.innerHTML = `${s}`;
+        sugElem.appendChild(div);
+      });
+
+      document.getElementById('ai-eta-impact').innerText = ai.etaImpact;
+
+      // 3. Update Zone Priority Cards (Bottom Panel 1)
+      document.getElementById('zone-panel-title').innerText = `Zone Priority - ${dDetails.name}`;
+      const zonesContainer = document.getElementById('district-zones-container');
+      zonesContainer.innerHTML = '';
+
+      dDetails.zones.forEach(z => {
+        const div = document.createElement('div');
+        div.style.background = `rgba(${hexToRgb(z.statusColor)}, 0.1)`;
+        div.style.border = `1px solid rgba(${hexToRgb(z.statusColor)}, 0.35)`;
+        div.style.borderRadius = '6px';
+        div.style.padding = '0.4rem 0.5rem';
+        div.style.display = 'flex';
+        div.style.flexDirection = 'column';
+        div.style.justifyContent = 'space-between';
+
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="font-weight:800; color:#fff; font-size:0.75rem;"><i class="fa-solid fa-location-dot" style="color:${z.statusColor};"></i> ${z.name}</div>
+            <span style="background:rgba(${hexToRgb(z.statusColor)},0.25); color:${z.statusColor}; font-size:0.55rem; font-weight:800; padding:1px 5px; border-radius:3px;">${z.status}</span>
+          </div>
+
+          <div style="font-size:0.625rem; color:#cbd5e1; margin-top:2px;">
+            <div><strong style="color:#ef4444;">● Active SOS:</strong> ${z.sos}</div>
+            <div><strong style="color:#38bdf8;">● Water Level:</strong> ${z.water}</div>
+            <div><strong style="color:#94a3b8;">● Affected:</strong> ${z.affected}</div>
+            <div style="margin-top:2px; font-weight:700; color:${z.statusColor}; font-size:0.58rem;">Need: ${z.resource}</div>
+          </div>
+        `;
+        zonesContainer.appendChild(div);
+      });
+    }
+
+    // Open Advanced Tactical AI Deployment Modal with Graphs & Pie for Clicked District
+    function executeAiDeploymentModal() {
+      const dDetails = rescuePriorityData.districtDetails[activeSelectedDistrict] || rescuePriorityData.districtDetails["Golaghat"];
+      const ai = dDetails.aiAction;
+
+      document.getElementById('modal-target-subtitle').innerText = `Target District: ${dDetails.name} Sector • ${ai.aiEngineModel || 'AEGIS-v4 Neural Engine (98.4% Confidence)'}`;
+      document.getElementById('modal-stat-assets').innerText = `${ai.suggested.length} Tactical Units`;
+      document.getElementById('modal-stat-eta').innerText = dDetails.name === 'Golaghat' ? '18 Minutes' : (dDetails.name === 'Jorhat' ? '15 Minutes' : '20 Minutes');
+      document.getElementById('modal-stat-people').innerText = `${dDetails.activeSos * 2.5} Citizens`;
+
+      const unitsContainer = document.getElementById('modal-units-list');
+      unitsContainer.innerHTML = '';
+
+      ai.suggested.forEach((s, idx) => {
+        const div = document.createElement('div');
+        div.style.background = 'rgba(15,23,42,0.9)';
+        div.style.border = '1px solid rgba(59,130,246,0.3)';
+        div.style.borderRadius = '6px';
+        div.style.padding = '0.45rem';
+        div.style.fontSize = '0.65rem';
+
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+            <strong style="color:#fff;">${s}</strong>
+            <span style="color:#10b981; font-size:0.55rem; font-weight:800; background:rgba(16,185,129,0.2); padding:1px 4px; border-radius:3px;">● DISPATCHED</span>
+          </div>
+          <div style="color:#cbd5e1; font-size:0.58rem;">Instruction: Immediate GPS Navigation toward ${dDetails.name} Zone A</div>
+          <div style="color:#38bdf8; font-size:0.58rem; margin-top:2px;">Target ETA: ${10 + (idx * 3)} mins | Encryption: AES-256</div>
+        `;
+        unitsContainer.appendChild(div);
+      });
+
+      document.getElementById('ai-deployment-modal').classList.add('active');
+    }
+
+    function closeAiModal() {
+      document.getElementById('ai-deployment-modal').classList.remove('active');
+    }
+
+    function hexToRgb(hex) {
+      if (hex === '#ef4444') return '239, 68, 68';
+      if (hex === '#f59e0b') return '245, 158, 11';
+      if (hex === '#eab308') return '234, 179, 8';
+      if (hex === '#10b981') return '16, 185, 129';
+      if (hex === '#38bdf8') return '56, 189, 248';
+      return '59, 130, 246';
+    }
+  </script>
+</body>
+</html>

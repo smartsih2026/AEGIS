@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>SOS Reports - AEGIS</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Master Citizen Stylesheet -->
+  <link rel="stylesheet" href="citizen-styles.css">
+
+  <!-- Master Citizen Script -->
+  <script src="js/citizen.js?v=3.0"></script>
+
+  <!-- Firebase SDK (Compat Version) & Auth Module -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="js/firebase-auth.js?v=3.0"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      background-color: #030712;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #f1f5f9;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .sos-layout-container {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+
+    /* Left Sidebar */
+    .sos-sidebar {
+      background: #060b18;
+      border-right: 1px solid rgba(59, 130, 246, 0.18);
+      display: flex;
+      flex-direction: column;
+      padding: 0.85rem 0.75rem;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .sos-sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.2rem 0.4rem 0.75rem 0.4rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 0.55rem;
+    }
+
+    .sos-nav-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 0.18rem;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .sos-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.48rem 0.75rem;
+      color: #94a3b8;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.825rem;
+      border-radius: 8px;
+      transition: all 0.18s ease;
+      cursor: pointer;
+    }
+
+    .sos-nav-item:hover {
+      background: rgba(59, 130, 246, 0.12);
+      color: #ffffff;
+    }
+
+    .sos-nav-item.active {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    }
+
+    .sos-emergency-card {
+      background: linear-gradient(180deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.22) 100%);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: 10px;
+      padding: 0.65rem;
+      text-align: center;
+      margin-top: 0.45rem;
+      position: relative;
+    }
+
+    /* Main Area */
+    .sos-main-area {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      background: #030712;
+    }
+
+    /* Top Bar */
+    .sos-topbar {
+      height: 48px;
+      background: #070d1d;
+      border-bottom: 1px solid rgba(59, 130, 246, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .district-pill {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      color: #f1f5f9;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.3rem 0.85rem;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+    }
+
+    /* Workspace Master Grid */
+    .sos-workspace-grid {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 0.85rem;
+      padding: 0.75rem 1.15rem 0.55rem 1.15rem;
+      flex: 1;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    /* Left Form Column */
+    .sos-form-col {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      overflow: hidden;
+    }
+
+    /* Header Banner */
+    .sos-header-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #060c1c;
+      border: 1px solid rgba(59, 130, 246, 0.22);
+      border-radius: 10px;
+      padding: 0.6rem 0.95rem;
+      flex-shrink: 0;
+    }
+
+    /* 2x2 Form Panels Grid */
+    .sos-cards-grid {
+      display: grid;
+      grid-template-columns: 310px 1fr;
+      gap: 0.75rem;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .sos-card-box {
+      background: #060c1c;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      border-radius: 10px;
+      padding: 0.75rem 0.95rem;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Map Box */
+    #sos-location-map {
+      width: 100%;
+      height: 100%;
+      min-height: 125px;
+      border-radius: 6px;
+      background: #e2e8f0;
+    }
+
+    /* Type of Emergency Selection Grid */
+    .emergency-type-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.45rem;
+      margin: 0.35rem 0 0.55rem 0;
+    }
+
+    .type-btn {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      border-radius: 8px;
+      padding: 0.55rem 0.35rem;
+      text-align: center;
+      color: #94a3b8;
+      font-size: 0.725rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+      transition: all 0.18s;
+    }
+    .type-btn:hover {
+      border-color: #3b82f6;
+      color: #fff;
+    }
+    .type-btn.active {
+      border: 1.5px solid #ef4444;
+      background: rgba(239, 68, 68, 0.15);
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.35);
+    }
+
+    /* Tag Pills */
+    .tag-pill {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(59, 130, 246, 0.28);
+      padding: 0.28rem 0.65rem;
+      border-radius: 14px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #cbd5e1;
+      cursor: pointer;
+      transition: all 0.18s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .tag-pill.active {
+      background: rgba(37, 99, 235, 0.3);
+      border-color: #3b82f6;
+      color: #ffffff;
+    }
+
+    /* Right Column (Safety Tips, History, Services) */
+    .sos-right-col {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      overflow: hidden;
+    }
+
+    .sos-right-card {
+      background: #060c1c;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      border-radius: 10px;
+      padding: 0.75rem 0.95rem;
+    }
+
+    /* Sticky Footer */
+    .sos-footer-bar {
+      height: 32px;
+      background: #040813;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.15rem;
+      font-size: 0.685rem;
+      color: #64748b;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sos-layout-container">
+    <!-- Left Navigation Sidebar -->
+    <aside class="sos-sidebar">
+      <div class="sos-sidebar-logo">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.25)"/>
+          <path d="M12 8v8M8 12h8" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <div style="font-weight: 800; font-size: 1.15rem; color: #fff; line-height: 1;">AEGIS</div>
+          <div style="font-size: 0.58rem; color: #94a3b8; font-weight: 500;">Stronger Together, Safer Together.</div>
+        </div>
+      </div>
+
+      <nav class="sos-nav-menu">
+        <a class="sos-nav-item" onclick="location.href='citizen-dashboard.html'"><i class="fa-solid fa-house"></i> Dashboard</a>
+        <a class="sos-nav-item" onclick="location.href='citizen-ai.html'"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Command Center</a>
+        <a class="sos-nav-item" onclick="location.href='citizen-intel.html'"><i class="fa-solid fa-route"></i> Safe Routes</a>
+        <a class="sos-nav-item" onclick="location.href='citizen-shelters.html'"><i class="fa-solid fa-campground"></i> Shelter Network</a>
+        <a class="sos-nav-item active" onclick="location.href='citizen-sos.html'"><i class="fa-solid fa-circle-exclamation" style="color:#ef4444;"></i> SOS Reports</a>
+        <a class="sos-nav-item" onclick="location.href='citizen-tracking.html'"><i class="fa-solid fa-location-crosshairs"></i> My SOS / Tracking</a>
+        <a class="sos-nav-item" onclick="location.href='citizen-notifications.html'"><i class="fa-solid fa-bell"></i> Notifications</a>
+        <a class="sos-nav-item" onclick="location.href='citizen-contacts.html'"><i class="fa-solid fa-phone"></i> Emergency Contacts</a>
+        <a class="sos-nav-item" onclick="location.href='citizen-profile.html'"><i class="fa-solid fa-gear"></i> Profile & Settings</a>
+        <a class="sos-nav-item" onclick="location.href='citizen-help.html'"><i class="fa-solid fa-circle-question"></i> Help & Support</a>
+        <a class="sos-nav-item" onclick="location.href='index.html'" style="margin-top:auto; color:#ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+      </nav>
+
+      <!-- Emergency Hotline Card -->
+      <div class="sos-emergency-card">
+        <div style="font-size: 0.65rem; color: #fca5a5; font-weight: 700;">Emergency?</div>
+        <div style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin: 0.15rem 0;"><i class="fa-solid fa-phone-volume" style="color:#ef4444"></i> Call 112</div>
+        <div style="font-size: 0.625rem; color: #cbd5e1; margin-bottom: 0.25rem;">or send SOS instantly</div>
+        
+        <div style="display:flex; justify-content:center; margin-top:0.35rem;">
+          <svg width="110" height="32" viewBox="0 0 120 35" fill="none">
+            <path d="M10 25 Q35 15 60 25 T110 25" stroke="#38bdf8" stroke-width="2" fill="none" opacity="0.6"/>
+            <path d="M25 22 L95 22 L85 30 L35 30 Z" fill="#ea580c"/>
+            <circle cx="45" cy="14" r="4" fill="#fbbf24"/>
+            <circle cx="60" cy="13" r="4" fill="#60a5fa"/>
+            <circle cx="75" cy="14" r="4" fill="#34d399"/>
+            <path d="M45 18 L45 22 M60 17 L60 22 M75 18 L75 22" stroke="#fff" stroke-width="2"/>
+          </svg>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Container -->
+    <main class="sos-main-area">
+      <!-- Top Bar -->
+      <header class="sos-topbar">
+        <div style="display:flex; align-items:center; gap:0.65rem;">
+          <i class="fa-solid fa-bars" style="color:#94a3b8; cursor:pointer;"></i>
+          <div class="district-pill" onclick="toggleDistrictSelect()">
+            <i class="fa-solid fa-location-dot" style="color:#38bdf8;"></i>
+            <span id="current-district-label">Golaghat District, Assam</span>
+            <i class="fa-solid fa-chevron-down" style="font-size:0.65rem; color:#94a3b8;"></i>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:1rem;">
+          <div style="position:relative; cursor:pointer;" onclick="location.href='citizen-notifications.html'">
+            <i class="fa-solid fa-bell" style="color:#94a3b8; font-size:1.05rem;"></i>
+            <span style="position:absolute; top:-4px; right:-6px; background:#ef4444; color:#fff; font-size:0.55rem; font-weight:800; padding:1px 4px; border-radius:50%;">3</span>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:0.55rem; cursor:pointer;" onclick="location.href='citizen-profile.html'">
+            <div style="position:relative;">
+              <img class="citizen-user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid #38bdf8;" alt="Avatar">
+              <span style="position:absolute; bottom:0; right:0; width:8px; height:8px; background:#10b981; border:2px solid #070d1d; border-radius:50%;"></span>
+            </div>
+            <div style="text-align:left;">
+              <div class="citizen-user-name" style="font-size:0.785rem; font-weight:700; color:#fff; line-height:1.1;">Ravi Das</div>
+              <div class="citizen-user-email" style="font-size:0.625rem; color:#94a3b8;">ravi.das@email.com</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Workspace 2-Column Grid -->
+      <div class="sos-workspace-grid">
+        
+        <!-- Left: Master Form Section -->
+        <div class="sos-form-col">
+          <!-- Top Title Banner -->
+          <div class="sos-header-banner">
+            <div style="display:flex; align-items:center; gap:0.65rem;">
+              <div style="width:32px; height:32px; border-radius:50%; background:#ef4444; color:#fff; font-weight:800; font-size:0.75rem; display:flex; align-items:center; justify-content:center; box-shadow:0 0 12px rgba(239,68,68,0.5);">
+                SOS
+              </div>
+              <div>
+                <div style="font-weight:800; font-size:1.05rem; color:#fff; line-height:1.1;">SOS REPORTS</div>
+                <div style="font-size:0.7rem; color:#94a3b8;">Report your emergency. Help will reach you faster.</div>
+              </div>
+            </div>
+
+            <div style="background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.35); border-radius:8px; padding:0.35rem 0.85rem; text-align:right;">
+              <div style="font-size:0.65rem; color:#fca5a5;">In case of life threatening emergency</div>
+              <div style="font-weight:800; font-size:0.95rem; color:#ef4444;"><i class="fa-solid fa-phone"></i> Call 112</div>
+            </div>
+          </div>
+
+          <!-- Upper 2-Cards: Location (Left) + Emergency Details (Right) -->
+          <div class="sos-cards-grid">
+            
+            <!-- ① Your Location Card -->
+            <div class="sos-card-box">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
+                <div style="font-weight:800; font-size:0.825rem; color:#38bdf8; display:flex; align-items:center; gap:0.35rem;">
+                  <i class="fa-solid fa-location-crosshairs"></i> Your Location
+                </div>
+              </div>
+              <div style="font-size:0.685rem; color:#94a3b8; margin-bottom:0.25rem;">Current Location (Auto detected)</div>
+              
+              <div style="display:flex; gap:0.45rem; margin-bottom:0.45rem;">
+                <input type="text" class="form-control" value="Golaghat, Assam" style="font-size:0.785rem; padding:0.3rem 0.65rem; flex:1;" id="location-text">
+                <button class="btn btn-primary" style="font-size:0.72rem; padding:0.3rem 0.65rem; white-space:nowrap;" onclick="detectLocation()">
+                  <i class="fa-solid fa-crosshairs"></i> Use My Location
+                </button>
+              </div>
+
+              <!-- OpenStreetMap Container (Default street/lane view) -->
+              <div style="position:relative; flex:1; border-radius:6px; overflow:hidden; border:1px solid rgba(59,130,246,0.3);">
+                <div id="sos-location-map"></div>
+
+                <div style="position:absolute; bottom:8px; left:8px; z-index:1000; background:rgba(6,12,28,0.92); border:1px solid rgba(16,185,129,0.4); border-radius:12px; padding:0.2rem 0.6rem; font-size:0.685rem; color:#10b981; font-weight:700; display:flex; align-items:center; gap:0.35rem;">
+                  <i class="fa-solid fa-shield-check"></i> Location Accuracy High (&plusmn;10 m)
+                </div>
+              </div>
+
+              <div style="font-size:0.65rem; color:#64748b; margin-top:0.35rem;">
+                You can drag the pin to adjust the location <i class="fa-solid fa-circle-info"></i>
+              </div>
+            </div>
+
+            <!-- ② Emergency Details Card -->
+            <div class="sos-card-box">
+              <div style="font-weight:800; font-size:0.825rem; color:#ef4444; display:flex; align-items:center; gap:0.35rem; margin-bottom:0.2rem;">
+                <i class="fa-solid fa-triangle-exclamation"></i> Emergency Details
+              </div>
+              <div style="font-size:0.685rem; color:#94a3b8;">Type of Emergency</div>
+
+              <!-- 4 Category Type Buttons -->
+              <div class="emergency-type-grid">
+                <div class="type-btn active" onclick="selectType(this, 'Trapped in Water')">
+                  <i class="fa-solid fa-sailboat" style="color:#ef4444; font-size:1.05rem;"></i>
+                  <span>Trapped in Water</span>
+                </div>
+                <div class="type-btn" onclick="selectType(this, 'Medical Emergency')">
+                  <i class="fa-solid fa-square-plus" style="color:#10b981; font-size:1.05rem;"></i>
+                  <span>Medical Emergency</span>
+                </div>
+                <div class="type-btn" onclick="selectType(this, 'Need Food / Water')">
+                  <i class="fa-solid fa-bottle-water" style="color:#38bdf8; font-size:1.05rem;"></i>
+                  <span>Need Food / Water</span>
+                </div>
+                <div class="type-btn" onclick="selectType(this, 'Others')">
+                  <i class="fa-solid fa-ellipsis" style="color:#94a3b8; font-size:1.05rem;"></i>
+                  <span>Others</span>
+                </div>
+              </div>
+
+              <!-- Describe situation textarea -->
+              <div style="font-size:0.685rem; color:#94a3b8; margin-bottom:0.2rem;">Describe your situation</div>
+              <textarea class="form-control" style="font-size:0.785rem; padding:0.4rem 0.65rem; height:52px; resize:none; margin-bottom:0.35rem; line-height:1.4;" id="situation-desc" onkeyup="updateCharCount(this)">Water entered our house. We are trapped on the roof.</textarea>
+              <div style="text-align:right; font-size:0.625rem; color:#64748b; margin-top:-3px; margin-bottom:0.35rem;">
+                <span id="char-count">54</span>/250
+              </div>
+
+              <!-- Number of People Inputs -->
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.55rem;">
+                <div>
+                  <div style="font-size:0.685rem; color:#94a3b8; margin-bottom:0.2rem;">Number of People</div>
+                  <div style="position:relative;">
+                    <i class="fa-solid fa-user-group" style="position:absolute; left:10px; top:10px; color:#64748b; font-size:0.75rem;"></i>
+                    <input type="number" class="form-control" value="5" style="padding-left:28px; font-size:0.8rem;" id="people-count" onchange="updateReview()">
+                  </div>
+                </div>
+                <div>
+                  <div style="font-size:0.685rem; color:#94a3b8; margin-bottom:0.2rem;">Including Children / Elderly</div>
+                  <div style="position:relative;">
+                    <i class="fa-solid fa-baby" style="position:absolute; left:10px; top:10px; color:#64748b; font-size:0.75rem;"></i>
+                    <input type="number" class="form-control" value="2" style="padding-left:28px; font-size:0.8rem;" id="children-count" onchange="updateReview()">
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- Lower 2-Cards: Upload & Tags (Left) + Review & Send (Right) -->
+          <div class="sos-cards-grid">
+            
+            <!-- ③ Upload & Additional Info Card -->
+            <div class="sos-card-box">
+              <div style="font-weight:800; font-size:0.8rem; color:#fff; margin-bottom:0.35rem;">
+                ③ Upload Image <span style="font-size:0.685rem; color:#94a3b8; font-weight:400;">(Optional but recommended)</span>
+              </div>
+
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.45rem; margin-bottom:0.45rem;">
+                <!-- Drag drop upload box -->
+                <div style="border:1px dashed rgba(59,130,246,0.35); border-radius:6px; background:rgba(15,23,42,0.6); padding:0.45rem; text-align:center; cursor:pointer;" onclick="showCustomAlert('📷 Photo Upload', 'File selector opened: select photo from camera or storage.', 'info')">
+                  <i class="fa-solid fa-cloud-arrow-up" style="color:#38bdf8; font-size:1.25rem;"></i>
+                  <div style="font-size:0.685rem; font-weight:700; color:#fff; margin-top:2px;">Click to upload image</div>
+                  <div style="font-size:0.58rem; color:#64748b;">or drag and drop<br>PNG, JPG up to 5MB</div>
+                </div>
+
+                <!-- Preview thumbnail -->
+                <div style="position:relative; border-radius:6px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); background:#0c1527;">
+                  <img src="https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=300&q=80" style="width:100%; height:100%; object-fit:cover;">
+                  <div style="position:absolute; top:4px; right:4px; width:18px; height:18px; border-radius:50%; background:rgba(0,0,0,0.7); color:#fff; display:flex; align-items:center; justify-content:center; font-size:0.65rem; cursor:pointer;" onclick="this.parentElement.style.display='none'">
+                    &times;
+                  </div>
+                </div>
+              </div>
+
+              <!-- ④ Additional Information -->
+              <div style="font-weight:800; font-size:0.785rem; color:#fff; margin-bottom:0.25rem;">
+                ④ Additional Information <span style="font-size:0.685rem; color:#94a3b8; font-weight:400;">(Optional)</span>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:0.35rem; margin-bottom:0.45rem;">
+                <span class="tag-pill active" onclick="this.classList.toggle('active')"><i class="fa-solid fa-person-cane"></i> Elderly in group</span>
+                <span class="tag-pill active" onclick="this.classList.toggle('active')"><i class="fa-solid fa-child"></i> Children in group</span>
+                <span class="tag-pill active" onclick="this.classList.toggle('active')"><i class="fa-solid fa-kit-medical"></i> Need medical help</span>
+                <span class="tag-pill active" onclick="this.classList.toggle('active')"><i class="fa-solid fa-utensils"></i> No food / water</span>
+                <span class="tag-pill active" onclick="this.classList.toggle('active')"><i class="fa-solid fa-moon"></i> Night rescue needed</span>
+              </div>
+
+              <!-- Big Red Action Button -->
+              <button class="btn btn-primary" style="background:#ef4444; width:100%; font-size:0.825rem; font-weight:800; padding:0.45rem; border-radius:6px; box-shadow:0 0 14px rgba(239,68,68,0.4);" onclick="submitSOS()">
+                <span class="pulse-dot" style="background:#fff;"></span> Send SOS Report
+              </button>
+              <div style="font-size:0.625rem; color:#64748b; text-align:center; margin-top:3px;">
+                Your report will be sent to the nearest rescue team immediately.
+              </div>
+            </div>
+
+            <!-- Review Your SOS Card -->
+            <div class="sos-card-box" style="justify-content:space-between;">
+              <div>
+                <div style="font-weight:800; font-size:0.825rem; color:#10b981; display:flex; align-items:center; gap:0.45rem; margin-bottom:0.45rem;">
+                  <i class="fa-solid fa-circle-check"></i> Review Your SOS
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:0.45rem; font-size:0.75rem;">
+                  <!-- Location row -->
+                  <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:0.3rem;">
+                    <div style="display:flex; gap:0.4rem; color:#94a3b8;">
+                      <i class="fa-solid fa-location-dot" style="color:#38bdf8; margin-top:2px;"></i>
+                      <span>Location</span>
+                    </div>
+                    <div style="text-align:right;">
+                      <strong style="color:#38bdf8;" id="rev-location">Golaghat, Assam</strong>
+                      <div style="font-size:0.625rem; color:#10b981;">Accuracy: High (&plusmn;10 m)</div>
+                    </div>
+                  </div>
+
+                  <!-- Emergency Type -->
+                  <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:0.3rem;">
+                    <div style="display:flex; gap:0.4rem; color:#94a3b8;">
+                      <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i>
+                      <span>Emergency Type</span>
+                    </div>
+                    <strong style="color:#ef4444;" id="rev-type">Trapped in Water</strong>
+                  </div>
+
+                  <!-- Description -->
+                  <div style="border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:0.3rem;">
+                    <div style="display:flex; gap:0.4rem; color:#94a3b8; margin-bottom:2px;">
+                      <i class="fa-solid fa-comment-dots" style="color:#a78bfa;"></i>
+                      <span>Description</span>
+                    </div>
+                    <div style="color:#cbd5e1; font-size:0.72rem; line-height:1.4; padding-left:1.25rem;" id="rev-desc">
+                      Water entered our house. We are trapped on the roof.
+                    </div>
+                  </div>
+
+                  <!-- People -->
+                  <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:0.3rem;">
+                    <div style="display:flex; gap:0.4rem; color:#94a3b8;">
+                      <i class="fa-solid fa-user-group" style="color:#38bdf8;"></i>
+                      <span>People</span>
+                    </div>
+                    <strong style="color:#fff;" id="rev-people">5 (Including 2 Children / Elderly)</strong>
+                  </div>
+
+                  <!-- Image Attached -->
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; gap:0.4rem; color:#94a3b8;">
+                      <i class="fa-solid fa-image" style="color:#10b981;"></i>
+                      <span>Image</span>
+                    </div>
+                    <span style="color:#10b981; font-weight:700;">1 image attached</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Safety Callout -->
+              <div style="background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); border-radius:6px; padding:0.45rem 0.65rem; display:flex; align-items:center; gap:0.55rem; margin-top:0.45rem;">
+                <i class="fa-solid fa-shield-exclamation" style="color:#f59e0b; font-size:0.95rem;"></i>
+                <div style="font-size:0.685rem; color:#fef08a; line-height:1.3;">
+                  Please make sure your location is correct for faster help.
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Right Column: Safety Tips, SOS History, Need Help -->
+        <div class="sos-right-col">
+          
+          <!-- 1. Safety Tips Card -->
+          <div class="sos-right-card">
+            <div style="font-weight:800; font-size:0.825rem; color:#fff; display:flex; align-items:center; gap:0.45rem; margin-bottom:0.45rem;">
+              <i class="fa-solid fa-shield-halved" style="color:#38bdf8;"></i> Safety Tips
+            </div>
+            
+            <div style="display:flex; flex-direction:column; gap:0.35rem; font-size:0.735rem; color:#cbd5e1;">
+              <div style="display:flex; gap:0.45rem; align-items:center;">
+                <i class="fa-solid fa-circle-info" style="color:#64748b; font-size:0.7rem;"></i>
+                <span>Stay calm and avoid panic.</span>
+              </div>
+              <div style="display:flex; gap:0.45rem; align-items:center;">
+                <i class="fa-solid fa-circle-info" style="color:#64748b; font-size:0.7rem;"></i>
+                <span>Move to higher ground if possible.</span>
+              </div>
+              <div style="display:flex; gap:0.45rem; align-items:center;">
+                <i class="fa-solid fa-circle-info" style="color:#64748b; font-size:0.7rem;"></i>
+                <span>Do not walk through flowing water.</span>
+              </div>
+              <div style="display:flex; gap:0.45rem; align-items:center;">
+                <i class="fa-solid fa-circle-info" style="color:#64748b; font-size:0.7rem;"></i>
+                <span>Keep your phone charged.</span>
+              </div>
+            </div>
+
+            <div style="text-align:right; margin-top:0.45rem;">
+              <a href="citizen-help.html" style="font-size:0.7rem; color:#38bdf8; font-weight:700; text-decoration:none;">
+                View All Safety Tips &rarr;
+              </a>
+            </div>
+          </div>
+
+          <!-- 2. Recent SOS History Card -->
+          <div class="sos-right-card" style="flex:1; display:flex; flex-direction:column;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.45rem;">
+              <div style="font-weight:800; font-size:0.825rem; color:#fff;">Recent SOS History</div>
+              <a href="citizen-tracking.html" style="font-size:0.7rem; color:#38bdf8; font-weight:700; text-decoration:none;">View All</a>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:0.4rem; overflow-y:auto;">
+              <!-- Ticket 1 -->
+              <div style="background:rgba(15,23,42,0.8); border:1px solid rgba(59,130,246,0.25); border-radius:7px; padding:0.45rem 0.65rem; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="location.href='citizen-tracking.html'">
+                <div style="display:flex; align-items:center; gap:0.55rem;">
+                  <div style="width:28px; height:28px; border-radius:50%; background:rgba(37,99,235,0.25); color:#38bdf8; display:flex; align-items:center; justify-content:center; font-size:0.75rem;">
+                    <i class="fa-solid fa-sailboat"></i>
+                  </div>
+                  <div>
+                    <div style="font-weight:800; font-size:0.785rem; color:#fff;">SOS-1087</div>
+                    <div style="font-size:0.675rem; color:#94a3b8;">Trapped in Water &bull; Golaghat</div>
+                    <div style="font-size:0.6rem; color:#64748b;">10:25 AM, 12 Aug 2026</div>
+                  </div>
+                </div>
+                <div style="text-align:right;">
+                  <span style="background:rgba(16,185,129,0.2); color:#10b981; font-size:0.625rem; font-weight:800; padding:2px 5px; border-radius:4px;">In Progress</span>
+                  <div style="font-size:0.65rem; color:#cbd5e1; margin-top:2px;"><i class="fa-solid fa-user-group"></i> 5</div>
+                </div>
+              </div>
+
+              <!-- Ticket 2 -->
+              <div style="background:rgba(15,23,42,0.8); border:1px solid rgba(255,255,255,0.06); border-radius:7px; padding:0.45rem 0.65rem; display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:0.55rem;">
+                  <div style="width:28px; height:28px; border-radius:50%; background:rgba(16,185,129,0.2); color:#10b981; display:flex; align-items:center; justify-content:center; font-size:0.75rem;">
+                    <i class="fa-solid fa-plus"></i>
+                  </div>
+                  <div>
+                    <div style="font-weight:800; font-size:0.785rem; color:#fff;">SOS-1043</div>
+                    <div style="font-size:0.675rem; color:#94a3b8;">Medical Emergency &bull; Jorhat</div>
+                    <div style="font-size:0.6rem; color:#64748b;">09:15 AM, 11 Aug 2026</div>
+                  </div>
+                </div>
+                <div style="text-align:right;">
+                  <span style="background:rgba(245,158,11,0.2); color:#f59e0b; font-size:0.625rem; font-weight:800; padding:2px 5px; border-radius:4px;">Completed</span>
+                  <div style="font-size:0.65rem; color:#cbd5e1; margin-top:2px;"><i class="fa-solid fa-user-group"></i> 2</div>
+                </div>
+              </div>
+
+              <!-- Ticket 3 -->
+              <div style="background:rgba(15,23,42,0.8); border:1px solid rgba(255,255,255,0.06); border-radius:7px; padding:0.45rem 0.65rem; display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:0.55rem;">
+                  <div style="width:28px; height:28px; border-radius:50%; background:rgba(59,130,246,0.2); color:#38bdf8; display:flex; align-items:center; justify-content:center; font-size:0.75rem;">
+                    <i class="fa-solid fa-bottle-water"></i>
+                  </div>
+                  <div>
+                    <div style="font-weight:800; font-size:0.785rem; color:#fff;">SOS-1022</div>
+                    <div style="font-size:0.675rem; color:#94a3b8;">Need Food / Water &bull; Nagaon</div>
+                    <div style="font-size:0.6rem; color:#64748b;">07:40 PM, 10 Aug 2026</div>
+                  </div>
+                </div>
+                <div style="text-align:right;">
+                  <span style="background:rgba(245,158,11,0.2); color:#f59e0b; font-size:0.625rem; font-weight:800; padding:2px 5px; border-radius:4px;">Completed</span>
+                  <div style="font-size:0.65rem; color:#cbd5e1; margin-top:2px;"><i class="fa-solid fa-user-group"></i> 4</div>
+                </div>
+              </div>
+
+              <!-- Ticket 4 -->
+              <div style="background:rgba(15,23,42,0.8); border:1px solid rgba(255,255,255,0.06); border-radius:7px; padding:0.45rem 0.65rem; display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:0.55rem;">
+                  <div style="width:28px; height:28px; border-radius:50%; background:rgba(239,68,68,0.2); color:#ef4444; display:flex; align-items:center; justify-content:center; font-size:0.75rem;">
+                    <i class="fa-solid fa-sailboat"></i>
+                  </div>
+                  <div>
+                    <div style="font-weight:800; font-size:0.785rem; color:#fff;">SOS-1009</div>
+                    <div style="font-size:0.675rem; color:#94a3b8;">Trapped in Water &bull; Karbi Anglong</div>
+                    <div style="font-size:0.6rem; color:#64748b;">04:20 PM, 10 Aug 2026</div>
+                  </div>
+                </div>
+                <div style="text-align:right;">
+                  <span style="background:rgba(239,68,68,0.2); color:#ef4444; font-size:0.625rem; font-weight:800; padding:2px 5px; border-radius:4px;">Cancelled</span>
+                  <div style="font-size:0.65rem; color:#cbd5e1; margin-top:2px;"><i class="fa-solid fa-user-group"></i> 3</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Need Immediate Help Card -->
+          <div class="sos-right-card">
+            <div style="font-weight:800; font-size:0.8rem; color:#fff; margin-bottom:0.2rem;">Need immediate help?</div>
+            <div style="font-size:0.685rem; color:#94a3b8; margin-bottom:0.45rem;">Contact emergency services</div>
+
+            <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:0.35rem;">
+              <!-- 112 -->
+              <a href="tel:112" style="text-decoration:none; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.35); border-radius:6px; padding:0.35rem 0.2rem; text-align:center; color:#fff;">
+                <i class="fa-solid fa-phone" style="color:#ef4444; font-size:0.85rem;"></i>
+                <div style="font-size:0.685rem; font-weight:800; margin-top:2px;">Call 112</div>
+                <div style="font-size:0.56rem; color:#fca5a5;">Emergency</div>
+              </a>
+
+              <!-- Police 100 -->
+              <a href="tel:100" style="text-decoration:none; background:rgba(37,99,235,0.15); border:1px solid rgba(37,99,235,0.35); border-radius:6px; padding:0.35rem 0.2rem; text-align:center; color:#fff;">
+                <i class="fa-solid fa-user-shield" style="color:#38bdf8; font-size:0.85rem;"></i>
+                <div style="font-size:0.685rem; font-weight:800; margin-top:2px;">Police</div>
+                <div style="font-size:0.56rem; color:#93c5fd;">100</div>
+              </a>
+
+              <!-- Ambulance 108 -->
+              <a href="tel:108" style="text-decoration:none; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.35); border-radius:6px; padding:0.35rem 0.2rem; text-align:center; color:#fff;">
+                <i class="fa-solid fa-truck-medical" style="color:#10b981; font-size:0.85rem;"></i>
+                <div style="font-size:0.685rem; font-weight:800; margin-top:2px;">Ambulance</div>
+                <div style="font-size:0.56rem; color:#a7f3d0;">108</div>
+              </a>
+
+              <!-- Fire 101 -->
+              <a href="tel:101" style="text-decoration:none; background:rgba(234,88,12,0.15); border:1px solid rgba(234,88,12,0.35); border-radius:6px; padding:0.35rem 0.2rem; text-align:center; color:#fff;">
+                <i class="fa-solid fa-fire-extinguisher" style="color:#fb923c; font-size:0.85rem;"></i>
+                <div style="font-size:0.685rem; font-weight:800; margin-top:2px;">Fire Service</div>
+                <div style="font-size:0.56rem; color:#fed7aa;">101</div>
+              </a>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Sticky Meta Footer -->
+      <footer class="sos-footer-bar">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <i class="fa-solid fa-shield-halved" style="color:#10b981;"></i>
+          <span><strong>Your safety is our priority.</strong> AEGIS is always with you.</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <span>AI Powered</span>
+          <span>&bull;</span>
+          <span>Real-time Updates</span>
+          <span>&bull;</span>
+          <span>Verified Information</span>
+          <span>|</span>
+          <span>Trusted by Government of Assam</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span>Data Source: ASDMA | IMD | Local Authorities</span>
+          <span>&bull;</span>
+          <span>Last Updated: 12 Aug 2026, 10:30 AM</span>
+          <span>&bull;</span>
+          <span style="color:#10b981; font-weight:700;">🟢 Live</span>
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+  <script>
+    let locationMap = null;
+    let pinMarker = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Default Street / Lane OpenStreetMap view centered on Golaghat
+      locationMap = L.map('sos-location-map', {
+        center: [26.5200, 93.9750],
+        zoom: 13,
+        zoomControl: false
+      });
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap'
+      }).addTo(locationMap);
+
+      // Red Location Pin (Draggable)
+      pinMarker = L.marker([26.5200, 93.9750], {
+        draggable: true,
+        icon: L.divIcon({
+          className: 'custom-map-icon',
+          html: '<div style="background:#ef4444; color:#fff; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 0 16px rgba(239,68,68,0.8);"><i class="fa-solid fa-location-dot"></i></div>',
+          iconSize: [32, 32]
+        })
+      }).addTo(locationMap);
+
+      pinMarker.on('dragend', (e) => {
+        const pos = e.target.getLatLng();
+        document.getElementById('location-text').value = `Golaghat (${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)})`;
+        document.getElementById('rev-location').innerText = `Golaghat (${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)})`;
+      });
+
+      setTimeout(() => locationMap.invalidateSize(), 300);
+    });
+
+    function selectType(el, typeName) {
+      document.querySelectorAll('.type-btn').forEach(btn => btn.classList.remove('active'));
+      el.classList.add('active');
+      document.getElementById('rev-type').innerText = typeName;
+    }
+
+    function updateCharCount(el) {
+      document.getElementById('char-count').innerText = el.value.length;
+      document.getElementById('rev-desc').innerText = el.value || 'No description provided';
+    }
+
+    function updateReview() {
+      const p = document.getElementById('people-count').value || 1;
+      const c = document.getElementById('children-count').value || 0;
+      document.getElementById('rev-people').innerText = `${p} (Including ${c} Children / Elderly)`;
+    }
+
+    function detectLocation() {
+      showCustomAlert('📍 GPS Location Detected', 'GPS auto-detected: Golaghat, Ward 4 (Accuracy: ±8 meters).', 'success');
+    }
+
+    function submitSOS() {
+      const type = document.getElementById('rev-type') ? document.getElementById('rev-type').innerText : 'Trapped in Water';
+      const desc = document.getElementById('rev-desc') ? document.getElementById('rev-desc').innerText : 'Water entered our house. We are trapped on the roof.';
+      const people = document.getElementById('people-count') ? document.getElementById('people-count').value : 5;
+      const children = document.getElementById('children-count') ? document.getElementById('children-count').value : 2;
+      const districtLabel = document.getElementById('current-district-label') ? document.getElementById('current-district-label').innerText : 'Golaghat District, Assam';
+
+      const sosId = 'SOS-1088';
+      const sosData = {
+        id: sosId,
+        time: 'Just Now',
+        district: districtLabel.split(',')[0],
+        locationName: 'Kabori Pathar, Ward 4',
+        details: desc,
+        peopleCount: parseInt(people),
+        childrenCount: parseInt(children),
+        severityScore: 95,
+        severityCategory: 'Critical',
+        status: 'PENDING_APPROVAL',
+        timestamp: Date.now()
+      };
+
+      // Save to localStorage to broadcast across tabs
+      localStorage.setItem('AEGIS_ACTIVE_CITIZEN_SOS', JSON.stringify(sosData));
+      localStorage.setItem('AEGIS_ACTIVE_CITIZEN_SOS_STATUS', 'PENDING_APPROVAL');
+      localStorage.setItem('AEGIS_LATEST_SOS_DISPATCH', JSON.stringify({
+        event: 'NEW_CITIZEN_SOS',
+        sos: sosData,
+        timestamp: Date.now()
+      }));
+
+      // Render Citizen Waiting Modal / Banner
+      showCitizenWaitingAlert(sosData);
+      startListeningForRescueApproval();
+    }
+
+    function showCitizenWaitingAlert(sosData) {
+      let existing = document.getElementById('citizen-sos-waiting-modal');
+      if (existing) existing.remove();
+
+      const modal = document.createElement('div');
+      modal.id = 'citizen-sos-waiting-modal';
+      modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(3, 7, 18, 0.88); backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        z-index: 99999; display: flex; align-items: center; justify-content: center;
+      `;
+
+      modal.innerHTML = `
+        <div style="background:#070d1d; border:2px solid #f59e0b; border-radius:18px; padding:1.75rem 2rem; max-width:460px; width:92vw; text-align:center; box-shadow:0 0 40px rgba(245,158,11,0.4), 0 25px 60px rgba(0,0,0,0.9);">
+          
+          <div style="font-size:2.8rem; color:#f59e0b; margin-bottom:0.5rem;">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+          </div>
+
+          <div style="background:rgba(245,158,11,0.2); border:1px solid #f59e0b; border-radius:9999px; padding:3px 14px; display:inline-block; font-size:0.68rem; font-weight:800; color:#f59e0b; margin-bottom:0.5rem;">
+            ⏳ WAITING FOR RESCUE TEAM APPROVAL
+          </div>
+
+          <h3 style="font-size:1.25rem; font-weight:800; color:#ffffff; margin-bottom:0.4rem;">
+            Distress Ticket: ${sosData.id} Transmitted
+          </h3>
+
+          <p style="font-size:0.8rem; color:#cbd5e1; line-height:1.5; margin-bottom:1.2rem;">
+            Your emergency report has been received at the <strong>NDRF Team-4 Command Desk</strong>. High-priority alert triggered on Rescue Commander screen.
+          </p>
+
+          <div style="background:rgba(15,23,42,0.8); border:1px solid rgba(59,130,246,0.2); border-radius:10px; padding:0.75rem; text-align:left; font-size:0.75rem; color:#94a3b8; margin-bottom:1.2rem;">
+            <div><strong style="color:#fff;">Location:</strong> ${sosData.district} (${sosData.locationName})</div>
+            <div><strong style="color:#fff;">Trapped:</strong> ${sosData.peopleCount} People (${sosData.childrenCount} Children)</div>
+            <div style="margin-top:4px; color:#f59e0b; font-weight:700;"><i class="fa-solid fa-satellite-dish"></i> Live Connection Active. Standby for Dispatch...</div>
+          </div>
+
+          <button style="width:100%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#cbd5e1; font-weight:700; font-size:0.785rem; padding:0.6rem; border-radius:8px; cursor:pointer;" onclick="location.href='citizen-tracking.html'">
+            Open My SOS / Tracking Screen &rarr;
+          </button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    function startListeningForRescueApproval() {
+      const checkInterval = setInterval(() => {
+        const status = localStorage.getItem('AEGIS_ACTIVE_CITIZEN_SOS_STATUS');
+        if (status === 'APPROVED') {
+          clearInterval(checkInterval);
+          
+          let modal = document.getElementById('citizen-sos-waiting-modal');
+          if (modal) {
+            modal.querySelector('div').style.borderColor = '#10b981';
+            modal.querySelector('div').style.boxShadow = '0 0 40px rgba(16,185,129,0.5)';
+            modal.querySelector('h3').innerHTML = '🟢 RESCUE TEAM APPROVED & DISPATCHED!';
+            modal.querySelector('p').innerHTML = 'NDRF Rescue Commander has accepted your ticket! <strong>Motorized OBM Speedboat SD-04</strong> is en route to your location.';
+            const spinner = modal.querySelector('.fa-spinner');
+            if (spinner) {
+              spinner.className = 'fa-solid fa-circle-check';
+              spinner.style.color = '#10b981';
+            }
+          }
+
+          setTimeout(() => {
+            location.href = 'citizen-tracking.html';
+          }, 1500);
+        }
+      }, 800);
+    }
+
+    function toggleDistrictSelect() {
+      const newDistrict = prompt("Enter Assam District:", "Golaghat");
+      if (newDistrict) {
+        document.getElementById('current-district-label').innerText = `${newDistrict} District, Assam`;
+      }
+    }
+  </script>
+
+  <script src="js/citizen.js?v=3.0"></script>
+</body>
+</html>

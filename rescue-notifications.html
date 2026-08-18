@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications & Communication - AEGIS Rescue Command System</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Leaflet & Heatmap Libraries -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Rescue Master Stylesheet & Script -->
+  <link rel="stylesheet" href="rescue-styles.css">
+  <script src="js/rescue-common.js?v=3.0"></script>
+
+  <style>
+    /* Quick Action Buttons */
+    .r-quick-btn {
+      width: 100%;
+      background: rgba(15,23,42,0.85);
+      border: 1px solid rgba(59,130,246,0.35);
+      color: #e2e8f0;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.32rem 0.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: all 0.2s ease;
+    }
+    .r-quick-btn:hover {
+      background: rgba(37,99,235,0.3);
+      color: #fff;
+      border-color: #3b82f6;
+      transform: translateX(3px);
+    }
+
+    /* Zero-Scroll 2-Row Grid Layout for Notifications Page */
+    .r-notif-grid {
+      display: grid;
+      grid-template-rows: 1.15fr 1fr;
+      gap: 0.45rem;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* Pulsing Alert Animation */
+    @keyframes alertPulse {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    .r-alert-pulse-btn {
+      animation: alertPulse 1.8s infinite;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="r-layout-container">
+    <!-- Left Navigation Sidebar -->
+    <aside class="r-sidebar">
+      <div class="r-sidebar-logo">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.25)"/>
+          <path d="M12 8v8M8 12h8" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <div style="font-weight: 800; font-size: 1.15rem; color: #fff; line-height: 1;">AEGIS</div>
+          <div style="font-size: 0.6rem; color: #cbd5e1; font-weight: 500;">Stronger Together, Safer Assam.</div>
+        </div>
+      </div>
+
+      <!-- Exact 12 User-Specified Pages Navigation Menu -->
+      <nav class="r-nav-menu">
+        <a class="r-nav-item" href="rescue-dashboard.html"><i class="fa-solid fa-gauge-high"></i> Command Dashboard</a>
+        <a class="r-nav-item" href="rescue-map.html"><i class="fa-solid fa-map-location-dot"></i> Flood Risk Map</a>
+        <a class="r-nav-item" href="rescue-priority.html"><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i> Emergency Priority Zones</a>
+        <a class="r-nav-item" href="rescue-analysis.html"><i class="fa-solid fa-chart-line"></i> Flood Risk Analysis</a>
+        <a class="r-nav-item" href="rescue-impact.html"><i class="fa-solid fa-house-crack"></i> Impact Assessment</a>
+        <a class="r-nav-item" href="rescue-resources.html"><i class="fa-solid fa-boxes-packing"></i> Resource Command Center</a>
+        <a class="r-nav-item" href="rescue-sos.html"><i class="fa-solid fa-circle-exclamation" style="color:#ef4444;"></i> Citizen SOS Center <span class="r-nav-badge">12</span></a>
+        <a class="r-nav-item" href="rescue-shelters.html"><i class="fa-solid fa-campground"></i> Shelter Network Management</a>
+        <a class="r-nav-item" href="rescue-operations.html"><i class="fa-solid fa-person-shelter"></i> Live Rescue Operations</a>
+        <a class="r-nav-item" href="rescue-analytics.html"><i class="fa-solid fa-chart-pie"></i> Analytics &amp; Reports</a>
+        <a class="r-nav-item" href="rescue-teams.html"><i class="fa-solid fa-users-gear"></i> Team Management</a>
+        <a class="r-nav-item active" href="rescue-notifications.html"><i class="fa-solid fa-bullhorn" style="color:#f59e0b;"></i> Notifications &amp; Communication <span class="r-nav-badge">5</span></a>
+        <a class="r-nav-item" href="index.html" style="margin-top:auto; color:#ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Settings / Exit</a>
+      </nav>
+
+      <!-- Sidebar Emergency Hotline Box -->
+      <div class="r-sidebar-hotline" style="padding:0.5rem;">
+        <div style="font-size: 0.65rem; color: #fca5a5; font-weight: 700;">EMERGENCY HOTLINE</div>
+        <div style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin: 0.15rem 0;">
+          <i class="fa-solid fa-phone-volume" style="color:#ef4444"></i> 112
+        </div>
+        <div style="font-size: 0.625rem; color: #cbd5e1;">Emergency Call</div>
+        
+        <button class="r-push-talk-btn" style="padding:0.32rem;" onclick="alert('Push-To-Talk Radio Active...')">
+          <i class="fa-solid fa-microphone"></i> Push to Talk
+        </button>
+      </div>
+
+      <!-- Quick Actions Sidebar Panel -->
+      <div style="margin-top:0.3rem; background:rgba(6,12,28,0.7); border:1px solid rgba(59,130,246,0.2); border-radius:8px; padding:0.35rem 0.5rem; display:flex; flex-direction:column; gap:0.25rem;">
+        <div style="font-size:0.625rem; font-weight:800; color:#94a3b8;">QUICK ACTIONS</div>
+        <button class="r-quick-btn" style="border-left:3px solid #ef4444;" onclick="alert('Opening Instant Mass Alert Composer...')">
+          <i class="fa-solid fa-bullhorn" style="color:#ef4444;"></i> Send Alert
+        </button>
+        <button class="r-quick-btn" style="border-left:3px solid #a78bfa;" onclick="alert('Opening Radio Broadcast Wizard...')">
+          <i class="fa-solid fa-tower-cell" style="color:#a78bfa;"></i> New Broadcast
+        </button>
+        <button class="r-quick-btn" style="border-left:3px solid #f59e0b;" onclick="alert('Opening Evacuation Order Dispatch Form...')">
+          <i class="fa-solid fa-person-walking-arrow-right" style="color:#f59e0b;"></i> Evacuation Order
+        </button>
+        <button class="r-quick-btn" style="border-left:3px solid #2563eb;" onclick="alert('Requesting Field Status Telemetry Update...')">
+          <i class="fa-solid fa-arrows-rotate" style="color:#38bdf8;"></i> Request Update
+        </button>
+        <button class="r-quick-btn" style="border-left:3px solid #06b6d4;" onclick="alert('Opening Message Template Library...')">
+          <i class="fa-solid fa-paste" style="color:#06b6d4;"></i> Message Template
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Container -->
+    <main class="r-main-area">
+      <!-- Top Header Bar -->
+      <header class="r-topbar" style="margin-bottom: 0.35rem;">
+        <div style="display:flex; align-items:center; gap:0.65rem;">
+          <div>
+            <div style="font-weight:800; font-size:1.15rem; color:#fff; line-height:1.1; display:flex; align-items:center; gap:0.45rem;">
+              Notifications &amp; Communication
+              <span style="color:#10b981; font-size:0.7rem; font-weight:700;">● Live</span>
+            </div>
+            <div style="font-size:0.72rem; color:#cbd5e1;">Real-time communication, alerts, and information dissemination</div>
+          </div>
+        </div>
+
+        <!-- Center Location Pill -->
+        <div style="display:flex; align-items:center; gap:0.45rem; background:rgba(15,23,42,0.9); border:1px solid rgba(59,130,246,0.3); border-radius:6px; padding:0.25rem 0.65rem;">
+          <i class="fa-solid fa-location-dot" style="color:#ef4444;"></i>
+          <span style="font-size:0.785rem; font-weight:700; color:#fff;">Assam, India</span>
+        </div>
+
+        <!-- Right Utilities & Animated Alert Pill -->
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <div class="r-top-utility-box" style="padding:0.28rem 0.6rem; font-size:0.75rem;">
+            <i class="fa-solid fa-cloud-showers-heavy" style="color:#38bdf8;"></i>
+            <span><strong>25°C</strong> Heavy Rain</span>
+          </div>
+
+          <!-- Animated Pulsing Alert Box -->
+          <div style="background:rgba(239,68,68,0.25); border:1px solid #ef4444; border-radius:6px; padding:0.28rem 0.6rem; font-size:0.72rem; font-weight:800; color:#ef4444; display:flex; align-items:center; gap:0.35rem;" class="r-alert-pulse-btn">
+            <i class="fa-solid fa-triangle-exclamation"></i> Flood Alert Level 4 - Severe
+          </div>
+
+          <div class="r-top-utility-box" style="padding:0.28rem 0.6rem; font-size:0.75rem;">
+            <i class="fa-solid fa-radio" style="color:#10b981;"></i>
+            <span>Radio Comms <strong style="color:#38bdf8;">Channel 2</strong></span>
+            <span style="color:#10b981; font-size:0.7rem;"><i class="fa-solid fa-signal"></i></span>
+          </div>
+
+          <div style="position:relative; cursor:pointer;" onclick="location.href='rescue-notifications.html'">
+            <i class="fa-solid fa-bell" style="color:#cbd5e1; font-size:1.1rem;"></i>
+            <span style="position:absolute; top:-4px; right:-6px; background:#ef4444; color:#fff; font-size:0.58rem; font-weight:800; padding:1px 5px; border-radius:50%;">6</span>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:0.55rem; cursor:pointer;" onclick="alert('Command Officer Desk')">
+            <div style="width:32px; height:32px; border-radius:50%; background:#ef4444; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:0.75rem; border:1px solid #fca5a5;">CO</div>
+            <div>
+              <div style="font-size:0.785rem; font-weight:700; color:#fff; line-height:1.1;">Command Officer</div>
+              <div style="font-size:0.625rem; color:#cbd5e1;">NDRF Team-4</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Top 6 Communication Summary KPI Cards Bar -->
+      <div class="r-metrics-bar" style="grid-template-columns: repeat(6, 1fr); margin-bottom: 0.35rem; padding:0 1.15rem;">
+        <div class="r-metric-card" style="border-left: 3.5px solid #2563eb; padding:0.35rem 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.6rem; font-weight:800; color:#2563eb;">TOTAL MESSAGES SENT</span>
+            <i class="fa-solid fa-paper-plane" style="color:#2563eb; font-size:0.85rem;"></i>
+          </div>
+          <div style="font-size:1.25rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-tot-msg">15,432</div>
+          <div style="font-size:0.58rem; color:#10b981; font-weight:700;">↑ 18% vs yesterday</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3.5px solid #ef4444; background:rgba(239,68,68,0.12); padding:0.35rem 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.6rem; font-weight:800; color:#ef4444;">ALERTS SENT</span>
+            <i class="fa-solid fa-bell" style="color:#ef4444; font-size:0.85rem;"></i>
+          </div>
+          <div style="font-size:1.25rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-alerts-sent">342</div>
+          <div style="font-size:0.58rem; color:#10b981; font-weight:700;">↑ 22% vs yesterday</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3.5px solid #a78bfa; padding:0.35rem 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.6rem; font-weight:800; color:#a78bfa;">CITIZENS REACHED</span>
+            <i class="fa-solid fa-users" style="color:#a78bfa; font-size:0.85rem;"></i>
+          </div>
+          <div style="font-size:1.25rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-citizens">2.48 Lakh</div>
+          <div style="font-size:0.58rem; color:#10b981; font-weight:700;">↑ 19% vs yesterday</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3.5px solid #10b981; padding:0.35rem 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.6rem; font-weight:800; color:#10b981;">DELIVERY SUCCESS RATE</span>
+            <i class="fa-solid fa-circle-check" style="color:#10b981; font-size:0.85rem;"></i>
+          </div>
+          <div style="font-size:1.25rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-success-rate">97.6%</div>
+          <div style="font-size:0.58rem; color:#10b981; font-weight:700;">↑ 3% vs yesterday</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3.5px solid #38bdf8; padding:0.35rem 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.6rem; font-weight:800; color:#38bdf8;">PENDING MESSAGES</span>
+            <i class="fa-solid fa-hourglass-half" style="color:#38bdf8; font-size:0.85rem;"></i>
+          </div>
+          <div style="font-size:1.25rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-pending">18</div>
+          <div style="font-size:0.58rem; color:#10b981; font-weight:700;">↓ 12% vs yesterday</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3.5px solid #10b981; padding:0.35rem 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.6rem; font-weight:800; color:#10b981;">COMM CHANNELS</span>
+            <i class="fa-solid fa-tower-cell" style="color:#10b981; font-size:0.85rem;"></i>
+          </div>
+          <div style="font-size:1.25rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-channels">7</div>
+          <div style="font-size:0.58rem; color:#10b981; font-weight:700;">Active Channels</div>
+        </div>
+      </div>
+
+      <!-- Main Notifications Workspace 2-Row Grid -->
+      <div class="r-notif-grid" style="padding:0 1.15rem 0.35rem 1.15rem;">
+        
+        <!-- Row 1: ACTIVE ALERTS & NOTIFICATIONS Table + ALERT COVERAGE MAP Split -->
+        <div style="display:grid; grid-template-columns: 1.8fr 1fr; gap:0.45rem; height:100%; min-height:0;">
+          
+          <!-- Box 1: ACTIVE ALERTS & NOTIFICATIONS Table -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; overflow:hidden; padding:0.45rem; height:100%;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.15rem;">
+              <span style="font-weight:800; font-size:0.75rem; color:#fff;">ACTIVE ALERTS &amp; NOTIFICATIONS</span>
+              <a href="#" style="font-size:0.58rem; color:#38bdf8; text-decoration:none; font-weight:700;">View All Alerts</a>
+            </div>
+
+            <div style="flex:1; overflow-y:auto; font-size:0.6rem;">
+              <table style="width:100%; border-collapse:collapse;" id="active-alerts-table">
+                <!-- Populated by JS -->
+              </table>
+            </div>
+          </div>
+
+          <!-- Box 2: ALERT COVERAGE MAP with District Color Coding -->
+          <div class="r-map-panel" style="display:flex; flex-direction:column; position:relative; height:100%;">
+            <div style="height:26px; background:#060c1c; border-bottom:1px solid rgba(59,130,246,0.2); display:flex; align-items:center; justify-content:space-between; padding:0 0.55rem; flex-shrink:0;">
+              <span style="font-weight:800; font-size:0.75rem; color:#fff;">ALERT COVERAGE MAP</span>
+              <a href="#" style="font-size:0.55rem; color:#38bdf8; text-decoration:none; font-weight:700;">View Full Map</a>
+            </div>
+
+            <!-- Leaflet Map Canvas -->
+            <div id="coverage-map-canvas" style="flex:1; width:100%; height:100%;"></div>
+
+            <!-- Floating Right Legend -->
+            <div style="position:absolute; top:32px; right:8px; z-index:1000; background:rgba(6,12,28,0.92); border:1px solid rgba(59,130,246,0.3); border-radius:5px; padding:0.25rem 0.5rem; font-size:0.55rem; color:#cbd5e1;">
+              <div style="font-weight:800; color:#fff; margin-bottom:2px;">Alert Level</div>
+              <div><strong style="color:#ef4444;">■ Critical</strong></div>
+              <div><strong style="color:#f59e0b;">■ High</strong></div>
+              <div><strong style="color:#eab308;">■ Medium</strong></div>
+              <div><strong style="color:#10b981;">■ Low</strong></div>
+              <div><strong style="color:#38bdf8;">■ No Alert</strong></div>
+            </div>
+
+            <!-- Bottom Coverage Statistics Bar -->
+            <div style="position:absolute; bottom:4px; left:4px; right:4px; z-index:1000; background:rgba(6,12,28,0.92); border:1px solid rgba(59,130,246,0.3); border-radius:5px; padding:0.2rem 0.4rem; font-size:0.52rem; display:flex; justify-content:space-around; color:#cbd5e1;">
+              <div><strong style="color:#ef4444;">Critical Areas:</strong> 5 Districts</div>
+              <div><strong style="color:#f59e0b;">High Areas:</strong> 7 Districts</div>
+              <div><strong style="color:#eab308;">Medium Areas:</strong> 6 Districts</div>
+              <div><strong style="color:#10b981;">Low Areas:</strong> 3 Districts</div>
+              <div><strong style="color:#38bdf8;">No Alert:</strong> 2 Districts</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Row 2: SEND NEW MESSAGE Form + COMMUNICATION CHANNELS + RECENT NOTIFICATIONS + BROADCAST HISTORY Split -->
+        <div style="display:grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap:0.45rem; height:100%; min-height:0;">
+          
+          <!-- Box 3: SEND NEW MESSAGE / ALERT Form -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.45rem; height:100%;">
+            <div style="font-weight:800; font-size:0.75rem; color:#fff; margin-bottom:0.15rem;">SEND NEW MESSAGE / ALERT</div>
+
+            <form style="display:flex; flex-direction:column; gap:0.2rem; flex:1;" onsubmit="event.preventDefault(); alert('🚨 Emergency Broadcast Dispatched to All Selected Channels!');">
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.25rem;">
+                <div>
+                  <label style="font-size:0.52rem; color:#cbd5e1; display:block;">Message Type</label>
+                  <select style="width:100%; background:rgba(15,23,42,0.9); border:1px solid rgba(59,130,246,0.3); color:#fff; font-size:0.58rem; padding:0.18rem; border-radius:4px;">
+                    <option>Select Type</option>
+                    <option>Evacuation Order</option>
+                    <option>Flood Alert</option>
+                    <option>Heavy Rain Warning</option>
+                    <option>Shelter Update</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size:0.52rem; color:#cbd5e1; display:block;">Target Area</label>
+                  <select style="width:100%; background:rgba(15,23,42,0.9); border:1px solid rgba(59,130,246,0.3); color:#fff; font-size:0.58rem; padding:0.18rem; border-radius:4px;">
+                    <option>Select Area / District</option>
+                    <option>All Assam</option>
+                    <option>Golaghat</option>
+                    <option>Jorhat</option>
+                    <option>Darrang</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label style="font-size:0.52rem; color:#cbd5e1; display:block;">Message</label>
+                <textarea rows="2" style="width:100%; background:rgba(15,23,42,0.9); border:1px solid rgba(59,130,246,0.3); color:#fff; font-size:0.58rem; padding:0.2rem; border-radius:4px; resize:none;" placeholder="Type your message here..."></textarea>
+              </div>
+
+              <!-- Priority Pills -->
+              <div>
+                <label style="font-size:0.52rem; color:#cbd5e1; display:block;">Priority / Severity</label>
+                <div style="display:flex; gap:0.2rem;">
+                  <button type="button" style="background:#ef4444; color:#fff; border:none; font-size:0.52rem; font-weight:800; padding:1.5px 5px; border-radius:3px; cursor:pointer;">Critical</button>
+                  <button type="button" style="background:#f59e0b; color:#fff; border:none; font-size:0.52rem; font-weight:800; padding:1.5px 5px; border-radius:3px; cursor:pointer;">High</button>
+                  <button type="button" style="background:#eab308; color:#fff; border:none; font-size:0.52rem; font-weight:800; padding:1.5px 5px; border-radius:3px; cursor:pointer;">Medium</button>
+                  <button type="button" style="background:#10b981; color:#fff; border:none; font-size:0.52rem; font-weight:800; padding:1.5px 5px; border-radius:3px; cursor:pointer;">Low</button>
+                  <button type="button" style="background:#38bdf8; color:#fff; border:none; font-size:0.52rem; font-weight:800; padding:1.5px 5px; border-radius:3px; cursor:pointer;">Info</button>
+                </div>
+              </div>
+
+              <button type="submit" style="width:100%; background:#2563eb; color:#fff; border:none; font-weight:800; font-size:0.625rem; padding:0.25rem; border-radius:4px; cursor:pointer; margin-top:auto;">
+                📩 Send Message
+              </button>
+            </form>
+          </div>
+
+          <!-- Box 4: COMMUNICATION CHANNELS + TEMPLATES Stack -->
+          <div style="display:flex; flex-direction:column; gap:0.45rem; height:100%; min-height:0;">
+            <!-- Communication Channels List -->
+            <div class="r-panel-box" style="flex:1; display:flex; flex-direction:column; padding:0.45rem;">
+              <div style="font-weight:800; font-size:0.75rem; color:#fff; margin-bottom:0.1rem;">COMMUNICATION CHANNELS</div>
+              <div style="display:flex; flex-direction:column; gap:0.12rem; font-size:0.55rem; flex:1;" id="comm-channels-container">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+
+            <!-- Message Templates Quick Buttons -->
+            <div class="r-panel-box" style="flex:0.8; display:flex; flex-direction:column; padding:0.45rem;">
+              <div style="font-weight:800; font-size:0.75rem; color:#fff; margin-bottom:0.1rem;">MESSAGE TEMPLATES</div>
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.2rem; font-size:0.52rem;">
+                <button style="background:rgba(255,255,255,0.05); border:1px solid rgba(59,130,246,0.3); color:#38bdf8; padding:2px; border-radius:3px; cursor:pointer;" onclick="alert('Loaded Evacuation Order Template!')">🏃 Evacuation Order</button>
+                <button style="background:rgba(255,255,255,0.05); border:1px solid rgba(59,130,246,0.3); color:#ef4444; padding:2px; border-radius:3px; cursor:pointer;" onclick="alert('Loaded Flood Alert Template!')">⚠️ Flood Alert</button>
+                <button style="background:rgba(255,255,255,0.05); border:1px solid rgba(59,130,246,0.3); color:#38bdf8; padding:2px; border-radius:3px; cursor:pointer;" onclick="alert('Loaded Shelter Update Template!')">🏠 Shelter Update</button>
+                <button style="background:rgba(255,255,255,0.05); border:1px solid rgba(59,130,246,0.3); color:#10b981; padding:2px; border-radius:3px; cursor:pointer;" onclick="alert('Loaded Safety Instructions Template!')">🛡️ Safety Instructions</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Box 5: RECENT NOTIFICATIONS List -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.45rem; height:100%;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.15rem;">
+              <span style="font-weight:800; font-size:0.75rem; color:#fff;">RECENT NOTIFICATIONS</span>
+              <a href="#" style="font-size:0.55rem; color:#38bdf8; text-decoration:none; font-weight:700;">View All</a>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:0.18rem; font-size:0.55rem; flex:1;" id="recent-notifications-container">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Box 6: BROADCAST HISTORY (Donut) & TOP PERFORMING AREAS -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.45rem; height:100%;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.1rem;">
+              <span style="font-weight:800; font-size:0.75rem; color:#fff;">BROADCAST HISTORY</span>
+              <a href="#" style="font-size:0.55rem; color:#38bdf8; text-decoration:none; font-weight:700;">View Reports</a>
+            </div>
+
+            <div style="flex:1; display:flex; align-items:center; justify-content:space-between; margin-bottom:0.25rem;">
+              <svg width="55" height="55" viewBox="0 0 42 42">
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#2563eb" stroke-width="5.5" stroke-dasharray="25 75" stroke-dashoffset="25"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#ef4444" stroke-width="5.5" stroke-dasharray="28 72" stroke-dashoffset="0"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#f59e0b" stroke-width="5.5" stroke-dasharray="21 79" stroke-dashoffset="72"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#38bdf8" stroke-width="5.5" stroke-dasharray="17 83" stroke-dashoffset="51"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#a78bfa" stroke-width="5.5" stroke-dasharray="9 91" stroke-dashoffset="34"></circle>
+                <text x="21" y="19" fill="#fff" font-size="5.5" font-weight="bold" text-anchor="middle">72</text>
+                <text x="21" y="24" fill="#cbd5e1" font-size="3.2" text-anchor="middle">Broadcasts</text>
+              </svg>
+
+              <div style="font-size:0.52rem; display:flex; flex-direction:column; gap:0.1rem;" id="broadcast-donut-legend">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+
+            <!-- Top Performing Areas Bars -->
+            <div>
+              <div style="font-size:0.58rem; font-weight:800; color:#fff; margin-bottom:2px;">Top Performing Areas</div>
+              <div style="display:flex; flex-direction:column; gap:0.1rem; font-size:0.5rem;" id="top-areas-container">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Sticky Bottom Meta Footer -->
+      <footer class="r-footer-bar">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.25)"/>
+          </svg>
+          <span><strong>AEGIS Rescue Command System</strong> &bull; Empowering Teams. Saving Lives.</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <span><i class="fa-solid fa-shield-halved" style="color:#10b981;"></i> Secure</span>
+          <span>&bull;</span>
+          <span><i class="fa-solid fa-lock" style="color:#38bdf8;"></i> Encrypted</span>
+          <span>&bull;</span>
+          <span><i class="fa-solid fa-location-crosshairs" style="color:#f59e0b;"></i> GPS Tracking</span>
+          <span>&bull;</span>
+          <span><i class="fa-solid fa-arrows-rotate" style="color:#a78bfa;"></i> Real-time Sync</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span>Data Source: ASDMA | CWC | IMD | Local Authorities</span>
+          <span>&bull;</span>
+          <span>Last Updated: 12 Aug 2026, 10:40 AM</span>
+          <span>&bull;</span>
+          <span style="color:#10b981; font-weight:700;">🟢 Live</span>
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- Data & Map Interactivity Logic -->
+  <script src="js/rescue-notifications-data.js"></script>
+
+  <script>
+    let coverageMap = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Render Summary KPIs
+      const k = rescueNotificationsData.summaryKpis;
+      document.getElementById('kpi-tot-msg').innerText = k.totalMessagesSent;
+      document.getElementById('kpi-alerts-sent').innerText = k.alertsSent;
+      document.getElementById('kpi-citizens').innerText = k.citizensReached;
+      document.getElementById('kpi-success-rate').innerText = k.deliverySuccessRate || "97.6%";
+      document.getElementById('kpi-pending').innerText = k.pendingMessages;
+      document.getElementById('kpi-channels').innerText = k.commChannels;
+
+      // 2. Initialize Leaflet Coverage Map
+      initCoverageMap();
+
+      // 3. Render Consoles & Tables
+      renderActiveAlertsTable();
+      renderCommChannels();
+      renderRecentNotifications();
+      renderBroadcastDonutLegend();
+      renderTopAreas();
+    });
+
+    function initCoverageMap() {
+      coverageMap = L.map('coverage-map-canvas', {
+        center: [26.2500, 92.8000],
+        zoom: 7.2,
+        zoomControl: false,
+        attributionControl: false
+      });
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(coverageMap);
+
+      // Plot District Alert Status Pins
+      if (rescueNotificationsData.districtAlertPins) {
+        rescueNotificationsData.districtAlertPins.forEach(loc => {
+          const icon = L.divIcon({
+            className: 'custom-map-icon',
+            html: `<div style="background:${loc.color}; color:#fff; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:1.5px solid #fff; box-shadow:0 0 8px ${loc.color};"><i class="fa-solid fa-tower-cell" style="font-size:8px;"></i></div>`,
+            iconSize: [20, 20]
+          });
+
+          L.marker(loc.coords, { icon }).addTo(coverageMap).bindPopup(`
+            <div style="font-family:'Plus Jakarta Sans',sans-serif; color:#fff; padding:2px;">
+              <b style="color:${loc.color}; font-size:11px;">${loc.district} District</b><br>
+              <span style="font-size:9px; color:#cbd5e1;">Alert Level: <strong style="color:${loc.color};">${loc.level}</strong></span>
+            </div>
+          `);
+        });
+      }
+
+      setTimeout(() => coverageMap.invalidateSize(), 300);
+    }
+
+    function renderActiveAlertsTable() {
+      const table = document.getElementById('active-alerts-table');
+      table.innerHTML = `
+        <thead>
+          <tr style="border-bottom:1px solid rgba(59,130,246,0.2); color:#94a3b8; font-size:0.58rem; text-align:left;">
+            <th style="padding:2px 4px;">Type</th>
+            <th style="padding:2px 4px;">Message</th>
+            <th style="padding:2px 4px;">Severity</th>
+            <th style="padding:2px 4px;">Target Area</th>
+            <th style="padding:2px 4px;">Sent Time</th>
+            <th style="padding:2px 4px;">Status</th>
+            <th style="padding:2px 4px;">Reached</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `;
+
+      const tbody = table.querySelector('tbody');
+      rescueNotificationsData.activeAlertsTable.forEach(al => {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid rgba(255,255,255,0.04)';
+        tr.innerHTML = `
+          <td style="padding:2.5px 4px; font-weight:800; color:${al.tColor};">
+            <i class="fa-solid ${al.icon}" style="margin-right:3px;"></i> ${al.type}
+          </td>
+          <td style="padding:2.5px 4px; color:#fff; font-size:0.55rem;">${al.message}</td>
+          <td style="padding:2.5px 4px;"><span style="color:${al.sColor}; font-weight:800;">${al.severity}</span></td>
+          <td style="padding:2.5px 4px; color:#cbd5e1;">${al.target}</td>
+          <td style="padding:2.5px 4px; color:#cbd5e1;">${al.sentTime}</td>
+          <td style="padding:2.5px 4px;"><span style="color:${al.stColor}; font-weight:800;">${al.status}</span></td>
+          <td style="padding:2.5px 4px; font-weight:800; color:#38bdf8;">${al.reached}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderCommChannels() {
+      const container = document.getElementById('comm-channels-container');
+      container.innerHTML = '';
+
+      rescueNotificationsData.communicationChannels.forEach(c => {
+        const div = document.createElement('div');
+        div.style.display = 'flex';
+        div.style.justifyContent = 'space-between';
+        div.style.alignItems = 'center';
+
+        div.innerHTML = `
+          <div style="display:flex; align-items:center; gap:0.25rem;">
+            <i class="fa-solid ${c.icon}" style="color:#38bdf8; width:10px;"></i>
+            <span style="color:#cbd5e1;">${c.channel}</span>
+          </div>
+          <div>
+            <strong style="color:#10b981; margin-right:4px;">${c.rate}</strong>
+            <span style="color:#cbd5e1;">(${c.count})</span>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderRecentNotifications() {
+      const container = document.getElementById('recent-notifications-container');
+      container.innerHTML = '';
+
+      rescueNotificationsData.activeAlertsTable.forEach(al => {
+        const div = document.createElement('div');
+        div.style.background = 'rgba(255,255,255,0.03)';
+        div.style.padding = '2px 4px';
+        div.style.borderRadius = '3px';
+
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong style="color:${al.tColor}; font-size:0.58rem;">${al.type}</strong>
+            <span style="color:#cbd5e1; font-size:0.5rem;">${al.sentTime.split(' ')[0]}</span>
+          </div>
+          <div style="font-size:0.52rem; color:#cbd5e1;">${al.message}</div>
+          <div style="font-size:0.5rem; color:#10b981; font-weight:700;">Reached: ${al.reached}</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderBroadcastDonutLegend() {
+      const container = document.getElementById('broadcast-donut-legend');
+      container.innerHTML = '';
+
+      rescueNotificationsData.broadcastHistoryDonut.slices.forEach(sl => {
+        const div = document.createElement('div');
+        div.innerHTML = `<strong style="color:${sl.color};">■ ${sl.type}:</strong> ${sl.count} (${sl.pct})`;
+        container.appendChild(div);
+      });
+    }
+
+    function renderTopAreas() {
+      const container = document.getElementById('top-areas-container');
+      container.innerHTML = '';
+
+      rescueNotificationsData.topPerformingAreas.forEach((ta, idx) => {
+        const div = document.createElement('div');
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; margin-bottom:1px;">
+            <span style="color:#cbd5e1;">${idx + 1}. ${ta.name}</span>
+            <strong style="color:#10b981;">${ta.pct}%</strong>
+          </div>
+          <div style="background:rgba(255,255,255,0.08); height:3px; border-radius:1.5px; overflow:hidden;">
+            <div style="width:${ta.pct}%; background:#10b981; height:100%;"></div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+  </script>
+</body>
+</html>

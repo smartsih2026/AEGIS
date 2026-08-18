@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Citizen Emergency Dashboard - AEGIS Flood Platform</title>
+
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Master Citizen Stylesheet -->
+  <link rel="stylesheet" href="citizen-styles.css">
+  
+  <!-- Master Citizen Script -->
+  <script src="js/citizen.js?v=3.0"></script>
+
+  <!-- Firebase SDK (Compat Version) & Auth Module -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="js/firebase-auth.js?v=3.0"></script>
+  
+  <style>
+    /* Zero-Scroll Citizen Dashboard Layout System */
+    html, body {
+      height: 100vh;
+      overflow: hidden;
+      background-color: #050a14;
+    }
+
+    .dash-layout-container {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+
+    /* Left Sidebar */
+    .dash-sidebar {
+      background: #091122;
+      border-right: 1px solid rgba(59, 130, 246, 0.2);
+      display: flex;
+      flex-direction: column;
+      padding: 0.95rem 0.75rem;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .dash-sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.25rem 0.5rem 0.85rem 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 0.75rem;
+    }
+
+    .dash-nav-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      flex: 1;
+    }
+
+    .dash-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.55rem 0.75rem;
+      color: #94a3b8;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.8rem;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .dash-nav-item:hover {
+      background: rgba(59, 130, 246, 0.12);
+      color: #ffffff;
+    }
+
+    .dash-nav-item.active {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    }
+
+    .dash-emergency-call-box {
+      background: rgba(37, 99, 235, 0.12);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 12px;
+      padding: 0.75rem;
+      text-align: center;
+      margin-top: auto;
+    }
+
+    /* Main Work Area */
+    .dash-main-area {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      background: #050a14;
+    }
+
+    /* Top Bar */
+    .dash-topbar {
+      height: 52px;
+      background: #091122;
+      border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.25rem;
+      gap: 1rem;
+      flex-shrink: 0;
+    }
+
+    .district-select-pill {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #ffffff;
+      padding: 0.3rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.775rem;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .topbar-alert-banner {
+      flex: 1;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      border-radius: 8px;
+      padding: 0.3rem 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: #fca5a5;
+    }
+
+    /* Single-Fold Grid Content Body */
+    .dash-content-grid {
+      display: grid;
+      grid-template-rows: 1fr auto;
+      gap: 0.75rem;
+      padding: 0.85rem 1.25rem;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .dash-upper-grid {
+      display: grid;
+      grid-template-columns: 240px 1fr 280px;
+      gap: 0.85rem;
+      overflow: hidden;
+    }
+
+    .dash-bottom-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1.1fr;
+      gap: 0.85rem;
+      height: 180px;
+    }
+
+    /* Cards */
+    .dash-card {
+      background: #0b1426;
+      border: 1px solid rgba(59, 130, 246, 0.22);
+      border-radius: 12px;
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .dash-card-title {
+      font-size: 0.725rem;
+      font-weight: 800;
+      color: #94a3b8;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* OpenStreetMap Styling */
+    #citizen-osm-map {
+      width: 100%;
+      height: 100%;
+      min-height: 240px;
+      border-radius: 8px;
+      background: #e5e3df;
+    }
+
+    .map-filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding-top: 0.4rem;
+      font-size: 0.7rem;
+      color: #cbd5e1;
+      overflow-x: auto;
+    }
+
+    .map-filter-item {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .quick-action-btn {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      border-radius: 8px;
+      padding: 0.45rem;
+      text-align: center;
+      color: #ffffff;
+      font-size: 0.675rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .quick-action-btn:hover {
+      background: rgba(37, 99, 235, 0.25);
+      border-color: #3b82f6;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    /* Safety Guide Alert Modal Styling */
+    .safety-modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(6, 12, 28, 0.85);
+      backdrop-filter: blur(10px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .safety-modal-card {
+      background: #0b1426;
+      border: 1.5px solid rgba(59, 130, 246, 0.4);
+      box-shadow: 0 0 35px rgba(0, 0, 0, 0.8), 0 0 15px rgba(59, 130, 246, 0.2);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 680px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .safety-modal-header {
+      padding: 0.85rem 1.15rem;
+      background: rgba(15, 23, 42, 0.95);
+      border-bottom: 1px solid rgba(59, 130, 246, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .safety-modal-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .safety-alert-badge {
+      background: rgba(239, 68, 68, 0.25);
+      color: #ef4444;
+      border: 1px solid #ef4444;
+      font-size: 0.6rem;
+      font-weight: 800;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+    }
+
+    .safety-modal-close {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 1.25rem;
+      cursor: pointer;
+      padding: 0.25rem;
+      transition: color 0.2s ease;
+    }
+    .safety-modal-close:hover {
+      color: #fff;
+    }
+
+    .safety-tab-bar {
+      display: flex;
+      background: rgba(15, 23, 42, 0.6);
+      border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+      padding: 0.35rem 0.65rem;
+      gap: 0.35rem;
+      overflow-x: auto;
+    }
+
+    .safety-tab-btn {
+      flex: 1;
+      padding: 0.45rem 0.6rem;
+      background: transparent;
+      border: 1px solid transparent;
+      color: #94a3b8;
+      font-size: 0.72rem;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .safety-tab-btn:hover {
+      color: #fff;
+      background: rgba(59, 130, 246, 0.15);
+    }
+
+    .safety-tab-btn.active {
+      background: rgba(37, 99, 235, 0.3);
+      border-color: #3b82f6;
+      color: #ffffff;
+    }
+
+    .safety-modal-body {
+      padding: 1rem 1.15rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .safety-tab-content {
+      display: none;
+    }
+
+    .safety-tab-content.active {
+      display: block;
+    }
+
+    .safety-guide-section {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      border-radius: 10px;
+      padding: 0.85rem;
+    }
+
+    .safety-guide-title {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 0.65rem;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .safety-guide-list {
+      margin: 0;
+      padding-left: 1.1rem;
+      color: #cbd5e1;
+      font-size: 0.75rem;
+      line-height: 1.6;
+    }
+
+    .safety-guide-list li {
+      margin-bottom: 0.5rem;
+    }
+
+    .safety-contact-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      border-radius: 8px;
+      padding: 0.6rem;
+    }
+
+    .safety-modal-footer {
+      padding: 0.75rem 1.15rem;
+      background: rgba(15, 23, 42, 0.95);
+      border-top: 1px solid rgba(59, 130, 246, 0.25);
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="dash-layout-container">
+    
+    <!-- Left Navigation Sidebar -->
+    <aside class="dash-sidebar">
+      <div class="dash-sidebar-logo">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.25)"/>
+          <path d="M12 8v8M8 12h8" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <div style="font-weight: 800; font-size: 1.15rem; color: #fff; line-height: 1;">AEGIS</div>
+          <div style="font-size: 0.58rem; color: #94a3b8; font-weight: 500;">Stronger Together, Safer Together.</div>
+        </div>
+      </div>
+
+      <nav class="dash-nav-menu">
+        <a class="dash-nav-item active" onclick="location.href='citizen-dashboard.html'"><i class="fa-solid fa-house"></i> Dashboard</a>
+        <a class="dash-nav-item" onclick="location.href='citizen-ai.html'"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Command Center</a>
+        <a class="dash-nav-item" onclick="location.href='citizen-intel.html'"><i class="fa-solid fa-route"></i> Safe Routes</a>
+        <a class="dash-nav-item" onclick="location.href='citizen-shelters.html'"><i class="fa-solid fa-campground"></i> Shelter Network</a>
+        <a class="dash-nav-item" onclick="location.href='citizen-sos.html'"><i class="fa-solid fa-circle-exclamation" style="color:#ef4444;"></i> SOS Reports</a>
+        <a class="dash-nav-item" onclick="location.href='citizen-tracking.html'"><i class="fa-solid fa-location-crosshairs"></i> My SOS / Tracking</a>
+        <a class="dash-nav-item" onclick="location.href='citizen-notifications.html'"><i class="fa-solid fa-bell"></i> Notifications</a>
+        <a class="dash-nav-item" onclick="location.href='citizen-contacts.html'"><i class="fa-solid fa-phone"></i> Emergency Contacts</a>
+        <a class="dash-nav-item" onclick="location.href='citizen-profile.html'"><i class="fa-solid fa-gear"></i> Profile & Settings</a>
+        <a class="dash-nav-item" onclick="location.href='citizen-help.html'"><i class="fa-solid fa-circle-question"></i> Help & Support</a>
+        <a class="dash-nav-item" onclick="location.href='index.html'" style="margin-top:0.5rem; color:#ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+      </nav>
+
+      <div class="dash-emergency-call-box">
+        <div style="font-size: 0.65rem; color: #94a3b8; font-weight: 700;">IN CASE OF EMERGENCY</div>
+        <div style="font-size: 1.3rem; font-weight: 800; color: #ffffff; margin: 0.1rem 0;"><i class="fa-solid fa-phone-volume" style="color:#ef4444"></i> Call 112</div>
+        <div style="font-size: 0.625rem; color: #94a3b8; margin-bottom: 0.35rem;">or send SOS instantly</div>
+        <button class="btn btn-primary btn-pill" style="background:#ef4444; width:100%; font-size:0.7rem; padding:0.35rem;" onclick="location.href='citizen-sos.html'">
+          <span class="pulse-dot" style="background:#fff"></span> Send SOS Now
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Container -->
+    <main class="dash-main-area">
+      
+      <!-- Top Alert Bar -->
+      <header class="dash-topbar">
+        <div style="display: flex; align-items: center; gap: 0.65rem;">
+          <i class="fa-solid fa-bars" style="color:#94a3b8; cursor:pointer;"></i>
+          <select class="district-select-pill" id="district-selector" onchange="citizenApp.onDistrictChange(this.value)">
+            <optgroup label="📍 Upper Assam Division">
+              <option value="Golaghat" selected>Golaghat (Critical • 26.40°N, 94.03°E)</option>
+              <option value="Jorhat">Jorhat (26.75°N, 94.20°E)</option>
+              <option value="Dibrugarh">Dibrugarh (27.48°N, 94.90°E)</option>
+              <option value="Sivasagar">Sivasagar (26.98°N, 94.64°E)</option>
+              <option value="Tinsukia">Tinsukia (27.50°N, 95.36°E)</option>
+              <option value="Dhemaji">Dhemaji (27.48°N, 94.59°E)</option>
+              <option value="Lakhimpur">Lakhimpur (27.23°N, 94.09°E)</option>
+            </optgroup>
+            <optgroup label="📍 Central Assam Division">
+              <option value="Nagaon">Nagaon (26.34°N, 92.68°E)</option>
+              <option value="Hojai">Hojai (26.00°N, 92.84°E)</option>
+              <option value="Morigaon">Morigaon (26.25°N, 92.33°E)</option>
+              <option value="Dima Hasao">Dima Hasao (25.40°N, 93.07°E)</option>
+              <option value="East Karbi Anglong">East Karbi Anglong (26.13°N, 93.57°E)</option>
+            </optgroup>
+            <optgroup label="📍 Lower & North Assam Divisions">
+              <option value="Guwahati / Kamrup Metro">Guwahati / Kamrup Metro (26.14°N, 91.73°E)</option>
+              <option value="Darrang">Darrang (26.44°N, 92.02°E)</option>
+              <option value="Barpeta">Barpeta (26.31°N, 90.98°E)</option>
+              <option value="Sonitpur">Sonitpur (26.75°N, 92.85°E)</option>
+              <option value="Dhubri">Dhubri (26.01°N, 89.99°E)</option>
+              <option value="Goalpara">Goalpara (26.17°N, 90.62°E)</option>
+            </optgroup>
+            <optgroup label="📍 Barak Valley Division">
+              <option value="Cachar">Cachar (24.83°N, 92.77°E)</option>
+              <option value="Hailakandi">Hailakandi (24.68°N, 92.57°E)</option>
+              <option value="Karimganj">Karimganj (24.86°N, 92.35°E)</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="topbar-alert-banner">
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; font-size:1rem;"></i>
+            <span><strong>HIGH FLOOD RISK</strong> in Golaghat District. Heavy rainfall and rising water levels. Stay alert and avoid flooded areas.</span>
+          </div>
+          <button class="btn btn-outline" style="padding:0.25rem 0.65rem; font-size:0.685rem; border-color:rgba(239,68,68,0.5); color:#ffffff;" onclick="openSafetyGuideModal()">
+            Stay Safe Guide &rarr;
+          </button>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <div style="position:relative; cursor:pointer;">
+            <i class="fa-solid fa-bell" style="color:#94a3b8; font-size:1.1rem;"></i>
+            <span style="position:absolute; top:-4px; right:-6px; background:#ef4444; color:#fff; font-size:0.55rem; font-weight:800; padding:1px 4px; border-radius:50%;">3</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;" onclick="location.href='citizen-profile.html'">
+            <img class="citizen-user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" style="width:30px; height:30px; border-radius:50%; object-fit:cover;" alt="Avatar">
+            <div style="text-align:left;">
+              <div class="citizen-user-name" style="font-size:0.75rem; font-weight:700; color:#fff; line-height:1;">Ravi Das</div>
+              <div class="citizen-user-email" style="font-size:0.6rem; color:#94a3b8;">Citizen</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Central Content Grid -->
+      <div class="dash-content-grid">
+        
+        <!-- Upper Row: 3 Column Panels -->
+        <div class="dash-upper-grid">
+          
+          <!-- Column 1: Risk, Weather, Quick Actions & AI Summary -->
+          <div style="display:flex; flex-direction:column; gap:0.65rem;">
+            <!-- Current Risk Level Card -->
+            <div class="dash-card">
+              <div class="dash-card-title">CURRENT RISK LEVEL</div>
+              <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; padding: 0.65rem; text-align: center; margin-bottom: 0.4rem;">
+                <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.4rem; color: #ef4444;"></i>
+                <div style="font-size: 1.25rem; font-weight: 800; color: #ef4444; margin-top: 0.2rem;">CRITICAL</div>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#cbd5e1;">
+                <span>Water Level: <strong style="color:#ef4444">4.8 m ⬆</strong></span>
+                <span style="color:#ef4444; font-weight:700;">Rising</span>
+              </div>
+              <div style="font-size:0.625rem; color:#64748b; margin-top:0.2rem;">Last Updated: 10:20 AM, Today</div>
+            </div>
+
+            <!-- Weather Alert Card -->
+            <div class="dash-card">
+              <div class="dash-card-title">WEATHER ALERT</div>
+              <div style="display:flex; gap:0.5rem; align-items:center;">
+                <i class="fa-solid fa-cloud-showers-heavy" style="font-size:1.6rem; color:#3b82f6;"></i>
+                <div>
+                  <div style="font-weight:700; font-size:0.8rem; color:#fff;">Heavy Rainfall</div>
+                  <div style="font-size:0.685rem; color:#94a3b8;">Expected in next 6 hours. Stay indoors. Avoid travel.</div>
+                </div>
+              </div>
+              <div style="font-size:0.625rem; color:#64748b; margin-top:0.4rem; display:flex; justify-content:space-between;">
+                <span>Source: IMD Assam</span>
+                <a href="#" style="color:#3b82f6; text-decoration:none; font-weight:700;">View Details &rarr;</a>
+              </div>
+            </div>
+
+            <!-- Quick Actions Grid (Placed in Column 1 for Maximum Visibility) -->
+            <div class="dash-card">
+              <div class="dash-card-title">⚡ QUICK ACTIONS</div>
+              <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:0.35rem;">
+                <div class="quick-action-btn" onclick="location.href='citizen-sos.html'">
+                  <i class="fa-solid fa-circle-exclamation" style="color:#ef4444; font-size:1rem;"></i>
+                  <span>Send SOS</span>
+                </div>
+                <div class="quick-action-btn" onclick="location.href='citizen-intel.html'">
+                  <i class="fa-solid fa-route" style="color:#3b82f6; font-size:1rem;"></i>
+                  <span>Find Route</span>
+                </div>
+                <div class="quick-action-btn" onclick="location.href='citizen-shelters.html'">
+                  <i class="fa-solid fa-campground" style="color:#10b981; font-size:1rem;"></i>
+                  <span>Find Shelter</span>
+                </div>
+                <div class="quick-action-btn" onclick="location.href='citizen-ai.html'">
+                  <i class="fa-solid fa-wand-magic-sparkles" style="color:#8b5cf6; font-size:1rem;"></i>
+                  <span>AI Assistant</span>
+                </div>
+                <div class="quick-action-btn" onclick="location.href='citizen-contacts.html'">
+                  <i class="fa-solid fa-phone-volume" style="color:#f59e0b; font-size:1rem;"></i>
+                  <span>Contacts</span>
+                </div>
+                <div class="quick-action-btn" onclick="openSafetyGuideModal()">
+                  <i class="fa-solid fa-shield-heart" style="color:#06b6d4; font-size:1rem;"></i>
+                  <span>Safety Guide</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- AI Safety Summary Card -->
+            <div class="dash-card" style="flex:1; background: rgba(139,92,246,0.08); border-color: rgba(139,92,246,0.3);">
+              <div class="dash-card-title" style="color:#a78bfa;"><i class="fa-solid fa-robot"></i> AI SAFETY SUMMARY</div>
+              <div style="font-size: 0.725rem; color: #e2e8f0; line-height: 1.45;">
+                Heavy rainfall continuing in Golaghat. Water level of Dhansiri River is rising. Avoid NH-715 and low-lying areas. Nearest safe shelter is <strong style="color:#10b981;">2.4 km away</strong>.
+              </div>
+              <div style="font-size:0.625rem; color:#8b5cf6; margin-top:auto; font-weight:600;">Updated 10:15 AM</div>
+            </div>
+          </div>
+
+          <!-- Column 2: Center Live Map & Today Overview -->
+          <div style="display:flex; flex-direction:column; gap:0.65rem;">
+            <!-- Map Card -->
+            <div class="dash-card" style="flex:1; padding:0.65rem;">
+              <div class="dash-card-title" style="margin-bottom:0.35rem;">
+                <span>LIVE FLOOD MAP - ASSAM STATE</span>
+                <div style="display:flex; align-items:center; gap:0.4rem;">
+                  <span class="badge badge-success" style="font-size:0.55rem; padding:0.15rem 0.4rem;"><span class="pulse-dot" style="background:#10b981"></span> LIVE</span>
+                  <button class="btn btn-outline" style="padding:0.15rem 0.4rem; font-size:0.625rem;" onclick="app.centerAssamMap()"><i class="fa-solid fa-map"></i> Lock Assam</button>
+                </div>
+              </div>
+
+              <!-- OpenStreetMap Container showing lanes and streets -->
+              <div id="citizen-osm-map"></div>
+
+              <!-- Filter Checkboxes -->
+              <div class="map-filter-bar">
+                <label class="map-filter-item"><input type="checkbox" id="layer-flooded" checked onchange="app.toggleMapLayers()"> <span style="color:#ef4444">■</span> Flooded Areas</label>
+                <label class="map-filter-item"><input type="checkbox" id="layer-roads" checked onchange="app.toggleMapLayers()"> <span style="color:#f59e0b">⚠️</span> Road Blocked</label>
+                <label class="map-filter-item"><input type="checkbox" id="layer-shelters" checked onchange="app.toggleMapLayers()"> <span style="color:#10b981">🟢</span> Shelters</label>
+                <label class="map-filter-item"><input type="checkbox" id="layer-hospitals" checked onchange="app.toggleMapLayers()"> <span style="color:#3b82f6">🏥</span> Hospitals</label>
+                <label class="map-filter-item"><input type="checkbox" id="layer-rescue" checked onchange="app.toggleMapLayers()"> <span style="color:#8b5cf6">🚤</span> Rescue Teams</label>
+              </div>
+            </div>
+
+            <!-- Today's Overview Stats Row -->
+            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:0.5rem;">
+              <div style="background:#0b1426; border:1px solid rgba(59,130,246,0.2); border-radius:8px; padding:0.45rem; display:flex; align-items:center; gap:0.5rem;">
+                <div style="width:28px; height:28px; border-radius:50%; background:rgba(37,99,235,0.15); color:#3b82f6; display:flex; align-items:center; justify-content:center; font-size:0.8rem;"><i class="fa-solid fa-users"></i></div>
+                <div>
+                  <div style="font-size:0.58rem; color:#94a3b8;">People Affected</div>
+                  <div style="font-size:0.85rem; font-weight:800; color:#fff; line-height:1;">12,560</div>
+                </div>
+              </div>
+
+              <div style="background:#0b1426; border:1px solid rgba(59,130,246,0.2); border-radius:8px; padding:0.45rem; display:flex; align-items:center; gap:0.5rem;">
+                <div style="width:28px; height:28px; border-radius:50%; background:rgba(16,185,129,0.15); color:#10b981; display:flex; align-items:center; justify-content:center; font-size:0.8rem;"><i class="fa-solid fa-house-chimney"></i></div>
+                <div>
+                  <div style="font-size:0.58rem; color:#94a3b8;">Active Shelters</div>
+                  <div style="font-size:0.85rem; font-weight:800; color:#fff; line-height:1;">25</div>
+                </div>
+              </div>
+
+              <div style="background:#0b1426; border:1px solid rgba(59,130,246,0.2); border-radius:8px; padding:0.45rem; display:flex; align-items:center; gap:0.5rem;">
+                <div style="width:28px; height:28px; border-radius:50%; background:rgba(239,68,68,0.15); color:#ef4444; display:flex; align-items:center; justify-content:center; font-size:0.8rem;"><i class="fa-solid fa-bell"></i></div>
+                <div>
+                  <div style="font-size:0.58rem; color:#94a3b8;">SOS Requests</div>
+                  <div style="font-size:0.85rem; font-weight:800; color:#fff; line-height:1;">248</div>
+                </div>
+              </div>
+
+              <div style="background:#0b1426; border:1px solid rgba(59,130,246,0.2); border-radius:8px; padding:0.45rem; display:flex; align-items:center; gap:0.5rem;">
+                <div style="width:28px; height:28px; border-radius:50%; background:rgba(245,158,11,0.15); color:#f59e0b; display:flex; align-items:center; justify-content:center; font-size:0.8rem;"><i class="fa-solid fa-sailboat"></i></div>
+                <div>
+                  <div style="font-size:0.58rem; color:#94a3b8;">Rescue Teams</div>
+                  <div style="font-size:0.85rem; font-weight:800; color:#fff; line-height:1;">18 Active</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 3: Shelter, SOS & Emergency Helplines -->
+          <div style="display:flex; flex-direction:column; gap:0.65rem;">
+            <!-- Nearest Shelter Card -->
+            <div class="dash-card">
+              <div class="dash-card-title">NEAREST SHELTER</div>
+              <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.35rem;">
+                <div style="width:28px; height:28px; border-radius:50%; background:rgba(16,185,129,0.2); color:#10b981; display:flex; align-items:center; justify-content:center; font-size:0.8rem;"><i class="fa-solid fa-house-medical"></i></div>
+                <div>
+                  <div style="font-weight:700; font-size:0.825rem; color:#fff;">Golaghat Relief Camp</div>
+                  <div style="font-size:0.65rem; color:#10b981;">2.4 km away</div>
+                </div>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size:0.685rem; color:#cbd5e1; margin-bottom:0.35rem;">
+                <span>Capacity: <strong>500</strong></span>
+                <span>Available: <strong style="color:#10b981">182 Beds</strong></span>
+              </div>
+              <button class="btn btn-primary" style="width:100%; font-size:0.7rem; padding:0.35rem;" onclick="location.href='citizen-intel.html'">
+                Get Directions &rarr;
+              </button>
+            </div>
+
+            <!-- My SOS Status Card -->
+            <div class="dash-card" style="border-color:rgba(239,68,68,0.3);">
+              <div class="dash-card-title">MY SOS STATUS</div>
+              <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem;">
+                <i class="fa-solid fa-circle-check" style="color:#10b981; font-size:1.1rem;"></i>
+                <div>
+                  <div style="font-size:0.75rem; font-weight:700; color:#10b981;">No Active SOS</div>
+                  <div style="font-size:0.625rem; color:#94a3b8;">You are safe. Send SOS if in emergency.</div>
+                </div>
+              </div>
+              <button class="btn btn-primary" style="background:#ef4444; width:100%; font-size:0.725rem; padding:0.4rem;" onclick="location.href='citizen-sos.html'">
+                <i class="fa-solid fa-triangle-exclamation"></i> Send SOS Now
+              </button>
+            </div>
+
+            <!-- Emergency Helplines Card -->
+            <div class="dash-card" style="flex:1;">
+              <div class="dash-card-title">📞 EMERGENCY HELPLINES</div>
+              <div style="display:flex; flex-direction:column; gap:0.3rem; font-size:0.65rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:0.3rem 0.45rem; border-radius:6px;">
+                  <span style="color:#cbd5e1;"><i class="fa-solid fa-phone-volume" style="color:#ef4444; margin-right:4px;"></i> Emergency Control</span>
+                  <strong style="color:#ef4444; font-size:0.75rem;">112</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:0.3rem 0.45rem; border-radius:6px;">
+                  <span style="color:#cbd5e1;"><i class="fa-solid fa-shield-halved" style="color:#f59e0b; margin-right:4px;"></i> ASDMA Disaster Control</span>
+                  <strong style="color:#f59e0b; font-size:0.75rem;">1078</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:0.3rem 0.45rem; border-radius:6px;">
+                  <span style="color:#cbd5e1;"><i class="fa-solid fa-truck-medical" style="color:#10b981; margin-right:4px;"></i> Medical Ambulance</span>
+                  <strong style="color:#10b981; font-size:0.75rem;">108</strong>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Lower Row: Live Updates, Water Levels, Emergency Contacts -->
+        <div class="dash-bottom-grid">
+          
+          <!-- Live Updates Feed -->
+          <div class="dash-card">
+            <div class="dash-card-title">
+              <span>LIVE UPDATES</span>
+              <a href="#" style="color:#3b82f6; text-decoration:none; font-size:0.65rem;">View All &rarr;</a>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:0.3rem; overflow-y:auto; padding-right:0.2rem;">
+              <div style="font-size:0.685rem; color:#cbd5e1; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.25rem; display:flex; justify-content:space-between;">
+                <span>🌊 Water level of Dhansiri River rising steadily.</span>
+                <span style="color:#64748b;">10:18 AM</span>
+              </div>
+              <div style="font-size:0.685rem; color:#cbd5e1; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.25rem; display:flex; justify-content:space-between;">
+                <span>⚠️ NH-715 near Bokakhat blocked due to flooding.</span>
+                <span style="color:#64748b;">10:05 AM</span>
+              </div>
+              <div style="font-size:0.685rem; color:#cbd5e1; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.25rem; display:flex; justify-content:space-between;">
+                <span>🟢 Relief camp opened at Golaghat College.</span>
+                <span style="color:#64748b;">09:50 AM</span>
+              </div>
+              <div style="font-size:0.685rem; color:#cbd5e1; display:flex; justify-content:space-between;">
+                <span>🚤 NDRF team deployed in Karbi Anglong.</span>
+                <span style="color:#64748b;">09:35 AM</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Water Level Status Table -->
+          <div class="dash-card">
+            <div class="dash-card-title">
+              <span>WATER LEVEL STATUS</span>
+              <a href="#" style="color:#3b82f6; text-decoration:none; font-size:0.65rem;">View Details</a>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:0.25rem; font-size:0.7rem;">
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.2rem;">
+                <span>Dhansiri River (Golaghat)</span>
+                <strong style="color:#fff;">4.8 m</strong>
+                <span style="color:#ef4444; font-weight:700;">Rising ⬆</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.2rem;">
+                <span>Subansiri River (Nagaon)</span>
+                <strong style="color:#fff;">3.2 m</strong>
+                <span style="color:#ef4444; font-weight:700;">Rising ⬆</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.2rem;">
+                <span>Brahmaputra (Dibrugarh)</span>
+                <strong style="color:#fff;">2.6 m</strong>
+                <span style="color:#10b981; font-weight:700;">Stable</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span>Disang River (Sivasagar)</span>
+                <strong style="color:#fff;">2.1 m</strong>
+                <span style="color:#10b981; font-weight:700;">Stable</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Emergency Contacts Box -->
+          <div class="dash-card">
+            <div class="dash-card-title">EMERGENCY CONTACTS</div>
+            <div style="display:flex; flex-direction:column; gap:0.2rem; font-size:0.685rem;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span><i class="fa-solid fa-shield-halved" style="color:#3b82f6;"></i> Disaster Mgmt Assam</span>
+                <strong style="color:#fff;">1078</strong>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span><i class="fa-solid fa-building-shield" style="color:#3b82f6;"></i> Police Control Room</span>
+                <strong style="color:#fff;">100</strong>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span><i class="fa-solid fa-truck-medical" style="color:#ef4444;"></i> Ambulance</span>
+                <strong style="color:#fff;">108</strong>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span><i class="fa-solid fa-fire-extinguisher" style="color:#f59e0b;"></i> Fire Service</span>
+                <strong style="color:#fff;">101</strong>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span><i class="fa-solid fa-headset" style="color:#10b981;"></i> Shelter Helpline</span>
+                <strong style="color:#fff;">9876543210</strong>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- JavaScript for Map Init & Interactive Controls -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initialize Leaflet Map using OpenStreetMap default white tiles showing streets & lanes
+      const mapCenter = [26.4049, 93.8500]; // Centered on Golaghat & Assam valley
+      const map = L.map('citizen-osm-map', {
+        center: mapCenter,
+        zoom: 9,
+        minZoom: 7,
+        maxZoom: 17,
+        zoomControl: true
+      });
+
+      // Strict Assam State Bounding Box Lock
+      const assamBounds = L.latLngBounds(
+        L.latLng(24.0000, 89.5000), // Southwest (Assam Border)
+        L.latLng(28.2000, 96.2000)  // Northeast (Assam Border)
+      );
+      map.setMaxBounds(assamBounds);
+
+      // Default OpenStreetMap Street Lanes Tiles
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      // Render default selected district (Golaghat) with all markers & routes
+      citizenApp.renderDistrictOnMap(map, 'Golaghat');
+
+      // Invalidate map size on load
+      setTimeout(() => map.invalidateSize(), 300);
+    });
+  </script>
+
+  <!-- ================= ADVANCED SAFETY GUIDE ALERT MODAL ================= -->
+  <div id="safety-guide-modal-backdrop" class="safety-modal-backdrop" style="display:none;">
+    <div class="safety-modal-card">
+      <div class="safety-modal-header">
+        <div style="display:flex; align-items:center; gap:0.65rem;">
+          <div class="safety-modal-icon">
+            <i class="fa-solid fa-shield-heart"></i>
+          </div>
+          <div>
+            <div style="font-weight:800; font-size:1.05rem; color:#fff; display:flex; align-items:center; gap:0.5rem;">
+              AEGIS Emergency Flood Survival Guide
+              <span class="safety-alert-badge">LEVEL 4 SEVERE FLOOD WARNING</span>
+            </div>
+            <div style="font-size:0.72rem; color:#cbd5e1;">Official Evacuation Protocols &amp; Survival Checklist &bull; Assam State</div>
+          </div>
+        </div>
+        <button class="safety-modal-close" onclick="closeSafetyGuideModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Tab Buttons inside Modal -->
+      <div class="safety-tab-bar">
+        <button class="safety-tab-btn active" onclick="switchSafetyTab(0)">🌊 1. Evacuation &amp; Survival</button>
+        <button class="safety-tab-btn" onclick="switchSafetyTab(1)">⚡ 2. Electrical &amp; Utilities</button>
+        <button class="safety-tab-btn" onclick="switchSafetyTab(2)">🏥 3. Medical &amp; Health</button>
+        <button class="safety-tab-btn" onclick="switchSafetyTab(3)">📞 4. Hotlines &amp; Emergency Contacts</button>
+      </div>
+
+      <!-- Tab Contents -->
+      <div class="safety-modal-body">
+        <!-- Tab 0: Evacuation & Survival -->
+        <div class="safety-tab-content active" id="safety-tab-0">
+          <div class="safety-guide-section">
+            <div class="safety-guide-title"><i class="fa-solid fa-person-running" style="color:#ef4444;"></i> CRITICAL EVACUATION PROTOCOLS</div>
+            <ul class="safety-guide-list">
+              <li><strong>Move Immediately to Upper Grounds:</strong> If flood waters rise, head to upper floors or designated high ground shelters immediately.</li>
+              <li><strong>Prepare Emergency Go-Bag:</strong> Pack drinking water (2L/person/day), non-perishable rations, flashlight, power bank, first-aid kit, and vital documents in waterproof plastic bags.</li>
+              <li><strong>NEVER Walk or Drive in Flood Water:</strong> Just 6 inches of moving water can knock down an adult, and 2 feet of water can float and sweep away vehicles.</li>
+              <li><strong>Follow Designated Safe Routes:</strong> Use the AEGIS Safe Routes map to avoid submerged roads like NH-715 near Bokakhat.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Tab 1: Electrical & Utilities -->
+        <div class="safety-tab-content" id="safety-tab-1">
+          <div class="safety-guide-section">
+            <div class="safety-guide-title"><i class="fa-solid fa-bolt" style="color:#f59e0b;"></i> ELECTRICAL &amp; GAS HAZARD PRECAUTIONS</div>
+            <ul class="safety-guide-list">
+              <li><strong>Shut Off Main Power Breaker:</strong> Turn off the main electrical switch and LPG gas cylinder valve before evacuating.</li>
+              <li><strong>Avoid Submerged Wiring:</strong> Never touch electrical switches or appliances if standing in water or wet surroundings.</li>
+              <li><strong>Report Fallen Power Lines:</strong> Stay at least 30 feet away from downed electric poles and immediately report to Assam Power Distribution (APDCL: 1912).</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Tab 2: Medical & Health -->
+        <div class="safety-tab-content" id="safety-tab-2">
+          <div class="safety-guide-section">
+            <div class="safety-guide-title"><i class="fa-solid fa-kit-medical" style="color:#10b981;"></i> WATER PURIFICATION &amp; HEALTH ADVISORY</div>
+            <ul class="safety-guide-list">
+              <li><strong>Boil Drinking Water:</strong> Boil all water vigorously for at least 1 minute or use Halazone/Chlorine water purification tablets.</li>
+              <li><strong>Sanitize Wounds:</strong> Wash cuts or abrasions immediately with clean water and antiseptic to prevent waterborne infections (Leptospirosis, Cholera).</li>
+              <li><strong>Beware of Wildlife &amp; Snakes:</strong> Flooding forces snakes and reptiles to seek shelter in houses. Check shoes, bedding, and corners carefully.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Tab 3: Hotlines & Emergency Contacts -->
+        <div class="safety-tab-content" id="safety-tab-3">
+          <div class="safety-guide-section">
+            <div class="safety-guide-title"><i class="fa-solid fa-phone-volume" style="color:#38bdf8;"></i> OFFICIAL ASSAM EMERGENCY DIRECTORY</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.5rem; margin-top:0.4rem;">
+              <div class="safety-contact-box">
+                <div style="font-weight:800; color:#ef4444; font-size:0.75rem;">🚨 National Emergency Response</div>
+                <div style="font-size:1.15rem; font-weight:800; color:#fff;">Dial 112</div>
+                <div style="font-size:0.625rem; color:#cbd5e1;">Toll-free 24/7 Dispatch</div>
+              </div>
+              <div class="safety-contact-box">
+                <div style="font-weight:800; color:#f59e0b; font-size:0.75rem;">🌊 Assam Disaster Management (ASDMA)</div>
+                <div style="font-size:1.15rem; font-weight:800; color:#fff;">Dial 1078 / 0361-2237011</div>
+                <div style="font-size:0.625rem; color:#cbd5e1;">State Emergency Control Room</div>
+              </div>
+              <div class="safety-contact-box">
+                <div style="font-weight:800; color:#10b981; font-size:0.75rem;">🚑 Medical Ambulance Service</div>
+                <div style="font-size:1.15rem; font-weight:800; color:#fff;">Dial 108</div>
+                <div style="font-size:0.625rem; color:#cbd5e1;">Mrityunjoy Emergency Service</div>
+              </div>
+              <div class="safety-contact-box">
+                <div style="font-weight:800; color:#38bdf8; font-size:0.75rem;">🚤 NDRF 1st Battalion Command</div>
+                <div style="font-size:1.15rem; font-weight:800; color:#fff;">+91 94350 12345</div>
+                <div style="font-size:0.625rem; color:#cbd5e1;">Golaghat &amp; Upper Assam Division</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="safety-modal-footer">
+        <button class="btn btn-outline" style="border-color:#10b981; color:#10b981; font-size:0.72rem; padding:0.35rem 0.75rem;" onclick="closeSafetyGuideModal(); location.href='citizen-shelters.html'">
+          <i class="fa-solid fa-campground"></i> Find Nearest Shelter
+        </button>
+        <button class="btn btn-primary" style="background:#ef4444; font-size:0.72rem; padding:0.35rem 0.75rem;" onclick="closeSafetyGuideModal(); location.href='citizen-sos.html'">
+          <i class="fa-solid fa-circle-exclamation"></i> Send Instant SOS
+        </button>
+        <button class="btn btn-outline" style="font-size:0.72rem; padding:0.35rem 0.75rem; margin-left:auto;" onclick="closeSafetyGuideModal()">
+          Close Guide
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Safety Guide Modal Logic -->
+  <script>
+    function openSafetyGuideModal() {
+      const modal = document.getElementById('safety-guide-modal-backdrop');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closeSafetyGuideModal() {
+      const modal = document.getElementById('safety-guide-modal-backdrop');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function switchSafetyTab(tabIndex) {
+      const btns = document.querySelectorAll('.safety-tab-btn');
+      const contents = document.querySelectorAll('.safety-tab-content');
+
+      btns.forEach((btn, i) => {
+        if (i === tabIndex) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      contents.forEach((content, i) => {
+        if (i === tabIndex) {
+          content.classList.add('active');
+        } else {
+          content.classList.remove('active');
+        }
+      });
+    }
+  </script>
+
+  <!-- Standalone Citizen Script -->
+  <script src="js/citizen.js?v=3.0"></script>
+</body>
+</html>

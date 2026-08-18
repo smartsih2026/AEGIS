@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Team Management - AEGIS Rescue Command System</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Rescue Master Stylesheet & Script -->
+  <link rel="stylesheet" href="rescue-styles.css">
+  <script src="js/rescue-common.js?v=3.0"></script>
+
+  <style>
+    /* Quick Action Buttons */
+    .r-quick-btn {
+      width: 100%;
+      background: rgba(15,23,42,0.85);
+      border: 1px solid rgba(59,130,246,0.35);
+      color: #e2e8f0;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.32rem 0.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: all 0.2s ease;
+    }
+    .r-quick-btn:hover {
+      background: rgba(37,99,235,0.3);
+      color: #fff;
+      border-color: #3b82f6;
+      transform: translateX(3px);
+    }
+
+    /* Zero-Scroll 3-Row Grid Layout for Teams Page */
+    .r-teams-grid {
+      display: grid;
+      grid-template-rows: 1.05fr 1.15fr 0.95fr;
+      gap: 0.45rem;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* Pulsing Alert Animation */
+    @keyframes alertPulse {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    .r-alert-pulse-btn {
+      animation: alertPulse 1.8s infinite;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="r-layout-container">
+    <!-- Left Navigation Sidebar -->
+    <aside class="r-sidebar">
+      <div class="r-sidebar-logo">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.25)"/>
+          <path d="M12 8v8M8 12h8" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <div style="font-weight: 800; font-size: 1.15rem; color: #fff; line-height: 1;">AEGIS</div>
+          <div style="font-size: 0.6rem; color: #cbd5e1; font-weight: 500;">Stronger Together, Safer Assam.</div>
+        </div>
+      </div>
+
+      <!-- Exact 12 User-Specified Pages Navigation Menu -->
+      <nav class="r-nav-menu">
+        <a class="r-nav-item" href="rescue-dashboard.html"><i class="fa-solid fa-gauge-high"></i> Command Dashboard</a>
+        <a class="r-nav-item" href="rescue-map.html"><i class="fa-solid fa-map-location-dot"></i> Flood Risk Map</a>
+        <a class="r-nav-item" href="rescue-priority.html"><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i> Emergency Priority Zones</a>
+        <a class="r-nav-item" href="rescue-analysis.html"><i class="fa-solid fa-chart-line"></i> Flood Risk Analysis</a>
+        <a class="r-nav-item" href="rescue-impact.html"><i class="fa-solid fa-house-crack"></i> Impact Assessment</a>
+        <a class="r-nav-item" href="rescue-resources.html"><i class="fa-solid fa-boxes-packing"></i> Resource Command Center</a>
+        <a class="r-nav-item" href="rescue-sos.html"><i class="fa-solid fa-circle-exclamation" style="color:#ef4444;"></i> Citizen SOS Center <span class="r-nav-badge">12</span></a>
+        <a class="r-nav-item" href="rescue-shelters.html"><i class="fa-solid fa-campground"></i> Shelter Network Management</a>
+        <a class="r-nav-item" href="rescue-operations.html"><i class="fa-solid fa-person-shelter"></i> Live Rescue Operations</a>
+        <a class="r-nav-item" href="rescue-analytics.html"><i class="fa-solid fa-chart-pie"></i> Analytics &amp; Reports</a>
+        <a class="r-nav-item active" href="rescue-teams.html"><i class="fa-solid fa-users-gear"></i> Team Management</a>
+        <a class="r-nav-item" href="rescue-notifications.html"><i class="fa-solid fa-bullhorn" style="color:#f59e0b;"></i> Notifications &amp; Communication <span class="r-nav-badge">5</span></a>
+        <a class="r-nav-item" href="index.html" style="margin-top:auto; color:#ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Settings / Exit</a>
+      </nav>
+
+      <!-- Sidebar Emergency Hotline Box -->
+      <div class="r-sidebar-hotline" style="padding:0.5rem;">
+        <div style="font-size: 0.65rem; color: #fca5a5; font-weight: 700;">EMERGENCY HOTLINE</div>
+        <div style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin: 0.15rem 0;">
+          <i class="fa-solid fa-phone-volume" style="color:#ef4444"></i> 112
+        </div>
+        <div style="font-size: 0.625rem; color: #cbd5e1;">Emergency Call</div>
+        
+        <button class="r-push-talk-btn" style="padding:0.32rem;" onclick="alert('Push-To-Talk Radio Active...')">
+          <i class="fa-solid fa-microphone"></i> Push to Talk
+        </button>
+      </div>
+
+      <!-- Quick Actions Sidebar Panel -->
+      <div style="margin-top:0.3rem; background:rgba(6,12,28,0.7); border:1px solid rgba(59,130,246,0.2); border-radius:8px; padding:0.35rem 0.5rem; display:flex; flex-direction:column; gap:0.25rem;">
+        <div style="font-size:0.625rem; font-weight:800; color:#94a3b8;">QUICK ACTIONS</div>
+        <button class="r-quick-btn" style="border-left:3px solid #2563eb;" onclick="alert('Opening Create New Rescue Team Modal...')">
+          <i class="fa-solid fa-user-plus" style="color:#38bdf8;"></i> Create New Team
+        </button>
+        <button class="r-quick-btn" style="border-left:3px solid #a78bfa;" onclick="alert('Opening New Assignment Dispatch Modal...')">
+          <i class="fa-solid fa-calendar-check" style="color:#a78bfa;"></i> New Assignment
+        </button>
+        <button class="r-quick-btn" style="border-left:3px solid #10b981;" onclick="alert('Opening Vehicle Fleet Management Panel...')">
+          <i class="fa-solid fa-truck-field" style="color:#10b981;"></i> Manage Vehicles
+        </button>
+        <button class="r-quick-btn" style="border-left:3px solid #eab308;" onclick="alert('Opening Add Personnel Form...')">
+          <i class="fa-solid fa-address-card" style="color:#eab308;"></i> Add Personnel
+        </button>
+        <button class="r-quick-btn" style="border-left:3px solid #06b6d4;" onclick="window.print()">
+          <i class="fa-solid fa-file-invoice" style="color:#06b6d4;"></i> Generate Report
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Container -->
+    <main class="r-main-area">
+      <!-- Top Header Bar -->
+      <header class="r-topbar" style="margin-bottom: 0.35rem;">
+        <div style="display:flex; align-items:center; gap:0.65rem;">
+          <div>
+            <div style="font-weight:800; font-size:1.15rem; color:#fff; line-height:1.1; display:flex; align-items:center; gap:0.45rem;">
+              Team Management
+              <span style="color:#10b981; font-size:0.7rem; font-weight:700;">● Live</span>
+            </div>
+            <div style="font-size:0.72rem; color:#cbd5e1;">Manage rescue teams, personnel, vehicles, assignments &amp; operational units</div>
+          </div>
+        </div>
+
+        <!-- Center Location Pill -->
+        <div style="display:flex; align-items:center; gap:0.45rem; background:rgba(15,23,42,0.9); border:1px solid rgba(59,130,246,0.3); border-radius:6px; padding:0.25rem 0.65rem;">
+          <i class="fa-solid fa-location-dot" style="color:#ef4444;"></i>
+          <span style="font-size:0.785rem; font-weight:700; color:#fff;">Assam, India</span>
+        </div>
+
+        <!-- Right Utilities & Animated Alert Pill -->
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <div class="r-top-utility-box" style="padding:0.28rem 0.6rem; font-size:0.75rem;">
+            <i class="fa-solid fa-cloud-showers-heavy" style="color:#38bdf8;"></i>
+            <span><strong>25°C</strong> Heavy Rain</span>
+          </div>
+
+          <!-- Animated Pulsing Alert Box -->
+          <div style="background:rgba(239,68,68,0.25); border:1px solid #ef4444; border-radius:6px; padding:0.28rem 0.6rem; font-size:0.72rem; font-weight:800; color:#ef4444; display:flex; align-items:center; gap:0.35rem;" class="r-alert-pulse-btn">
+            <i class="fa-solid fa-triangle-exclamation"></i> Flood Alert Level 4 - Severe
+          </div>
+
+          <div class="r-top-utility-box" style="padding:0.28rem 0.6rem; font-size:0.75rem;">
+            <i class="fa-solid fa-radio" style="color:#10b981;"></i>
+            <span>Radio Comms <strong style="color:#38bdf8;">Channel 2</strong></span>
+            <span style="color:#10b981; font-size:0.7rem;"><i class="fa-solid fa-signal"></i></span>
+          </div>
+
+          <div style="position:relative; cursor:pointer;" onclick="location.href='rescue-notifications.html'">
+            <i class="fa-solid fa-bell" style="color:#cbd5e1; font-size:1.1rem;"></i>
+            <span style="position:absolute; top:-4px; right:-6px; background:#ef4444; color:#fff; font-size:0.58rem; font-weight:800; padding:1px 5px; border-radius:50%;">6</span>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:0.55rem; cursor:pointer;" onclick="alert('Command Officer Desk')">
+            <div style="width:32px; height:32px; border-radius:50%; background:#ef4444; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:0.75rem; border:1px solid #fca5a5;">CO</div>
+            <div>
+              <div style="font-size:0.785rem; font-weight:700; color:#fff; line-height:1.1;">Command Officer</div>
+              <div style="font-size:0.625rem; color:#cbd5e1;">NDRF Team-4</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Top 6 Team Summary KPI Cards Bar -->
+      <div class="r-metrics-bar" style="grid-template-columns: repeat(6, 1fr); margin-bottom: 0.35rem; padding:0 1.15rem;">
+        <div class="r-metric-card" style="border-left: 3.5px solid #2563eb; padding:0.35rem 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.6rem; font-weight:800; color:#2563eb;">TOTAL PERSONNEL</span>
+            <i class="fa-solid fa-users" style="color:#2563eb; font-size:0.85rem;"></i>
+          </div>
+          <div style="font-size:1.25rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-tot-personnel">1,248</div>
+          <div style="font-size:0.58rem; color:#10b981; font-weight:700;">+32 Today</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3.5px solid #10b981; padding:0.35rem 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.6rem; font-weight:800; color:#10b981;">ACTIVE TEAMS</span>
+            <i class="fa-solid fa-users-gear" style="color:#10b981; font-size:0.85rem;"></i>
+          </div>
+          <div style="font-size:1.25rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-active-teams">84</div>
+          <div style="font-size:0.58rem; color:#10b981; font-weight:700;">+6 Deployed</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3.5px solid #f59e0b; padding:0.35rem 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.6rem; font-weight:800; color:#f59e0b;">VEHICLES</span>
+            <i class="fa-solid fa-truck-field" style="color:#f59e0b; font-size:0.85rem;"></i>
+          </div>
+          <div style="font-size:1.25rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-vehicles">156</div>
+          <div style="font-size:0.58rem; color:#cbd5e1;">+8 On Mission</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3.5px solid #10b981; padding:0.35rem 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.6rem; font-weight:800; color:#10b981;">OPERATIONAL UNITS</span>
+            <i class="fa-solid fa-building" style="color:#10b981; font-size:0.85rem;"></i>
+          </div>
+          <div style="font-size:1.25rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-units">12</div>
+          <div style="font-size:0.58rem; color:#10b981; font-weight:700;">+1 New Unit</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3.5px solid #38bdf8; padding:0.35rem 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.6rem; font-weight:800; color:#38bdf8;">ON DUTY</span>
+            <i class="fa-solid fa-user-check" style="color:#38bdf8; font-size:0.85rem;"></i>
+          </div>
+          <div style="font-size:1.25rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-on-duty">1,036</div>
+          <div style="font-size:0.58rem; color:#38bdf8; font-weight:700;">83% of Total</div>
+        </div>
+
+        <div class="r-metric-card" style="border-left: 3.5px solid #a78bfa; padding:0.35rem 0.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.6rem; font-weight:800; color:#a78bfa;">AVAILABLE</span>
+            <i class="fa-solid fa-user-clock" style="color:#a78bfa; font-size:0.85rem;"></i>
+          </div>
+          <div style="font-size:1.25rem; font-weight:800; color:#fff; margin:1px 0 0 0;" id="kpi-available">212</div>
+          <div style="font-size:0.58rem; color:#a78bfa; font-weight:700;">17% of Total</div>
+        </div>
+      </div>
+
+      <!-- Main Teams Workspace 3-Row Grid -->
+      <div class="r-teams-grid" style="padding:0 1.15rem 0.35rem 1.15rem;">
+        
+        <!-- Row 1: Team Deployment & Status Overview + Operational Units Table Split -->
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1.3fr; gap:0.45rem; height:100%; min-height:0;">
+          
+          <!-- Box 1: TEAM DEPLOYMENT OVERVIEW (Donut Chart) -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.45rem; height:100%;">
+            <div style="font-weight:800; font-size:0.75rem; color:#fff; margin-bottom:0.15rem;">TEAM DEPLOYMENT OVERVIEW</div>
+
+            <div style="flex:1; display:flex; align-items:center; justify-content:space-between;">
+              <svg width="70" height="70" viewBox="0 0 42 42">
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#2563eb" stroke-width="5.5" stroke-dasharray="50 50" stroke-dashoffset="25"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#38bdf8" stroke-width="5.5" stroke-dasharray="21 79" stroke-dashoffset="75"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#f59e0b" stroke-width="5.5" stroke-dasharray="12 88" stroke-dashoffset="54"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#a78bfa" stroke-width="5.5" stroke-dasharray="11 89" stroke-dashoffset="42"></circle>
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#ef4444" stroke-width="5.5" stroke-dasharray="6 94" stroke-dashoffset="31"></circle>
+                <text x="21" y="19" fill="#fff" font-size="5.5" font-weight="bold" text-anchor="middle">84</text>
+                <text x="21" y="24" fill="#cbd5e1" font-size="3.5" text-anchor="middle">Total Teams</text>
+              </svg>
+
+              <div style="font-size:0.6rem; display:flex; flex-direction:column; gap:0.12rem;" id="deployment-donut-legend">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Box 2: TEAM STATUS OVERVIEW (5 Status Cards Stack) -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.45rem; height:100%;">
+            <div style="font-weight:800; font-size:0.75rem; color:#fff; margin-bottom:0.15rem;">TEAM STATUS OVERVIEW</div>
+            
+            <div style="display:flex; flex-direction:column; gap:0.18rem; flex:1;" id="team-status-stack-container">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Box 3: OPERATIONAL UNITS Table -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; overflow:hidden; padding:0.45rem; height:100%;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.15rem;">
+              <span style="font-weight:800; font-size:0.75rem; color:#fff;">OPERATIONAL UNITS</span>
+              <a href="#" style="font-size:0.58rem; color:#38bdf8; text-decoration:none; font-weight:700;">View All Units</a>
+            </div>
+
+            <div style="flex:1; overflow-y:auto; font-size:0.58rem;">
+              <table style="width:100%; border-collapse:collapse;" id="op-units-table">
+                <!-- Populated by JS -->
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Row 2: DEPLOYED TEAMS (Primary Table) + Right Personnel Summary Stack -->
+        <div style="display:grid; grid-template-columns: 2.3fr 1fr; gap:0.45rem; height:100%; min-height:0;">
+          
+          <!-- Box 4: DEPLOYED TEAMS Table -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; overflow:hidden; padding:0.45rem; height:100%;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.15rem;">
+              <span style="font-weight:800; font-size:0.75rem; color:#fff;">DEPLOYED TEAMS</span>
+              <a href="#" style="font-size:0.58rem; color:#38bdf8; text-decoration:none; font-weight:700;">View All Teams</a>
+            </div>
+
+            <div style="flex:1; overflow-y:auto; font-size:0.6rem;">
+              <table style="width:100%; border-collapse:collapse;" id="primary-deployed-teams-table">
+                <!-- Populated by JS -->
+              </table>
+            </div>
+          </div>
+
+          <!-- Right Column Stack (Personnel Summary + Skills Breakdown) -->
+          <div style="display:flex; flex-direction:column; gap:0.45rem; height:100%; min-height:0;">
+            <!-- Personnel Summary Donut -->
+            <div class="r-panel-box" style="flex:1; display:flex; flex-direction:column; padding:0.45rem;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.1rem;">
+                <span style="font-weight:800; font-size:0.75rem; color:#fff;">PERSONNEL SUMMARY</span>
+                <a href="#" style="font-size:0.55rem; color:#38bdf8; text-decoration:none; font-weight:700;">View All</a>
+              </div>
+
+              <div style="flex:1; display:flex; align-items:center; justify-content:space-between;">
+                <svg width="60" height="60" viewBox="0 0 42 42">
+                  <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#2563eb" stroke-width="5.5" stroke-dasharray="40 60" stroke-dashoffset="25"></circle>
+                  <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#38bdf8" stroke-width="5.5" stroke-dasharray="17 83" stroke-dashoffset="85"></circle>
+                  <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#f59e0b" stroke-width="5.5" stroke-dasharray="11 89" stroke-dashoffset="68"></circle>
+                  <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#a78bfa" stroke-width="5.5" stroke-dasharray="20 80" stroke-dashoffset="57"></circle>
+                  <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#ef4444" stroke-width="5.5" stroke-dasharray="12 88" stroke-dashoffset="37"></circle>
+                  <text x="21" y="19" fill="#fff" font-size="5" font-weight="bold" text-anchor="middle">1,248</text>
+                  <text x="21" y="24" fill="#cbd5e1" font-size="3.2" text-anchor="middle">Personnel</text>
+                </svg>
+
+                <div style="font-size:0.55rem; display:flex; flex-direction:column; gap:0.1rem;" id="personnel-donut-legend">
+                  <!-- Populated by JS -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Certification & Skills Breakdown -->
+            <div class="r-panel-box" style="flex:1; display:flex; flex-direction:column; padding:0.45rem;">
+              <div style="font-weight:800; font-size:0.75rem; color:#fff; margin-bottom:0.15rem;">CERTIFICATION &amp; SKILLS BREAKDOWN</div>
+              <div style="display:flex; flex-direction:column; gap:0.12rem; font-size:0.55rem; flex:1;" id="skills-breakdown-container">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Row 3: Bottom Consoles Split (Vehicle Management + Upcoming Assignments + AI Recommendations) -->
+        <div style="display:grid; grid-template-columns: 1.4fr 1.1fr 1fr; gap:0.45rem; height:100%; min-height:0;">
+          
+          <!-- Box 5: VEHICLE MANAGEMENT -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.45rem; height:100%;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.15rem;">
+              <span style="font-weight:800; font-size:0.75rem; color:#fff;">VEHICLE MANAGEMENT</span>
+              <a href="#" style="font-size:0.58rem; color:#38bdf8; text-decoration:none; font-weight:700;">View All Vehicles</a>
+            </div>
+
+            <!-- 5 Vehicle Type Cards -->
+            <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:0.25rem; text-align:center; margin-bottom:0.25rem;" id="vehicle-type-cards">
+              <!-- Populated by JS -->
+            </div>
+
+            <!-- Vehicle Status Bar -->
+            <div style="margin-top:auto;">
+              <div style="font-size:0.58rem; font-weight:800; color:#fff; margin-bottom:2px;">VEHICLE STATUS</div>
+              <div style="background:rgba(255,255,255,0.08); height:6px; border-radius:3px; overflow:hidden; display:flex;">
+                <div style="width:38%; background:#2563eb;"></div>
+                <div style="width:33%; background:#10b981;"></div>
+                <div style="width:12%; background:#f59e0b;"></div>
+                <div style="width:17%; background:#ef4444;"></div>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size:0.52rem; margin-top:2px; color:#cbd5e1;">
+                <span><strong style="color:#2563eb;">■ On Mission:</strong> 60 (38%)</span>
+                <span><strong style="color:#10b981;">■ Available:</strong> 52 (33%)</span>
+                <span><strong style="color:#f59e0b;">■ Maintenance:</strong> 18 (12%)</span>
+                <span><strong style="color:#ef4444;">■ Inactive:</strong> 26 (17%)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Box 6: UPCOMING ASSIGNMENTS Timeline -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.45rem; height:100%;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.15rem;">
+              <span style="font-weight:800; font-size:0.75rem; color:#fff;">UPCOMING ASSIGNMENTS</span>
+              <a href="#" style="font-size:0.58rem; color:#38bdf8; text-decoration:none; font-weight:700;">View All</a>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:0.18rem; font-size:0.55rem; flex:1;" id="upcoming-assignments-container">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Box 7: 🤖 AI RECOMMENDATIONS -->
+          <div class="r-panel-box" style="display:flex; flex-direction:column; padding:0.45rem; background:rgba(6,12,28,0.95); border:1px solid rgba(59,130,246,0.35); height:100%;">
+            <div style="font-weight:800; font-size:0.75rem; color:#fff; margin-bottom:0.15rem; display:flex; align-items:center; gap:0.3rem;">
+              <i class="fa-solid fa-brain" style="color:#38bdf8;"></i> AI RECOMMENDATIONS
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:0.18rem; font-size:0.58rem; flex:1;" id="ai-team-recommendations-container">
+              <!-- Populated by JS -->
+            </div>
+
+            <button style="width:100%; background:rgba(37,99,235,0.2); border:1px solid rgba(59,130,246,0.3); color:#38bdf8; font-size:0.58rem; font-weight:700; padding:0.2rem; border-radius:4px; cursor:pointer; margin-top:auto;" onclick="alert('Opening AI Recommended Team Re-allocation Panel...')">
+              View All Recommendations
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Sticky Bottom Meta Footer -->
+      <footer class="r-footer-bar">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.25)"/>
+          </svg>
+          <span><strong>AEGIS Rescue Command System</strong> &bull; Empowering Teams. Saving Lives.</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <span><i class="fa-solid fa-shield-halved" style="color:#10b981;"></i> Secure</span>
+          <span>&bull;</span>
+          <span><i class="fa-solid fa-lock" style="color:#38bdf8;"></i> Encrypted</span>
+          <span>&bull;</span>
+          <span><i class="fa-solid fa-location-crosshairs" style="color:#f59e0b;"></i> GPS Tracking</span>
+          <span>&bull;</span>
+          <span><i class="fa-solid fa-arrows-rotate" style="color:#a78bfa;"></i> Real-time Sync</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span>Data Source: ASDMA | CWC | IMD | Local Authorities</span>
+          <span>&bull;</span>
+          <span>Last Updated: 12 Aug 2026, 10:40 AM</span>
+          <span>&bull;</span>
+          <span style="color:#10b981; font-weight:700;">🟢 Live</span>
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- Data Interactivity Logic -->
+  <script src="js/rescue-teams-data.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Render Summary KPIs
+      const k = rescueTeamsData.summaryKpis;
+      document.getElementById('kpi-tot-personnel').innerText = k.totalPersonnel;
+      document.getElementById('kpi-active-teams').innerText = k.activeTeams;
+      document.getElementById('kpi-vehicles').innerText = k.vehicles;
+      document.getElementById('kpi-units').innerText = k.operationalUnits;
+      document.getElementById('kpi-on-duty').innerText = k.onDuty;
+      document.getElementById('kpi-available').innerText = k.available;
+
+      // 2. Render Consoles & Tables
+      renderDeploymentDonutLegend();
+      renderTeamStatusStack();
+      renderOperationalUnitsTable();
+      renderPrimaryDeployedTeamsTable();
+      renderPersonnelDonutLegend();
+      renderSkillsBreakdown();
+      renderVehicleTypeCards();
+      renderUpcomingAssignments();
+      renderAiRecommendations();
+    });
+
+    function renderDeploymentDonutLegend() {
+      const container = document.getElementById('deployment-donut-legend');
+      container.innerHTML = '';
+
+      rescueTeamsData.deploymentDonut.slices.forEach(sl => {
+        const div = document.createElement('div');
+        div.innerHTML = `<strong style="color:${sl.color};">■ ${sl.status}:</strong> ${sl.count} (${sl.pct})`;
+        container.appendChild(div);
+      });
+    }
+
+    function renderTeamStatusStack() {
+      const container = document.getElementById('team-status-stack-container');
+      container.innerHTML = '';
+
+      rescueTeamsData.statusOverview.forEach(st => {
+        const div = document.createElement('div');
+        div.style.display = 'flex';
+        div.style.alignItems = 'center';
+        div.style.justifyContent = 'space-between';
+        div.style.background = 'rgba(15,23,42,0.75)';
+        div.style.border = '1px solid rgba(59,130,246,0.2)';
+        div.style.padding = '2px 5px';
+        div.style.borderRadius = '4px';
+
+        div.innerHTML = `
+          <div style="display:flex; align-items:center; gap:0.35rem;">
+            <i class="fa-solid ${st.icon}" style="color:${st.color}; font-size:10px;"></i>
+            <div>
+              <strong style="color:#fff; font-size:0.6rem;">${st.status}</strong>
+              <span style="color:#cbd5e1; font-size:0.52rem; display:block;">${st.personnel} Personnel</span>
+            </div>
+          </div>
+          <strong style="font-size:0.75rem; color:${st.color};">${st.teams} Teams</strong>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderOperationalUnitsTable() {
+      const table = document.getElementById('op-units-table');
+      table.innerHTML = `
+        <thead>
+          <tr style="border-bottom:1px solid rgba(59,130,246,0.2); color:#94a3b8; font-size:0.58rem; text-align:left;">
+            <th style="padding:2px 3px;">Unit Name</th>
+            <th style="padding:2px 3px;">Type</th>
+            <th style="padding:2px 3px;">Teams</th>
+            <th style="padding:2px 3px;">Personnel</th>
+            <th style="padding:2px 3px;">Status</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `;
+
+      const tbody = table.querySelector('tbody');
+      rescueTeamsData.operationalUnitsList.forEach(u => {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid rgba(255,255,255,0.04)';
+        tr.innerHTML = `
+          <td style="padding:2.5px 3px; font-weight:700; color:#fff;">${u.name}</td>
+          <td style="padding:2.5px 3px; color:#cbd5e1;">${u.type}</td>
+          <td style="padding:2.5px 3px; color:#38bdf8; font-weight:700;">${u.teams}</td>
+          <td style="padding:2.5px 3px; color:#cbd5e1;">${u.personnel}</td>
+          <td style="padding:2.5px 3px;"><span style="color:${u.color}; font-weight:800;">${u.status}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderPrimaryDeployedTeamsTable() {
+      const table = document.getElementById('primary-deployed-teams-table');
+      table.innerHTML = `
+        <thead>
+          <tr style="border-bottom:1px solid rgba(59,130,246,0.2); color:#94a3b8; font-size:0.58rem; text-align:left;">
+            <th style="padding:2px 3px;">Team ID</th>
+            <th style="padding:2px 3px;">Team Name</th>
+            <th style="padding:2px 3px;">Unit</th>
+            <th style="padding:2px 3px;">Leader</th>
+            <th style="padding:2px 3px;">Personnel</th>
+            <th style="padding:2px 3px;">Status</th>
+            <th style="padding:2px 3px;">Current Location</th>
+            <th style="padding:2px 3px;">ETA</th>
+            <th style="padding:2px 3px;">Progress</th>
+            <th style="padding:2px 3px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `;
+
+      const tbody = table.querySelector('tbody');
+      rescueTeamsData.deployedTeamsTable.forEach(t => {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid rgba(255,255,255,0.04)';
+        tr.innerHTML = `
+          <td style="padding:2.5px 3px; font-weight:800; color:#38bdf8;">${t.id}</td>
+          <td style="padding:2.5px 3px; font-weight:700; color:#fff;">${t.name}</td>
+          <td style="padding:2.5px 3px; color:#cbd5e1;">${t.unit}</td>
+          <td style="padding:2.5px 3px; color:#cbd5e1;">${t.leader}</td>
+          <td style="padding:2.5px 3px; color:#38bdf8; font-weight:700;">${t.personnel}</td>
+          <td style="padding:2.5px 3px;"><span style="color:${t.sColor}; font-weight:800;">${t.status}</span></td>
+          <td style="padding:2.5px 3px; color:#cbd5e1;">${t.location}</td>
+          <td style="padding:2.5px 3px; color:#fff;">${t.eta}</td>
+          <td style="padding:2.5px 3px;">
+            <div style="display:flex; align-items:center; gap:0.25rem;">
+              <div style="flex:1; background:rgba(255,255,255,0.1); height:4px; border-radius:2px; overflow:hidden;">
+                <div style="width:${t.progress}%; background:${t.progress === 100 ? '#2563eb' : '#10b981'}; height:100%;"></div>
+              </div>
+              <span style="font-weight:800; color:${t.sColor};">${t.progress}%</span>
+            </div>
+          </td>
+          <td style="padding:2.5px 3px; color:#38bdf8;">
+            <i class="fa-solid fa-eye" style="cursor:pointer; margin-right:4px;" onclick="alert('Viewing Roster for ${t.name}')"></i>
+            <i class="fa-solid fa-pen-to-square" style="cursor:pointer;" onclick="alert('Editing Assignment for ${t.name}')"></i>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderPersonnelDonutLegend() {
+      const container = document.getElementById('personnel-donut-legend');
+      container.innerHTML = '';
+
+      rescueTeamsData.personnelSummaryDonut.slices.forEach(sl => {
+        const div = document.createElement('div');
+        div.innerHTML = `<strong style="color:${sl.color};">■ ${sl.label}:</strong> ${sl.count} (${sl.pct})`;
+        container.appendChild(div);
+      });
+    }
+
+    function renderSkillsBreakdown() {
+      const container = document.getElementById('skills-breakdown-container');
+      container.innerHTML = '';
+
+      rescueTeamsData.skillsBreakdown.forEach(sk => {
+        const div = document.createElement('div');
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; margin-bottom:1px;">
+            <span style="color:#cbd5e1;">${sk.skill}</span>
+            <strong style="color:${sk.color};">${sk.count}</strong>
+          </div>
+          <div style="background:rgba(255,255,255,0.08); height:3.5px; border-radius:2px; overflow:hidden;">
+            <div style="width:${(sk.count / 500) * 100}%; background:${sk.color}; height:100%;"></div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderVehicleTypeCards() {
+      const container = document.getElementById('vehicle-type-cards');
+      container.innerHTML = '';
+
+      rescueTeamsData.vehicleManagement.types.forEach(v => {
+        const div = document.createElement('div');
+        div.style.background = 'rgba(255,255,255,0.03)';
+        div.style.padding = '0.2rem';
+        div.style.borderRadius = '4px';
+
+        div.innerHTML = `
+          <i class="fa-solid ${v.icon}" style="color:${v.color}; font-size:0.75rem;"></i>
+          <div style="font-size:0.52rem; color:#cbd5e1;">${v.name}</div>
+          <div style="font-size:0.85rem; font-weight:800; color:#fff;">${v.count}</div>
+          <div style="font-size:0.48rem; color:${v.color};">On Mission: ${v.onMission}</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderUpcomingAssignments() {
+      const container = document.getElementById('upcoming-assignments-container');
+      container.innerHTML = '';
+
+      rescueTeamsData.upcomingAssignments.forEach(as => {
+        const div = document.createElement('div');
+        div.style.display = 'flex';
+        div.style.justifyContent = 'space-between';
+        div.style.alignItems = 'center';
+        div.style.background = 'rgba(255,255,255,0.03)';
+        div.style.padding = '2px 4px';
+        div.style.borderRadius = '3px';
+
+        div.innerHTML = `
+          <div>
+            <strong style="color:#38bdf8; font-size:0.58rem;">${as.id} ${as.title}</strong>
+            <span style="color:#cbd5e1; font-size:0.52rem; display:block;">${as.time} &bull; ${as.unit}</span>
+          </div>
+          <span style="background:rgba(239,68,68,0.2); color:${as.color}; font-size:0.48rem; font-weight:800; padding:1px 3px; border-radius:2px;">${as.priority}</span>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderAiRecommendations() {
+      const container = document.getElementById('ai-team-recommendations-container');
+      container.innerHTML = '';
+
+      rescueTeamsData.aiRecommendations.forEach(rec => {
+        const div = document.createElement('div');
+        div.style.display = 'flex';
+        div.style.justifyContent = 'space-between';
+        div.style.alignItems = 'center';
+        div.style.background = 'rgba(255,255,255,0.03)';
+        div.style.padding = '2px 4px';
+        div.style.borderRadius = '3px';
+
+        div.innerHTML = `
+          <div style="display:flex; align-items:center; gap:0.25rem;">
+            <i class="fa-solid fa-check-circle" style="color:#10b981; width:12px;"></i>
+            <span style="color:#cbd5e1;">${rec.text}</span>
+          </div>
+          <span style="background:rgba(245,158,11,0.2); color:${rec.color}; font-size:0.48rem; font-weight:800; padding:1px 3px; border-radius:2px;">${rec.priority}</span>
+        `;
+        container.appendChild(div);
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Rescue Command Dashboard - AEGIS</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Leaflet CSS for Maps -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Master Rescue Stylesheet & Script -->
+  <link rel="stylesheet" href="rescue-styles.css">
+  <script src="js/rescue-common.js?v=3.0"></script>
+
+  <style>
+    /* Custom Popup & Pin Overlay Styles */
+    .leaflet-popup-content-wrapper {
+      background: #070d22 !important;
+      border: 1px solid rgba(59, 130, 246, 0.4) !important;
+      color: #fff !important;
+      border-radius: 8px !important;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7) !important;
+    }
+    .leaflet-popup-tip {
+      background: #070d22 !important;
+    }
+
+    /* Glowing Pulse Marker Effects */
+    .pulse-marker-red {
+      background: #ef4444;
+      color: #fff;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 11px;
+      border: 2px solid #fff;
+      box-shadow: 0 0 14px #ef4444;
+      cursor: pointer;
+    }
+    .pulse-marker-orange {
+      background: #f59e0b;
+      color: #fff;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 11px;
+      border: 2px solid #fff;
+      box-shadow: 0 0 12px #f59e0b;
+      cursor: pointer;
+    }
+    .pulse-marker-blue {
+      background: #38bdf8;
+      color: #000;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 10px;
+      border: 2px solid #fff;
+      box-shadow: 0 0 10px #38bdf8;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="r-layout-container">
+    <!-- Left Navigation Sidebar -->
+    <aside class="r-sidebar">
+      <div class="r-sidebar-logo">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.25)"/>
+          <path d="M12 8v8M8 12h8" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <div style="font-weight: 800; font-size: 1.15rem; color: #fff; line-height: 1;">AEGIS</div>
+          <div style="font-size: 0.58rem; color: #94a3b8; font-weight: 500;">Stronger Together, Safer Assam.</div>
+        </div>
+      </div>
+
+      <nav class="r-nav-menu">
+        <a class="r-nav-item active" href="rescue-dashboard.html"><i class="fa-solid fa-gauge-high"></i> Command Dashboard</a>
+        <a class="r-nav-item" href="rescue-map.html"><i class="fa-solid fa-map-location-dot"></i> Flood Risk Map</a>
+        <a class="r-nav-item" href="rescue-priority.html"><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i> Emergency Priority Zones</a>
+        <a class="r-nav-item" href="rescue-analysis.html"><i class="fa-solid fa-chart-line"></i> Flood Risk Analysis</a>
+        <a class="r-nav-item" href="rescue-impact.html"><i class="fa-solid fa-house-crack"></i> Impact Assessment</a>
+        <a class="r-nav-item" href="rescue-resources.html"><i class="fa-solid fa-boxes-packing"></i> Resource Command Center</a>
+        <a class="r-nav-item" href="rescue-sos.html"><i class="fa-solid fa-circle-exclamation" style="color:#ef4444;"></i> Citizen SOS Center <span class="r-nav-badge">12</span></a>
+        <a class="r-nav-item" href="rescue-shelters.html"><i class="fa-solid fa-campground"></i> Shelter Network Management</a>
+        <a class="r-nav-item" href="rescue-operations.html"><i class="fa-solid fa-person-shelter"></i> Live Rescue Operations</a>
+        <a class="r-nav-item" href="rescue-analytics.html"><i class="fa-solid fa-chart-pie"></i> Analytics &amp; Reports</a>
+        <a class="r-nav-item" href="rescue-teams.html"><i class="fa-solid fa-users-gear"></i> Team Management</a>
+        <a class="r-nav-item" href="rescue-notifications.html"><i class="fa-solid fa-bullhorn" style="color:#f59e0b;"></i> Notifications &amp; Communication <span class="r-nav-badge">5</span></a>
+        <a class="r-nav-item" href="index.html" style="margin-top:auto; color:#ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Settings / Exit</a>
+      </nav>
+
+      <!-- Sidebar Emergency Hotline Box -->
+      <div class="r-sidebar-hotline">
+        <div style="font-size: 0.625rem; color: #fca5a5; font-weight: 700;">EMERGENCY HOTLINE</div>
+        <div style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin: 0.15rem 0;">
+          <i class="fa-solid fa-phone-volume" style="color:#ef4444"></i> 112
+        </div>
+        <div style="font-size: 0.6rem; color: #cbd5e1;">Emergency Call</div>
+        
+        <button class="r-push-talk-btn" onclick="alert('Push-To-Talk Radio Channel 2 Active. Speak now...')">
+          <i class="fa-solid fa-microphone"></i> Push to Talk
+        </button>
+      </div>
+
+      <!-- Quick Actions Bar -->
+      <div style="margin-top:0.45rem;">
+        <div style="font-size:0.65rem; font-weight:800; color:#94a3b8; margin-bottom:0.3rem;">QUICK ACTIONS</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.35rem;">
+          <button class="btn" style="background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); color:#10b981; font-size:0.65rem; padding:0.3rem; border-radius:5px; font-weight:700; cursor:pointer;" onclick="alert('Broadcasting emergency alert to all deployed units...')">
+            <i class="fa-solid fa-bullhorn"></i> Broadcast
+          </button>
+          <button class="btn" style="background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.3); color:#f59e0b; font-size:0.65rem; padding:0.3rem; border-radius:5px; font-weight:700; cursor:pointer;" onclick="alert('Backup request transmitted to ASDMA State HQ!')">
+            <i class="fa-solid fa-hand-holding-hand"></i> Backup
+          </button>
+          <button class="btn" style="background:rgba(167,139,250,0.15); border:1px solid rgba(167,139,250,0.3); color:#a78bfa; font-size:0.65rem; padding:0.3rem; border-radius:5px; font-weight:700; cursor:pointer;" onclick="alert('Opening official Incident Report log generator...')">
+            <i class="fa-solid fa-file-invoice"></i> Report
+          </button>
+          <button class="btn" style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); color:#38bdf8; font-size:0.65rem; padding:0.3rem; border-radius:5px; font-weight:700; cursor:pointer;" onclick="alert('Updating unit status to Operational...')">
+            <i class="fa-solid fa-pen-to-square"></i> Status
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Container -->
+    <main class="r-main-area">
+      <!-- Top Header Bar -->
+      <header class="r-topbar">
+        <div style="display:flex; align-items:center; gap:0.65rem;">
+          <div>
+            <div style="font-weight:800; font-size:1.1rem; color:#fff; line-height:1.1; display:flex; align-items:center; gap:0.45rem;">
+              Rescue Command Dashboard
+              <span style="color:#10b981; font-size:0.65rem; font-weight:700;">● Live</span>
+            </div>
+            <div style="font-size:0.685rem; color:#94a3b8;">Rescue Team POV &bull; Real-time State-Wide Operations &amp; Situational Awareness</div>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <!-- Weather Widget -->
+          <div class="r-top-utility-box">
+            <i class="fa-solid fa-cloud-showers-heavy" style="color:#38bdf8;"></i>
+            <span><strong>24°C</strong> Heavy Rain <small style="color:#94a3b8;">Assam</small></span>
+          </div>
+
+          <!-- Radio Comms Widget -->
+          <div class="r-top-utility-box">
+            <i class="fa-solid fa-radio" style="color:#10b981;"></i>
+            <span>Radio Comms <strong style="color:#38bdf8;">Channel 2</strong></span>
+            <span style="color:#10b981; font-size:0.65rem;"><i class="fa-solid fa-signal"></i></span>
+          </div>
+
+          <!-- Notification Bell -->
+          <div style="position:relative; cursor:pointer;" onclick="location.href='rescue-notifications.html'">
+            <i class="fa-solid fa-bell" style="color:#94a3b8; font-size:1.05rem;"></i>
+            <span style="position:absolute; top:-4px; right:-6px; background:#ef4444; color:#fff; font-size:0.55rem; font-weight:800; padding:1px 4px; border-radius:50%;">6</span>
+          </div>
+
+          <!-- Officer Profile -->
+          <div style="display:flex; align-items:center; gap:0.55rem; cursor:pointer;" onclick="alert('Officer Profile: NDRF 1st Bn Team Leader')">
+            <div style="position:relative;">
+              <div style="width:32px; height:32px; border-radius:50%; background:#ef4444; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:0.75rem; border:1px solid #fca5a5;">TL</div>
+              <span style="position:absolute; bottom:0; right:0; width:8px; height:8px; background:#10b981; border:2px solid #070d1d; border-radius:50%;"></span>
+            </div>
+            <div style="text-align:left;">
+              <div style="font-size:0.785rem; font-weight:700; color:#fff; line-height:1.1;">Team Leader</div>
+              <div style="font-size:0.625rem; color:#94a3b8;">NDRF Team-4</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Top 6 Tactical Key Metrics Cards -->
+      <div class="r-metrics-bar">
+        <!-- Metric 1: Active SOS -->
+        <div class="r-metric-card" style="border-left: 3.5px solid #ef4444;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.65rem; font-weight:800; color:#ef4444;">ACTIVE SOS</span>
+            <span style="font-size:0.6rem; background:rgba(239,68,68,0.2); color:#ef4444; font-weight:800; padding:1px 5px; border-radius:3px;" id="metric-sos-badge">+3 new</span>
+          </div>
+          <div style="font-size:1.4rem; font-weight:800; color:#fff; margin:2px 0 0 0;" id="metric-sos-count">94</div>
+          <div style="font-size:0.625rem; color:#94a3b8;" id="metric-sos-sub">State-Wide High Priority</div>
+        </div>
+
+        <!-- Metric 2: Ongoing Rescues -->
+        <div class="r-metric-card" style="border-left: 3.5px solid #f59e0b;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.65rem; font-weight:800; color:#f59e0b;">ONGOING RESCUES</span>
+          </div>
+          <div style="font-size:1.4rem; font-weight:800; color:#fff; margin:2px 0 0 0;" id="metric-rescues-count">48</div>
+          <div style="font-size:0.625rem; color:#94a3b8;">In Progress &bull; Teams Deployed</div>
+        </div>
+
+        <!-- Metric 3: People Rescued -->
+        <div class="r-metric-card" style="border-left: 3.5px solid #10b981;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.65rem; font-weight:800; color:#10b981;">PEOPLE RESCUED</span>
+            <span style="font-size:0.6rem; color:#10b981; font-weight:700;">Today</span>
+          </div>
+          <div style="font-size:1.4rem; font-weight:800; color:#fff; margin:2px 0 0 0;" id="metric-people-count">842</div>
+          <div style="font-size:0.625rem; color:#10b981;">+ Total Safe</div>
+        </div>
+
+        <!-- Metric 4: Teams Deployed -->
+        <div class="r-metric-card" style="border-left: 3.5px solid #3b82f6;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.65rem; font-weight:800; color:#3b82f6;">TEAMS DEPLOYED</span>
+          </div>
+          <div style="font-size:1.4rem; font-weight:800; color:#fff; margin:2px 0 0 0;" id="metric-teams-count">68</div>
+          <div style="font-size:0.625rem; color:#94a3b8;" id="metric-teams-sub">Across 21 Districts</div>
+        </div>
+
+        <!-- Metric 5: Rescue Assets -->
+        <div class="r-metric-card" style="border-left: 3.5px solid #a78bfa;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.65rem; font-weight:800; color:#a78bfa;">RESCUE ASSETS</span>
+          </div>
+          <div style="font-size:1.4rem; font-weight:800; color:#fff; margin:2px 0 0 0;" id="metric-assets-count">142</div>
+          <div style="font-size:0.625rem; color:#94a3b8;">Boats, Vehicles, Drones</div>
+        </div>
+
+        <!-- Metric 6: Fuel Status -->
+        <div class="r-metric-card" style="border-left: 3.5px solid #06b6d4;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.65rem; font-weight:800; color:#06b6d4;">FUEL STATUS</span>
+          </div>
+          <div style="font-size:1.4rem; font-weight:800; color:#fff; margin:2px 0 0 0;" id="metric-fuel-status">76%</div>
+          <div style="font-size:0.625rem; color:#94a3b8;">Average All Vehicles</div>
+        </div>
+      </div>
+
+      <!-- Master Grid (Center Split & Bottom Consoles) -->
+      <div class="r-dashboard-grid">
+        
+        <!-- Center Middle Split Grid -->
+        <div class="r-middle-split-grid">
+          
+          <!-- Left: Live Operations Map Panel -->
+          <div class="r-map-panel" style="display:flex; flex-direction:column;">
+            <!-- Map Legend & View Controls Header Bar -->
+            <div class="r-map-legend-bar" style="position:relative; top:0; left:0; width:100%; height:40px; border-radius:0; border-bottom:1px solid rgba(59,130,246,0.25); border-top:none; border-left:none; border-right:none; background:#060c1c; padding:0 0.75rem; flex-shrink:0;">
+              <div style="display:flex; align-items:center; gap:0.45rem;">
+                <span style="font-weight:800; color:#fff; font-size:0.785rem;">LIVE FLOOD MAP - ASSAM STATE</span>
+                <span style="background:rgba(16,185,129,0.2); color:#10b981; font-size:0.58rem; font-weight:800; padding:1.5px 6px; border-radius:4px; border:1px solid rgba(16,185,129,0.3);">
+                  ● BOUNDS LOCKED
+                </span>
+              </div>
+
+              <!-- District Select Dropdown & Reset State Button -->
+              <div style="display:flex; align-items:center; gap:0.45rem; margin-left:auto;">
+                <select id="rescue-district-dropdown" style="background:#040914; border:1px solid rgba(59,130,246,0.35); color:#fff; font-size:0.72rem; font-weight:700; padding:0.25rem 0.65rem; border-radius:5px; outline:none; cursor:pointer;" onchange="selectDistrictView(this.value)">
+                  <option value="ALL" selected>🗺️ All Assam Districts View</option>
+                  <option value="Golaghat">Golaghat District (Critical)</option>
+                  <option value="Jorhat">Jorhat District (High Risk)</option>
+                  <option value="Dibrugarh">Dibrugarh District (High Risk)</option>
+                  <option value="Sivasagar">Sivasagar District (High Risk)</option>
+                  <option value="Dhemaji">Dhemaji District (Critical)</option>
+                  <option value="Lakhimpur">Lakhimpur District (Critical)</option>
+                  <option value="Nagaon">Nagaon District (Moderate Risk)</option>
+                  <option value="Kamrup Metropolitan">Kamrup Metropolitan (Guwahati)</option>
+                  <option value="Cachar">Cachar District (Silchar)</option>
+                </select>
+
+                <button style="background:rgba(37,99,235,0.25); border:1px solid rgba(59,130,246,0.4); color:#38bdf8; font-size:0.685rem; font-weight:700; padding:0.25rem 0.55rem; border-radius:5px; cursor:pointer;" onclick="resetStateView()">
+                  <i class="fa-solid fa-arrows-rotate"></i> Reset View
+                </button>
+              </div>
+            </div>
+
+            <!-- Leaflet Map Container -->
+            <div id="rescue-leaflet-map" style="flex:1; width:100%; height:100%;"></div>
+          </div>
+
+          <!-- Right Column: Situational Overview & Weather Alerts -->
+          <div class="r-right-col">
+            
+            <!-- Panel 1: Situational Overview -->
+            <div class="r-panel-box">
+              <div style="font-weight:800; font-size:0.85rem; color:#fff; margin-bottom:0.4rem; display:flex; align-items:center; gap:0.4rem;">
+                <i class="fa-solid fa-shield-cat" style="color:#38bdf8;"></i> SITUATIONAL OVERVIEW
+              </div>
+
+              <div style="display:flex; flex-direction:column; gap:0.35rem; font-size:0.75rem;">
+                <div style="display:flex; justify-content:space-between;">
+                  <span style="color:#94a3b8;"><i class="fa-solid fa-location-dot"></i> View Scope:</span>
+                  <strong style="color:#fff;" id="sit-district">Assam State-Wide</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                  <span style="color:#94a3b8;"><i class="fa-solid fa-triangle-exclamation"></i> Incident Type:</span>
+                  <strong style="color:#38bdf8;" id="sit-incident">Multi-District Flood Surge</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                  <span style="color:#94a3b8;"><i class="fa-solid fa-clock"></i> Date &amp; Time:</span>
+                  <strong style="color:#fff;">12 Aug 2026, 10:40 AM</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                  <span style="color:#94a3b8;"><i class="fa-solid fa-cloud-showers-heavy"></i> Weather:</span>
+                  <strong style="color:#f59e0b;" id="sit-weather">Widespread Heavy Rainfall</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                  <span style="color:#94a3b8;"><i class="fa-solid fa-water"></i> River Status:</span>
+                  <strong style="color:#ef4444;" id="sit-river">Brahmaputra Basin Rising</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+                  <span style="color:#94a3b8;"><i class="fa-solid fa-gauge-high"></i> Overall Status:</span>
+                  <span style="background:rgba(239,68,68,0.25); color:#ef4444; font-weight:800; font-size:0.65rem; padding:2px 8px; border-radius:4px; border:1px solid rgba(239,68,68,0.4);" id="sit-status-badge">
+                    State Emergency Active
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Panel 2: Weather & Alerts -->
+            <div class="r-panel-box" style="flex:1; display:flex; flex-direction:column; justify-content:space-between;">
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+                  <span style="font-weight:800; font-size:0.85rem; color:#fff; display:flex; align-items:center; gap:0.4rem;">
+                    <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i> WEATHER &amp; ALERTS
+                  </span>
+                  <a href="rescue-analysis.html" style="font-size:0.685rem; color:#38bdf8; text-decoration:none; font-weight:700;">View All</a>
+                </div>
+
+                <!-- Alert Cards List -->
+                <div style="display:flex; flex-direction:column; gap:0.35rem;">
+                  <!-- Alert 1 -->
+                  <div style="background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); border-radius:6px; padding:0.4rem 0.55rem; display:flex; align-items:flex-start; gap:0.45rem;">
+                    <i class="fa-solid fa-cloud-showers-heavy" style="color:#ef4444; font-size:0.85rem; margin-top:2px;"></i>
+                    <div>
+                      <div style="font-weight:800; font-size:0.75rem; color:#fff;">Heavy Rainfall Warning</div>
+                      <div style="font-size:0.65rem; color:#cbd5e1;">Golaghat, Dhemaji, Cachar &bull; Next 24 Hours</div>
+                    </div>
+                  </div>
+
+                  <!-- Alert 2 -->
+                  <div style="background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.3); border-radius:6px; padding:0.4rem 0.55rem; display:flex; align-items:flex-start; gap:0.45rem;">
+                    <i class="fa-solid fa-water" style="color:#f59e0b; font-size:0.85rem; margin-top:2px;"></i>
+                    <div>
+                      <div style="font-weight:800; font-size:0.75rem; color:#fff;">River Water Level Rising</div>
+                      <div style="font-size:0.65rem; color:#cbd5e1;">Brahmaputra &amp; Dhansiri &bull; High Risk</div>
+                    </div>
+                  </div>
+
+                  <!-- Alert 3 -->
+                  <div style="background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); border-radius:6px; padding:0.4rem 0.55rem; display:flex; align-items:flex-start; gap:0.45rem;">
+                    <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; font-size:0.85rem; margin-top:2px;"></i>
+                    <div>
+                      <div style="font-weight:800; font-size:0.75rem; color:#fff;">State Flood Alert</div>
+                      <div style="font-size:0.65rem; color:#cbd5e1;">4 Critical Districts &bull; Stay Alert</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Bottom Consoles Grid (3 Consoles) -->
+        <div class="r-bottom-consoles-grid">
+          
+          <!-- Console 1: ACTIVE SOS ASSIGNMENTS -->
+          <div class="r-console-panel">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+              <span style="font-weight:800; font-size:0.825rem; color:#fff; display:flex; align-items:center; gap:0.35rem;">
+                <i class="fa-solid fa-life-ring" style="color:#ef4444;"></i> ACTIVE SOS ASSIGNMENTS
+              </span>
+              <a href="rescue-sos.html" style="font-size:0.685rem; color:#38bdf8; text-decoration:none; font-weight:700;">View All</a>
+            </div>
+
+            <div class="r-console-scroll" id="sos-assignments-list">
+              <!-- Dynamically Populated by JavaScript -->
+            </div>
+          </div>
+
+          <!-- Console 2: TEAM DEPLOYMENT STATUS -->
+          <div class="r-console-panel">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+              <span style="font-weight:800; font-size:0.825rem; color:#fff; display:flex; align-items:center; gap:0.35rem;">
+                <i class="fa-solid fa-users-gear" style="color:#38bdf8;"></i> TEAM DEPLOYMENT STATUS
+              </span>
+              <a href="rescue-teams.html" style="font-size:0.685rem; color:#38bdf8; text-decoration:none; font-weight:700;">View All</a>
+            </div>
+
+            <div class="r-console-scroll" id="team-deployments-list">
+              <!-- Dynamically Populated by JavaScript -->
+            </div>
+          </div>
+
+          <!-- Console 3: COMMUNICATION CENTER -->
+          <div class="r-console-panel">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+              <span style="font-weight:800; font-size:0.825rem; color:#fff; display:flex; align-items:center; gap:0.35rem;">
+                <i class="fa-solid fa-comments" style="color:#10b981;"></i> COMMUNICATION CENTER
+              </span>
+              <a href="rescue-notifications.html" style="font-size:0.685rem; color:#38bdf8; text-decoration:none; font-weight:700;">View All</a>
+            </div>
+
+            <div class="r-console-scroll" id="comms-messages-list">
+              <!-- Dynamically Populated by JavaScript -->
+            </div>
+
+            <!-- Bottom Chat Input Bar -->
+            <form onsubmit="handleSendCommsMsg(event)" style="display:flex; align-items:center; gap:0.35rem; margin-top:0.35rem;">
+              <input type="text" id="comms-input" placeholder="Type message..." style="flex:1; background:#040914; border:1px solid rgba(59,130,246,0.25); color:#fff; font-size:0.72rem; padding:0.28rem 0.55rem; border-radius:5px; outline:none; font-family:inherit;">
+              <button type="submit" style="background:#2563eb; color:#fff; border:none; padding:0.28rem 0.65rem; border-radius:5px; font-size:0.72rem; cursor:pointer;">
+                <i class="fa-solid fa-paper-plane"></i>
+              </button>
+            </form>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Sticky Bottom Meta Footer -->
+      <footer class="r-footer-bar">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.25)"/>
+          </svg>
+          <span><strong>AEGIS Rescue Command System</strong> &bull; Rescue Team Dashboard</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <span><i class="fa-solid fa-shield-halved" style="color:#10b981;"></i> Secure</span>
+          <span>&bull;</span>
+          <span><i class="fa-solid fa-lock" style="color:#38bdf8;"></i> Encrypted</span>
+          <span>&bull;</span>
+          <span><i class="fa-solid fa-arrows-rotate" style="color:#a78bfa;"></i> Real-time Sync</span>
+          <span>|</span>
+          <span><i class="fa-solid fa-location-crosshairs" style="color:#f59e0b;"></i> GPS Tracking</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span>Data Source: ASDMA | SDRF | NDRF | Local Authorities</span>
+          <span>&bull;</span>
+          <span>Last Updated: 12 Aug 2026, 10:40 AM</span>
+          <span>&bull;</span>
+          <span style="color:#10b981; font-weight:700;">🟢 Live</span>
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- Data & Map Logic -->
+  <script src="js/rescue-dashboard-data.js"></script>
+
+  <script>
+    let rescueMap = null;
+    let stateMarkersGroup = [];
+    let localDistrictMarkersGroup = [];
+
+    const assamStateCenter = [26.2500, 92.8000];
+    const assamStateZoom = 7.2;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initialize Leaflet Map with CartoDB Dark Matter basemap (Matching Landing Page)
+      initRescueMap();
+
+      // Render State View by Default
+      renderStateView();
+    });
+
+    function initRescueMap() {
+      rescueMap = L.map('rescue-leaflet-map', {
+        center: assamStateCenter,
+        zoom: assamStateZoom,
+        minZoom: 6.5,
+        maxZoom: 15,
+        zoomControl: true
+      });
+
+      // CartoDB Dark Matter Tile Layer (Exact match with Landing Page)
+      const darkTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; CartoDB',
+        subdomains: 'abcd',
+        maxZoom: 19
+      }).addTo(rescueMap);
+
+      // Base Layers Control
+      const streetTile = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 });
+      const satelliteTile = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18 });
+
+      L.control.layers({
+        "🌙 Dark View": darkTile,
+        "🗺️ Street View": streetTile,
+        "🛰️ Satellite View": satelliteTile
+      }, null, { position: 'topright', collapsed: true }).addTo(rescueMap);
+
+      // Lock Assam Bounds
+      const assamBounds = L.latLngBounds(L.latLng(23.8000, 89.2000), L.latLng(28.4000, 96.5000));
+      rescueMap.setMaxBounds(assamBounds);
+
+      setTimeout(() => rescueMap.invalidateSize(), 300);
+    }
+
+    // Render State-Wide Overview (All 21 Districts View)
+    function renderStateView() {
+      clearMapLayers();
+
+      // Update Top Metrics to State Totals
+      const tm = assamStateTotalMetrics;
+      document.getElementById('metric-sos-count').innerText = tm.totalActiveSos;
+      document.getElementById('metric-sos-sub').innerText = 'State-Wide High Priority';
+      document.getElementById('metric-rescues-count').innerText = tm.totalOngoingRescues;
+      document.getElementById('metric-people-count').innerText = tm.totalPeopleRescuedToday;
+      document.getElementById('metric-teams-count').innerText = tm.totalTeamsDeployed;
+      document.getElementById('metric-teams-sub').innerText = 'Across 21 Districts';
+      document.getElementById('metric-assets-count').innerText = tm.totalRescueAssets;
+      document.getElementById('metric-fuel-status').innerText = tm.averageFuelStatus;
+
+      // Update Situational Panel
+      document.getElementById('sit-district').innerText = 'Assam State-Wide';
+      document.getElementById('sit-incident').innerText = 'Multi-District Flood Surge';
+      document.getElementById('sit-weather').innerText = 'Widespread Heavy Rainfall';
+      document.getElementById('sit-river').innerText = 'Brahmaputra Basin Rising';
+      document.getElementById('sit-status-badge').innerText = 'State Emergency Active';
+      document.getElementById('rescue-district-dropdown').value = 'ALL';
+
+      // Plot All 21 District Glowing Pins on State Map
+      Object.keys(assamStateDistrictData).forEach(distKey => {
+        const d = assamStateDistrictData[distKey];
+        const isCritical = d.riskLevel === 'Critical';
+        const isHigh = d.riskLevel === 'High';
+        
+        let markerClass = 'pulse-marker-blue';
+        if (isCritical) markerClass = 'pulse-marker-red';
+        else if (isHigh) markerClass = 'pulse-marker-orange';
+
+        const icon = L.divIcon({
+          className: 'custom-map-icon',
+          html: `<div class="${markerClass}" title="Click to view ${d.district}">${d.activeSos}</div>`,
+          iconSize: [28, 28]
+        });
+
+        const m = L.marker(d.coordinates, { icon }).addTo(rescueMap);
+        m.bindPopup(`
+          <div style="font-family:'Plus Jakarta Sans',sans-serif; color:#fff; padding:2px;">
+            <b style="color:${d.riskColor}; font-size:13px;">${d.district}</b><br>
+            <span style="font-size:11px; color:#cbd5e1;">Risk Status: <strong>${d.riskLevel}</strong></span><br>
+            <span style="font-size:11px; color:#38bdf8;">Active SOS: <strong>${d.activeSos}</strong> &bull; Rescues: ${d.ongoingRescues}</span><br>
+            <button style="margin-top:6px; background:#2563eb; color:#fff; border:none; width:100%; padding:4px; border-radius:4px; font-size:11px; font-weight:700; cursor:pointer;" onclick="selectDistrictView('${distKey}')">Inspect ${distKey} Operations &rarr;</button>
+          </div>
+        `);
+
+        m.on('click', () => {
+          selectDistrictView(distKey);
+        });
+
+        stateMarkersGroup.push(m);
+      });
+
+      // Render State-wide Combined Consoles
+      renderStateConsoles();
+
+      // Reset Map View to Full Assam
+      rescueMap.setView(assamStateCenter, assamStateZoom, { animate: true });
+    }
+
+    // Inspect Specific District Operations
+    function selectDistrictView(distKey) {
+      if (distKey === 'ALL') {
+        renderStateView();
+        return;
+      }
+
+      const d = assamStateDistrictData[distKey];
+      if (!d) return;
+
+      clearMapLayers();
+
+      // Zoom Map into District Coordinates
+      rescueMap.setView(d.coordinates, 12.5, { animate: true, duration: 0.8 });
+
+      // Update Top Metrics to District Specifics
+      document.getElementById('metric-sos-count').innerText = d.activeSos;
+      document.getElementById('metric-sos-sub').innerText = `${d.district} High Priority`;
+      document.getElementById('metric-rescues-count').innerText = d.ongoingRescues;
+      document.getElementById('metric-people-count').innerText = d.peopleRescuedToday;
+      document.getElementById('metric-teams-count').innerText = d.teamsDeployed;
+      document.getElementById('metric-teams-sub').innerText = `Active in ${d.district}`;
+      document.getElementById('rescue-district-dropdown').value = distKey;
+
+      // Update Situational Panel
+      document.getElementById('sit-district').innerText = d.district;
+      document.getElementById('sit-incident').innerText = `${d.riskLevel} Flood Risk`;
+      document.getElementById('sit-weather').innerText = d.rainfall;
+      document.getElementById('sit-river').innerText = d.river;
+      document.getElementById('sit-status-badge').innerText = `${d.status} (${d.riskLevel})`;
+
+      // Render District Local SOS Pins & Map POIs
+      if (d.activeSosList) {
+        d.activeSosList.forEach(sos => {
+          const icon = L.divIcon({
+            className: 'custom-map-icon',
+            html: `<div class="pulse-marker-${sos.priorityClass}">${sos.countBadge}</div>`,
+            iconSize: [28, 28]
+          });
+
+          const m = L.marker(sos.coordinates, { icon }).addTo(rescueMap);
+          m.bindPopup(`
+            <div style="font-family:'Plus Jakarta Sans',sans-serif; color:#fff; width:210px; padding:2px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <b style="color:#ef4444; font-size:13px;">${sos.id}</b>
+                <span style="background:rgba(239,68,68,0.25); color:#ef4444; font-size:9px; padding:1px 5px; border-radius:3px; font-weight:800;">${sos.priority}</span>
+              </div>
+              <div style="font-weight:700; font-size:12px; margin-top:2px;">${sos.title}</div>
+              <div style="font-size:11px; color:#cbd5e1;">${sos.headcount} &bull; 📍 ${sos.location}</div>
+              <div style="font-size:10px; color:#94a3b8; margin-top:2px;">Time: ${sos.time}</div>
+              <button style="margin-top:6px; background:#2563eb; color:#fff; border:none; width:100%; padding:4px; border-radius:4px; font-size:11px; font-weight:700; cursor:pointer;" onclick="location.href='rescue-sos.html'">View Details &rarr;</button>
+            </div>
+          `).openPopup();
+
+          localDistrictMarkersGroup.push(m);
+        });
+      }
+
+      // Render Consoles for Selected District
+      renderDistrictConsoles(d);
+    }
+
+    function resetStateView() {
+      renderStateView();
+    }
+
+    function clearMapLayers() {
+      stateMarkersGroup.forEach(m => rescueMap.removeLayer(m));
+      localDistrictMarkersGroup.forEach(m => rescueMap.removeLayer(m));
+      stateMarkersGroup = [];
+      localDistrictMarkersGroup = [];
+    }
+
+    function renderStateConsoles() {
+      // Render Combined SOS List from Golaghat & Jorhat
+      const sosList = document.getElementById('sos-assignments-list');
+      sosList.innerHTML = '';
+
+      const allSos = [
+        ...assamStateDistrictData["Golaghat"].activeSosList,
+        ...assamStateDistrictData["Jorhat"].activeSosList
+      ];
+
+      allSos.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'r-sos-item';
+        div.style.borderLeft = `3.5px solid ${item.priorityClass === 'red' ? '#ef4444' : '#f59e0b'}`;
+
+        div.innerHTML = `
+          <div style="display:flex; align-items:center; gap:0.45rem;">
+            <div style="width:20px; height:20px; border-radius:50%; background:${item.priorityClass === 'red' ? '#ef4444' : '#f59e0b'}; color:#fff; font-weight:800; font-size:0.6rem; display:flex; align-items:center; justify-content:center;">
+              ${item.countBadge}
+            </div>
+            <div>
+              <div style="font-weight:800; color:#fff; display:flex; align-items:center; gap:0.35rem;">
+                ${item.id}
+                <span style="background:${item.priorityClass === 'red' ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.2)'}; color:${item.priorityClass === 'red' ? '#ef4444' : '#f59e0b'}; font-size:0.55rem; padding:1px 4px; border-radius:3px;">${item.priority}</span>
+              </div>
+              <div style="font-size:0.65rem; color:#cbd5e1;">${item.title} &bull; ${item.location}</div>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-weight:700; color:#38bdf8; font-size:0.685rem;">Assigned: ${item.assignedTeam}</div>
+            <div style="font-size:0.6rem; color:#10b981; font-weight:700;">${item.statusBadge} &bull; ETA: ${item.eta}</div>
+          </div>
+        `;
+        sosList.appendChild(div);
+      });
+
+      // Render Combined Team Deployment List
+      const teamList = document.getElementById('team-deployments-list');
+      teamList.innerHTML = '';
+
+      const allTeams = [
+        ...assamStateDistrictData["Golaghat"].teams,
+        ...assamStateDistrictData["Jorhat"].teams
+      ];
+
+      allTeams.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'r-sos-item';
+        div.innerHTML = `
+          <div style="display:flex; align-items:center; gap:0.45rem;">
+            <span style="color:${item.statusColor}; font-size:0.6rem;">●</span>
+            <div>
+              <div style="font-weight:800; color:#fff;">${item.team} <span style="font-size:0.6rem; color:#94a3b8; font-weight:500;">(${item.type})</span></div>
+              <div style="font-size:0.65rem; color:#cbd5e1;">${item.location}</div>
+            </div>
+          </div>
+          <div style="text-align:right; font-weight:700; color:${item.statusColor}; font-size:0.685rem;">
+            ${item.eta}
+          </div>
+        `;
+        teamList.appendChild(div);
+      });
+
+      renderCommsMessages();
+    }
+
+    function renderDistrictConsoles(d) {
+      const sosList = document.getElementById('sos-assignments-list');
+      sosList.innerHTML = '';
+
+      if (d.activeSosList && d.activeSosList.length > 0) {
+        d.activeSosList.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'r-sos-item';
+          div.style.borderLeft = `3.5px solid ${item.priorityClass === 'red' ? '#ef4444' : '#f59e0b'}`;
+
+          div.innerHTML = `
+            <div style="display:flex; align-items:center; gap:0.45rem;">
+              <div style="width:20px; height:20px; border-radius:50%; background:${item.priorityClass === 'red' ? '#ef4444' : '#f59e0b'}; color:#fff; font-weight:800; font-size:0.6rem; display:flex; align-items:center; justify-content:center;">
+                ${item.countBadge}
+              </div>
+              <div>
+                <div style="font-weight:800; color:#fff; display:flex; align-items:center; gap:0.35rem;">
+                  ${item.id}
+                  <span style="background:${item.priorityClass === 'red' ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.2)'}; color:${item.priorityClass === 'red' ? '#ef4444' : '#f59e0b'}; font-size:0.55rem; padding:1px 4px; border-radius:3px;">${item.priority}</span>
+                </div>
+                <div style="font-size:0.65rem; color:#cbd5e1;">${item.title} &bull; ${item.location}</div>
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-weight:700; color:#38bdf8; font-size:0.685rem;">Assigned: ${item.assignedTeam}</div>
+              <div style="font-size:0.6rem; color:#10b981; font-weight:700;">${item.statusBadge} &bull; ETA: ${item.eta}</div>
+            </div>
+          `;
+          sosList.appendChild(div);
+        });
+      } else {
+        sosList.innerHTML = `<div style="font-size:0.72rem; color:#94a3b8; padding:0.5rem;">No active SOS requests in ${d.district}</div>`;
+      }
+
+      const teamList = document.getElementById('team-deployments-list');
+      teamList.innerHTML = '';
+
+      if (d.teams && d.teams.length > 0) {
+        d.teams.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'r-sos-item';
+          div.innerHTML = `
+            <div style="display:flex; align-items:center; gap:0.45rem;">
+              <span style="color:${item.statusColor}; font-size:0.6rem;">●</span>
+              <div>
+                <div style="font-weight:800; color:#fff;">${item.team} <span style="font-size:0.6rem; color:#94a3b8; font-weight:500;">(${item.type})</span></div>
+                <div style="font-size:0.65rem; color:#cbd5e1;">${item.location}</div>
+              </div>
+            </div>
+            <div style="text-align:right; font-weight:700; color:${item.statusColor}; font-size:0.685rem;">
+              ${item.eta}
+            </div>
+          `;
+          teamList.appendChild(div);
+        });
+      } else {
+        teamList.innerHTML = `<div style="font-size:0.72rem; color:#94a3b8; padding:0.5rem;">All teams on standby in ${d.district}</div>`;
+      }
+    }
+
+    function renderCommsMessages() {
+      const list = document.getElementById('comms-messages-list');
+      list.innerHTML = `
+        <div class="r-sos-item"><div style="font-size:0.685rem; color:#cbd5e1;"><strong style="color:#fff;">Control Room (10:35 AM):</strong> All teams stay alert. Heavy rainfall continuing across Upper Assam.</div></div>
+        <div class="r-sos-item"><div style="font-size:0.685rem; color:#cbd5e1;"><strong style="color:#38bdf8;">NDRF Team-4 (10:32 AM):</strong> Reaching Kabori Pul location in 18 minutes.</div></div>
+        <div class="r-sos-item"><div style="font-size:0.685rem; color:#cbd5e1;"><strong style="color:#10b981;">SDRF Team-2 (10:30 AM):</strong> Rescue in progress at Dergaon. 2 citizens evacuated to boat.</div></div>
+        <div class="r-sos-item"><div style="font-size:0.685rem; color:#cbd5e1;"><strong style="color:#a78bfa;">Shelter Desk (10:28 AM):</strong> New relief hall operational at Golaghat Govt HS.</div></div>
+      `;
+    }
+
+    function handleSendCommsMsg(e) {
+      if (e) e.preventDefault();
+      const input = document.getElementById('comms-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const list = document.getElementById('comms-messages-list');
+      const div = document.createElement('div');
+      div.className = 'r-sos-item';
+      div.innerHTML = `<div style="font-size:0.685rem; color:#cbd5e1;"><strong style="color:#10b981;">Command Leader (Just now):</strong> ${text}</div>`;
+      list.appendChild(div);
+      input.value = '';
+      list.scrollTop = list.scrollHeight;
+    }
+  </script>
+</body>
+</html>

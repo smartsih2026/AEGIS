@@ -1,0 +1,8 @@
+# AEGIS - Git Ignore Rules
+.system_generated/
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

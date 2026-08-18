@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Tactical SOS Rescue Route - AEGIS Command System</title>
+
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Master Rescue Stylesheet -->
+  <link rel="stylesheet" href="rescue-styles.css">
+
+  <style>
+    html, body {
+      height: 100vh;
+      width: 100vw;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #030712;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #ffffff;
+    }
+
+    #route-map-canvas {
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+    }
+
+    /* Glassmorphic Floating Tactical Navigation Panel */
+    .tactical-nav-panel {
+      position: absolute;
+      top: 18px;
+      left: 18px;
+      z-index: 1000;
+      width: 380px;
+      background: rgba(6, 12, 28, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      border-radius: 14px;
+      padding: 1.15rem;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.85), 0 0 30px rgba(37,99,235,0.3);
+    }
+
+    /* Floating Metrics Bar */
+    .route-metrics-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.65rem;
+      margin: 0.85rem 0;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      border-radius: 10px;
+      padding: 0.65rem;
+    }
+
+    .metric-box {
+      text-align: center;
+    }
+
+    .metric-val {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #38bdf8;
+      line-height: 1.1;
+    }
+    .metric-lbl {
+      font-size: 0.625rem;
+      color: #94a3b8;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    /* Custom Leaflet Pulsing Markers */
+    .camp-marker {
+      background: #10b981;
+      color: #fff;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 20px #10b981;
+      font-size: 14px;
+    }
+
+    .sos-target-marker {
+      background: #ef4444;
+      color: #fff;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 25px #ef4444;
+      font-size: 15px;
+      animation: pulseAlert 1.5s infinite;
+    }
+
+    @keyframes pulseAlert {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8); }
+      70% { transform: scale(1.1); box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fullscreen Map Canvas -->
+  <div id="route-map-canvas"></div>
+
+  <!-- Floating Tactical Navigation & Distance Details Panel -->
+  <div class="tactical-nav-panel">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem;">
+      <div>
+        <div style="font-size:0.65rem; font-weight:800; color:#ef4444; letter-spacing:0.04em;">
+          <i class="fa-solid fa-triangle-exclamation"></i> TACTICAL RESCUE ROUTE TELEMETRY
+        </div>
+        <div style="font-size:1.2rem; font-weight:800; color:#fff; margin-top:2px;" id="route-sos-title">
+          SOS-1087 Dispatch
+        </div>
+      </div>
+      <span style="background:rgba(239,68,68,0.2); color:#ef4444; font-size:0.6rem; font-weight:800; padding:2px 8px; border-radius:9999px; border:1px solid rgba(239,68,68,0.4);" id="route-severity">
+        Critical (92/100)
+      </span>
+    </div>
+
+    <!-- Citizen & Emergency Information -->
+    <div style="background:rgba(255,255,255,0.03); border-radius:8px; padding:0.6rem; margin-bottom:0.5rem; font-size:0.75rem;">
+      <div style="color:#ffffff; font-weight:700;" id="route-citizen-name">👤 Ravi Das &amp; Family (5 Members)</div>
+      <div style="color:#94a3b8; font-size:0.685rem; margin-top:2px;" id="route-location"><i class="fa-solid fa-location-dot" style="color:#ef4444;"></i> Kabori Pathar, Dhansiri Bank, Golaghat</div>
+      <div style="color:#ef4444; font-weight:600; font-size:0.685rem; margin-top:4px;" id="route-details">"Water level rising rapidly. House surrounded by 2m flood water. 2 elderly trapped."</div>
+    </div>
+
+    <!-- Distance & ETA Metrics -->
+    <div class="route-metrics-bar">
+      <div class="metric-box">
+        <div class="metric-val" id="route-distance">4.8 km</div>
+        <div class="metric-lbl"><i class="fa-solid fa-route" style="color:#38bdf8"></i> ESTIMATED DISTANCE</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-val" style="color:#10b981;" id="route-eta">12 Mins</div>
+        <div class="metric-lbl"><i class="fa-solid fa-clock" style="color:#10b981"></i> ESTIMATED TRAVEL TIME</div>
+      </div>
+    </div>
+
+    <!-- Dispatch Asset Info -->
+    <div style="font-size:0.72rem; color:#cbd5e1; margin-bottom:0.75rem;">
+      <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+        <span>Deploying Base Camp:</span>
+        <strong style="color:#fff;" id="route-camp-name">NDRF 1st Battalion HQ</strong>
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+        <span>Assigned Craft:</span>
+        <strong style="color:#38bdf8;" id="route-boat-unit">Motorized OBM Speedboat SD-04</strong>
+      </div>
+      <div style="display:flex; justify-content:space-between;">
+        <span>Current River Velocity:</span>
+        <strong style="color:#f59e0b;">1.8 m/s Downstream</strong>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="display:flex; gap:0.5rem;">
+      <button style="flex:1; background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); border:none; color:#fff; font-size:0.785rem; font-weight:800; padding:0.6rem; border-radius:8px; cursor:pointer; box-shadow:0 0 15px rgba(37,99,235,0.4);" onclick="triggerDispatchConfirm()">
+        <i class="fa-solid fa-paper-plane"></i> Launch Rescue Convoy
+      </button>
+      <button style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#fff; font-size:0.785rem; font-weight:700; padding:0.6rem 0.85rem; border-radius:8px; cursor:pointer;" onclick="window.close()">
+        Close
+      </button>
+    </div>
+  </div>
+
+  <!-- Master Data & Script -->
+  <script src="js/rescue-sos-data.js"></script>
+
+  <script>
+    let map = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Read SOS ID from URL query string
+      const urlParams = new URLSearchParams(window.location.search);
+      const sosId = urlParams.get('id') || 'SOS-1087';
+
+      // Find SOS details from dataset
+      let sosData = null;
+      if (window.rescueSosData && window.rescueSosData.liveSosRequests) {
+        sosData = window.rescueSosData.liveSosRequests.find(s => s.id === sosId);
+      }
+
+      // Default fallback
+      if (!sosData) {
+        sosData = {
+          id: sosId,
+          district: "Golaghat District",
+          locationName: "Kabori Pathar, Near Dhansiri River",
+          details: "Water level rising rapidly. House surrounded by flood water. Immediate boat rescue needed.",
+          peopleCount: 5,
+          childrenCount: 2,
+          severityScore: 92,
+          severityCategory: "Critical",
+          actionText: "Assign Rescue"
+        };
+      }
+
+      // Populate UI
+      document.getElementById('route-sos-title').innerText = `${sosData.id} Dispatch`;
+      document.getElementById('route-citizen-name').innerText = `👤 Ravi Das & Family (${sosData.peopleCount} Members, ${sosData.childrenCount} Children)`;
+      document.getElementById('route-location').innerHTML = `<i class="fa-solid fa-location-dot" style="color:#ef4444;"></i> ${sosData.locationName}, ${sosData.district}`;
+      document.getElementById('route-details').innerText = `"${sosData.details}"`;
+      document.getElementById('route-severity').innerText = `${sosData.severityCategory} (${sosData.severityScore}/100)`;
+
+      // Coordinates
+      const teamCampCoords = [26.4350, 94.0200]; // NDRF Camp Golaghat
+      const citizenCoords = [26.4049, 94.0321];  // Citizen SOS location
+
+      // Calculate approximate distance & ETA
+      const distKm = 4.8;
+      const etaMins = 12;
+
+      document.getElementById('route-distance').innerText = `${distKm} km`;
+      document.getElementById('route-eta').innerText = `${etaMins} Mins`;
+
+      // Initialize Leaflet Map
+      map = L.map('route-map-canvas', {
+        center: [26.4200, 94.0260],
+        zoom: 13,
+        zoomControl: true
+      });
+
+      // Dark Basemap
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; CartoDB',
+        maxZoom: 19
+      }).addTo(map);
+
+      // Add Team Camp Marker
+      const campIcon = L.divIcon({
+        className: 'camp-marker-icon',
+        html: `<div class="camp-marker"><i class="fa-solid fa-person-shelter"></i></div>`,
+        iconSize: [32, 32]
+      });
+
+      L.marker(teamCampCoords, { icon: campIcon }).addTo(map).bindPopup(`
+        <div style="font-family:'Plus Jakarta Sans',sans-serif; color:#fff;">
+          <b style="color:#10b981;">NDRF 1st Battalion Tactical Base</b><br>
+          <span style="font-size:11px; color:#cbd5e1;">Golaghat Sector Command</span>
+        </div>
+      `);
+
+      // Add Citizen SOS Target Marker
+      const sosIcon = L.divIcon({
+        className: 'sos-marker-icon',
+        html: `<div class="sos-target-marker"><i class="fa-solid fa-triangle-exclamation"></i></div>`,
+        iconSize: [34, 34]
+      });
+
+      L.marker(citizenCoords, { icon: sosIcon }).addTo(map).bindPopup(`
+        <div style="font-family:'Plus Jakarta Sans',sans-serif; color:#fff;">
+          <b style="color:#ef4444;">${sosData.id} - Citizen SOS Location</b><br>
+          <span style="font-size:11px; color:#cbd5e1;">Ravi Das & Family (${sosData.peopleCount} People)</span>
+        </div>
+      `).openPopup();
+
+      // Draw Glowing Polyline Route
+      const routeWaypoints = [
+        teamCampCoords,
+        [26.4310, 94.0220],
+        [26.4250, 94.0250],
+        [26.4180, 94.0290],
+        [26.4100, 94.0310],
+        citizenCoords
+      ];
+
+      // Outer glow line
+      L.polyline(routeWaypoints, {
+        color: '#38bdf8',
+        weight: 8,
+        opacity: 0.45,
+        lineCap: 'round'
+      }).addTo(map);
+
+      // Inner sharp route line
+      L.polyline(routeWaypoints, {
+        color: '#00f0ff',
+        weight: 3.5,
+        dashArray: '8, 8',
+        lineCap: 'round'
+      }).addTo(map);
+
+      // Fit Bounds so both points and route are perfectly framed
+      const bounds = L.latLngBounds([teamCampCoords, citizenCoords]);
+      map.fitBounds(bounds, { padding: [80, 80] });
+    });
+
+    function triggerDispatchConfirm() {
+      const confirmBox = document.createElement('div');
+      confirmBox.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: rgba(3, 7, 18, 0.85); backdrop-filter: blur(16px);
+        z-index: 10000; display: flex; align-items: center; justify-content: center;
+      `;
+      confirmBox.innerHTML = `
+        <div style="background:#070d1d; border:1px solid #10b981; border-radius:14px; padding:1.5rem; max-width:420px; text-align:center; box-shadow:0 0 30px rgba(16,185,129,0.3);">
+          <div style="font-size:2.5rem; color:#10b981; margin-bottom:0.5rem;"><i class="fa-solid fa-circle-check"></i></div>
+          <h3 style="font-size:1.25rem; font-weight:800; color:#fff; margin-bottom:0.4rem;">Convoy Dispatched!</h3>
+          <p style="font-size:0.8rem; color:#cbd5e1; line-height:1.5; margin-bottom:1.2rem;">
+            Motorized OBM Speedboat Unit SD-04 has been launched from NDRF HQ Golaghat. Live satellite GPS telemetry active. Estimated Arrival: <strong>12 Mins</strong>.
+          </p>
+          <button style="background:#10b981; border:none; color:#fff; font-weight:800; font-size:0.85rem; padding:0.6rem 1.5rem; border-radius:8px; cursor:pointer;" onclick="this.parentElement.parentElement.remove()">
+            Acknowledge &amp; Return
+          </button>
+        </div>
+      `;
+      document.body.appendChild(confirmBox);
+    }
+  </script>
+</body>
+</html>

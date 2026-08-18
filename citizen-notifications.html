@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications & Updates - AEGIS</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Master Citizen Stylesheet -->
+  <link rel="stylesheet" href="citizen-styles.css">
+
+  <!-- Master Citizen Script -->
+  <script src="js/citizen.js?v=3.0"></script>
+
+  <!-- Firebase SDK (Compat Version) & Auth Module -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="js/firebase-auth.js?v=3.0"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      background-color: #030712;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #f1f5f9;
+      font-size: 14px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .notif-layout-container {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+
+    /* Left Sidebar */
+    .notif-sidebar {
+      background: #060b18;
+      border-right: 1px solid rgba(59, 130, 246, 0.18);
+      display: flex;
+      flex-direction: column;
+      padding: 0.85rem 0.75rem;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .notif-sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.2rem 0.4rem 0.75rem 0.4rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 0.55rem;
+    }
+
+    .notif-nav-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .notif-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.5rem 0.75rem;
+      color: #94a3b8;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.85rem;
+      border-radius: 8px;
+      transition: all 0.18s ease;
+      cursor: pointer;
+    }
+
+    .notif-nav-item:hover {
+      background: rgba(59, 130, 246, 0.12);
+      color: #ffffff;
+    }
+
+    .notif-nav-item.active {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    }
+
+    .notif-emergency-card {
+      background: linear-gradient(180deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.22) 100%);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: 10px;
+      padding: 0.65rem;
+      text-align: center;
+      margin-top: 0.45rem;
+      position: relative;
+    }
+
+    /* Main Area */
+    .notif-main-area {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      background: #030712;
+    }
+
+    /* Top Bar */
+    .notif-topbar {
+      height: 48px;
+      background: #070d1d;
+      border-bottom: 1px solid rgba(59, 130, 246, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .district-select-box {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      color: #f1f5f9;
+      font-size: 0.825rem;
+      font-weight: 700;
+      padding: 0.35rem 0.85rem;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .district-select-box select {
+      background: transparent;
+      border: none;
+      color: #f1f5f9;
+      font-weight: 700;
+      font-size: 0.825rem;
+      outline: none;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .district-select-box select option {
+      background: #070d1d;
+      color: #fff;
+    }
+
+    /* Filter Pills Bar */
+    .notif-filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0 1.15rem 0.45rem 1.15rem;
+      flex-shrink: 0;
+      overflow-x: auto;
+    }
+
+    .filter-tab-pill {
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.35rem 0.95rem;
+      border-radius: 20px;
+      cursor: pointer;
+      background: #060c1c;
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: all 0.18s;
+      white-space: nowrap;
+    }
+    .filter-tab-pill:hover, .filter-tab-pill.active {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(37,99,235,0.4);
+    }
+
+    /* Master Workspace 2-Column Grid */
+    .notif-workspace-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 0.85rem;
+      padding: 0 1.15rem 0.55rem 1.15rem;
+      flex: 1;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    /* Left Feed List */
+    .notif-feed-container {
+      background: #060c1c;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      padding: 0.75rem 0.95rem;
+      overflow: hidden;
+    }
+
+    .notif-feed-scroll {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      padding-right: 0.35rem;
+      min-height: 0;
+    }
+
+    .notif-feed-scroll::-webkit-scrollbar {
+      width: 5px;
+    }
+    .notif-feed-scroll::-webkit-scrollbar-thumb {
+      background: rgba(59, 130, 246, 0.3);
+      border-radius: 3px;
+    }
+
+    .notif-card {
+      background: rgba(11, 20, 38, 0.9);
+      border: 1px solid rgba(59, 130, 246, 0.22);
+      border-radius: 8px;
+      padding: 0.65rem 0.85rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      transition: all 0.18s;
+      cursor: pointer;
+      position: relative;
+    }
+    .notif-card:hover {
+      border-color: #38bdf8;
+      background: rgba(15, 23, 42, 0.98);
+      transform: translateY(-1px);
+    }
+
+    /* Right Column (Critical Alerts, Preferences, Quick Actions) */
+    .notif-right-col {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      overflow: hidden;
+    }
+
+    .notif-panel-card {
+      background: #060c1c;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      border-radius: 10px;
+      padding: 0.75rem 0.95rem;
+    }
+
+    /* Toggle Switch */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 36px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #1e293b;
+      transition: .3s;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 2px;
+      bottom: 2px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+    input:checked + .toggle-slider {
+      background-color: #10b981;
+    }
+    input:checked + .toggle-slider:before {
+      transform: translateX(16px);
+    }
+
+    /* Sticky Footer */
+    .notif-footer-bar {
+      height: 32px;
+      background: #040813;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.15rem;
+      font-size: 0.7rem;
+      color: #64748b;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="notif-layout-container">
+    <!-- Left Navigation Sidebar -->
+    <aside class="notif-sidebar">
+      <div class="notif-sidebar-logo">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.25)"/>
+          <path d="M12 8v8M8 12h8" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <div style="font-weight: 800; font-size: 1.15rem; color: #fff; line-height: 1;">AEGIS</div>
+          <div style="font-size: 0.58rem; color: #94a3b8; font-weight: 500;">Stronger Together, Safer Together.</div>
+        </div>
+      </div>
+
+      <nav class="notif-nav-menu">
+        <a class="notif-nav-item" onclick="location.href='citizen-dashboard.html'"><i class="fa-solid fa-house"></i> Dashboard</a>
+        <a class="notif-nav-item" onclick="location.href='citizen-ai.html'"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Command Center</a>
+        <a class="notif-nav-item" onclick="location.href='citizen-intel.html'"><i class="fa-solid fa-route"></i> Safe Routes</a>
+        <a class="notif-nav-item" onclick="location.href='citizen-shelters.html'"><i class="fa-solid fa-campground"></i> Shelter Network</a>
+        <a class="notif-nav-item" onclick="location.href='citizen-sos.html'"><i class="fa-solid fa-circle-exclamation" style="color:#ef4444;"></i> SOS Reports</a>
+        <a class="notif-nav-item" onclick="location.href='citizen-tracking.html'"><i class="fa-solid fa-location-crosshairs"></i> My SOS / Rescue Tracking</a>
+        <a class="notif-nav-item active" onclick="location.href='citizen-notifications.html'"><i class="fa-solid fa-bell"></i> Notifications & Updates <span style="background:#ef4444; color:#fff; font-size:0.58rem; padding:1.5px 6px; border-radius:50%; margin-left:auto; font-weight:800;">4</span></a>
+        <a class="notif-nav-item" onclick="location.href='citizen-contacts.html'"><i class="fa-solid fa-phone"></i> Emergency Contacts</a>
+        <a class="notif-nav-item" onclick="location.href='citizen-profile.html'"><i class="fa-solid fa-gear"></i> Profile & Settings</a>
+        <a class="notif-nav-item" onclick="location.href='citizen-help.html'"><i class="fa-solid fa-circle-question"></i> Help & Support</a>
+        <a class="notif-nav-item" onclick="location.href='index.html'" style="margin-top:auto; color:#ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+      </nav>
+
+      <!-- Emergency Hotline Card -->
+      <div class="notif-emergency-card">
+        <div style="font-size: 0.65rem; color: #fca5a5; font-weight: 700;">In case of life threatening emergency</div>
+        <div style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin: 0.15rem 0;"><i class="fa-solid fa-phone-volume" style="color:#ef4444"></i> Call 112</div>
+        <div style="font-size: 0.625rem; color: #cbd5e1; margin-bottom: 0.25rem;">or send SOS instantly</div>
+        
+        <div style="display:flex; justify-content:center; margin-top:0.35rem;">
+          <svg width="110" height="32" viewBox="0 0 120 35" fill="none">
+            <path d="M10 25 Q35 15 60 25 T110 25" stroke="#38bdf8" stroke-width="2" fill="none" opacity="0.6"/>
+            <path d="M25 22 L95 22 L85 30 L35 30 Z" fill="#ea580c"/>
+            <circle cx="45" cy="14" r="4" fill="#fbbf24"/>
+            <circle cx="60" cy="13" r="4" fill="#60a5fa"/>
+            <circle cx="75" cy="14" r="4" fill="#34d399"/>
+            <path d="M45 18 L45 22 M60 17 L60 22 M75 18 L75 22" stroke="#fff" stroke-width="2"/>
+          </svg>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Area -->
+    <main class="notif-main-area">
+      <!-- Top Bar -->
+      <header class="notif-topbar">
+        <div style="display:flex; align-items:center; gap:0.65rem;">
+          <div class="district-select-box">
+            <i class="fa-solid fa-location-dot" style="color:#38bdf8;"></i>
+            <select id="notif-district-select" onchange="renderNotificationsForDistrict(this.value)">
+              <!-- Upper Assam -->
+              <option value="Golaghat" selected>Golaghat District, Assam</option>
+              <option value="Jorhat">Jorhat District, Assam</option>
+              <option value="Dibrugarh">Dibrugarh District, Assam</option>
+              <option value="Sivasagar">Sivasagar District, Assam</option>
+              <option value="Tinsukia">Tinsukia District, Assam</option>
+              <option value="Dhemaji">Dhemaji District, Assam</option>
+              <option value="Lakhimpur">Lakhimpur District, Assam</option>
+              <!-- Central Assam -->
+              <option value="Nagaon">Nagaon District, Assam</option>
+              <option value="Hojai">Hojai District, Assam</option>
+              <option value="Morigaon">Morigaon District, Assam</option>
+              <option value="Dima Hasao">Dima Hasao District, Assam</option>
+              <option value="East Karbi Anglong">East Karbi Anglong District, Assam</option>
+              <!-- Lower & North Assam -->
+              <option value="Kamrup Metropolitan">Kamrup Metropolitan (Guwahati), Assam</option>
+              <option value="Darrang">Darrang District, Assam</option>
+              <option value="Barpeta">Barpeta District, Assam</option>
+              <option value="Sonitpur">Sonitpur District, Assam</option>
+              <option value="Dhubri">Dhubri District, Assam</option>
+              <option value="Goalpara">Goalpara District, Assam</option>
+              <!-- Barak Valley -->
+              <option value="Cachar">Cachar District, Assam</option>
+              <option value="Hailakandi">Hailakandi District, Assam</option>
+              <option value="Karimganj">Karimganj District, Assam</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:1rem;">
+          <div style="position:relative; cursor:pointer;" onclick="location.href='citizen-notifications.html'">
+            <i class="fa-solid fa-bell" style="color:#94a3b8; font-size:1.05rem;"></i>
+            <span style="position:absolute; top:-4px; right:-6px; background:#ef4444; color:#fff; font-size:0.58rem; font-weight:800; padding:1px 5px; border-radius:50%;">4</span>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:0.55rem; cursor:pointer;" onclick="location.href='citizen-profile.html'">
+            <div style="position:relative;">
+              <img class="citizen-user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid #38bdf8;" alt="Avatar">
+              <span style="position:absolute; bottom:0; right:0; width:8px; height:8px; background:#10b981; border:2px solid #070d1d; border-radius:50%;"></span>
+            </div>
+            <div style="text-align:left;">
+              <div class="citizen-user-name" style="font-size:0.8rem; font-weight:700; color:#fff; line-height:1.1;">Ravi Das</div>
+              <div class="citizen-user-email" style="font-size:0.625rem; color:#94a3b8;">ravi.das@email.com</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Header Banner -->
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:0.55rem 1.15rem 0.35rem 1.15rem;">
+        <div style="display:flex; align-items:center; gap:0.65rem;">
+          <div style="width:34px; height:34px; border-radius:50%; background:rgba(37,99,235,0.2); color:#38bdf8; display:flex; align-items:center; justify-content:center; font-size:1rem; border:1px solid rgba(59,130,246,0.4);">
+            <i class="fa-solid fa-cloud-showers-heavy"></i>
+          </div>
+          <div>
+            <div style="font-weight:800; font-size:1.1rem; color:#fff; line-height:1.1;">NOTIFICATIONS & UPDATES</div>
+            <div style="font-size:0.75rem; color:#94a3b8;">Stay informed with real-time alerts, updates and important announcements.</div>
+          </div>
+        </div>
+        <button class="btn btn-outline" style="font-size:0.75rem; font-weight:700; padding:0.3rem 0.75rem; color:#cbd5e1; border-color:rgba(255,255,255,0.18);" onclick="markAllAsRead()">
+          <i class="fa-solid fa-check-double"></i> Mark all as read
+        </button>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="notif-filter-bar">
+        <div class="filter-tab-pill active" onclick="filterTab('all', this)">All</div>
+        <div class="filter-tab-pill" onclick="filterTab('alert', this)">Alerts <span style="background:#ef4444; color:#fff; font-size:0.6rem; padding:1px 6px; border-radius:10px;">2</span></div>
+        <div class="filter-tab-pill" onclick="filterTab('rescue', this)">Rescue Updates <span style="background:#2563eb; color:#fff; font-size:0.6rem; padding:1px 6px; border-radius:10px;">1</span></div>
+        <div class="filter-tab-pill" onclick="filterTab('shelter', this)">Shelter Updates <span style="background:#10b981; color:#fff; font-size:0.6rem; padding:1px 6px; border-radius:10px;">1</span></div>
+        <div class="filter-tab-pill" onclick="filterTab('system', this)">System Updates</div>
+        <div class="filter-tab-pill" onclick="filterTab('general', this)">General</div>
+      </div>
+
+      <!-- Master Workspace 2-Column Grid -->
+      <div class="notif-workspace-grid">
+        
+        <!-- Left: Notifications Feed List -->
+        <div class="notif-feed-container">
+          <div class="notif-feed-scroll" id="notif-items-list">
+            
+            <!-- Card 1: Heavy Rainfall Alert -->
+            <div class="notif-card" data-category="alert">
+              <div style="width:38px; height:38px; border-radius:50%; background:rgba(239,68,68,0.2); color:#ef4444; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0;">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              </div>
+              <div style="flex:1;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-weight:800; font-size:0.9rem; color:#fff;" id="notif-title-1">Heavy Rainfall Alert for Golaghat District</span>
+                  <div style="display:flex; align-items:center; gap:0.55rem;">
+                    <span style="font-size:0.72rem; color:#94a3b8; font-weight:600;">10:35 AM</span>
+                    <span style="background:rgba(239,68,68,0.2); color:#ef4444; font-size:0.685rem; font-weight:800; padding:2px 7px; border-radius:4px;">Alert</span>
+                    <span style="width:8px; height:8px; background:#38bdf8; border-radius:50%; box-shadow:0 0 8px #38bdf8;" class="unread-dot"></span>
+                  </div>
+                </div>
+                <div style="font-size:0.8rem; color:#cbd5e1; margin-top:3px; line-height:1.4;" id="notif-desc-1">
+                  IMD Assam has issued a heavy rainfall warning for Golaghat district. Avoid low-lying areas and stay indoors if possible.
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: Rescue Team Assigned -->
+            <div class="notif-card" data-category="rescue">
+              <div style="width:38px; height:38px; border-radius:50%; background:rgba(37,99,235,0.2); color:#38bdf8; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0;">
+                <i class="fa-solid fa-sailboat"></i>
+              </div>
+              <div style="flex:1;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-weight:800; font-size:0.9rem; color:#fff;">Rescue Team Assigned to Your SOS (SOS-1087)</span>
+                  <div style="display:flex; align-items:center; gap:0.55rem;">
+                    <span style="font-size:0.72rem; color:#94a3b8; font-weight:600;">10:28 AM</span>
+                    <span style="background:rgba(37,99,235,0.2); color:#38bdf8; font-size:0.685rem; font-weight:800; padding:2px 7px; border-radius:4px;">Rescue Update</span>
+                    <span style="width:8px; height:8px; background:#38bdf8; border-radius:50%; box-shadow:0 0 8px #38bdf8;" class="unread-dot"></span>
+                  </div>
+                </div>
+                <div style="font-size:0.8rem; color:#cbd5e1; margin-top:3px; line-height:1.4;">
+                  NDRF Team-4 has been assigned to your SOS request. ETA: 18 minutes.
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 3: Shelter Update -->
+            <div class="notif-card" data-category="shelter">
+              <div style="width:38px; height:38px; border-radius:50%; background:rgba(16,185,129,0.2); color:#10b981; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0;">
+                <i class="fa-solid fa-campground"></i>
+              </div>
+              <div style="flex:1;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-weight:800; font-size:0.9rem; color:#fff;" id="notif-shelter-title">Shelter Update: Golaghat Relief Camp</span>
+                  <div style="display:flex; align-items:center; gap:0.55rem;">
+                    <span style="font-size:0.72rem; color:#94a3b8; font-weight:600;">09:50 AM</span>
+                    <span style="background:rgba(16,185,129,0.2); color:#10b981; font-size:0.685rem; font-weight:800; padding:2px 7px; border-radius:4px;">Shelter Update</span>
+                    <span style="width:8px; height:8px; background:#38bdf8; border-radius:50%; box-shadow:0 0 8px #38bdf8;" class="unread-dot"></span>
+                  </div>
+                </div>
+                <div style="font-size:0.8rem; color:#cbd5e1; margin-top:3px; line-height:1.4;">
+                  New facilities added: More beds, clean water and medical support. Current available capacity: 182 people.
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 4: Road Blocked -->
+            <div class="notif-card" data-category="alert">
+              <div style="width:38px; height:38px; border-radius:50%; background:rgba(245,158,11,0.2); color:#f59e0b; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0;">
+                <i class="fa-solid fa-road-barrier"></i>
+              </div>
+              <div style="flex:1;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-weight:800; font-size:0.9rem; color:#fff;" id="notif-road-title">Road Blocked: NH-715 at Kabori Pul</span>
+                  <div style="display:flex; align-items:center; gap:0.55rem;">
+                    <span style="font-size:0.72rem; color:#94a3b8; font-weight:600;">09:30 AM</span>
+                    <span style="background:rgba(245,158,11,0.2); color:#f59e0b; font-size:0.685rem; font-weight:800; padding:2px 7px; border-radius:4px;">Alert</span>
+                    <span style="width:8px; height:8px; background:#38bdf8; border-radius:50%; box-shadow:0 0 8px #38bdf8;" class="unread-dot"></span>
+                  </div>
+                </div>
+                <div style="font-size:0.8rem; color:#cbd5e1; margin-top:3px; line-height:1.4;">
+                  Road is blocked due to waterlogging. Please follow alternative safe routes.
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 5: Government Announcement -->
+            <div class="notif-card" data-category="general">
+              <div style="width:38px; height:38px; border-radius:50%; background:rgba(139,92,246,0.2); color:#a78bfa; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0;">
+                <i class="fa-solid fa-bullhorn"></i>
+              </div>
+              <div style="flex:1;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-weight:800; font-size:0.9rem; color:#fff;">Government Announcement</span>
+                  <div style="display:flex; align-items:center; gap:0.55rem;">
+                    <span style="font-size:0.72rem; color:#94a3b8; font-weight:600;">08:45 AM</span>
+                    <span style="background:rgba(139,92,246,0.2); color:#a78bfa; font-size:0.685rem; font-weight:800; padding:2px 7px; border-radius:4px;">General</span>
+                  </div>
+                </div>
+                <div style="font-size:0.8rem; color:#cbd5e1; margin-top:3px; line-height:1.4;">
+                  District administration has opened additional relief camps. Helpline: 112 | Stay calm and follow official instructions.
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 6: River Water Level Update -->
+            <div class="notif-card" data-category="system">
+              <div style="width:38px; height:38px; border-radius:50%; background:rgba(6,182,212,0.2); color:#06b6d4; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0;">
+                <i class="fa-solid fa-water"></i>
+              </div>
+              <div style="flex:1;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-weight:800; font-size:0.9rem; color:#fff;" id="notif-river-title">River Water Level Update</span>
+                  <div style="display:flex; align-items:center; gap:0.55rem;">
+                    <span style="font-size:0.72rem; color:#94a3b8; font-weight:600;">08:20 AM</span>
+                    <span style="background:rgba(6,182,212,0.2); color:#06b6d4; font-size:0.685rem; font-weight:800; padding:2px 7px; border-radius:4px;">System Update</span>
+                  </div>
+                </div>
+                <div style="font-size:0.8rem; color:#cbd5e1; margin-top:3px; line-height:1.4;" id="notif-river-desc">
+                  Dhansiri River water level is rising. Next update in 3 hours.
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 7: Weather Update -->
+            <div class="notif-card" data-category="system">
+              <div style="width:38px; height:38px; border-radius:50%; background:rgba(37,99,235,0.2); color:#38bdf8; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0;">
+                <i class="fa-solid fa-cloud-rain"></i>
+              </div>
+              <div style="flex:1;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-weight:800; font-size:0.9rem; color:#fff;">Weather Update</span>
+                  <div style="display:flex; align-items:center; gap:0.55rem;">
+                    <span style="font-size:0.72rem; color:#94a3b8; font-weight:600;">07:55 AM</span>
+                    <span style="background:rgba(37,99,235,0.2); color:#38bdf8; font-size:0.685rem; font-weight:800; padding:2px 7px; border-radius:4px;">System Update</span>
+                  </div>
+                </div>
+                <div style="font-size:0.8rem; color:#cbd5e1; margin-top:3px; line-height:1.4;">
+                  Continuous rain expected for next 6 hours. Carry essential items and stay safe.
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div style="text-align:center; padding-top:0.45rem; border-top:1px solid rgba(255,255,255,0.08);">
+            <button class="btn btn-outline" style="font-size:0.785rem; font-weight:700; padding:0.3rem 1.25rem; color:#cbd5e1; border-color:rgba(255,255,255,0.2);" onclick="showCustomAlert('🔔 Notifications Updated', 'All recent emergency alerts for current district are loaded.', 'info')">
+              Load More &darr;
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Column: Critical Alerts, Preferences, Quick Actions -->
+        <div class="notif-right-col">
+          
+          <!-- 1. Critical Alerts Panel -->
+          <div class="notif-panel-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.55rem;">
+              <span style="font-weight:800; font-size:0.9rem; color:#fff;">CRITICAL ALERTS</span>
+              <a href="#" style="font-size:0.75rem; color:#38bdf8; text-decoration:none; font-weight:700;">View All</a>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:0.45rem;">
+              <!-- Alert 1 -->
+              <div style="background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.35); border-radius:8px; padding:0.55rem 0.75rem; display:flex; align-items:center; gap:0.65rem;">
+                <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; font-size:1.1rem;"></i>
+                <div style="flex:1;">
+                  <div style="font-weight:800; font-size:0.825rem; color:#fff;">Flood Risk: <span style="color:#ef4444;">HIGH</span></div>
+                  <div style="font-size:0.685rem; color:#94a3b8;" id="crit-district">Golaghat District</div>
+                </div>
+                <span style="font-size:0.65rem; color:#94a3b8; font-weight:600;">10:35 AM</span>
+              </div>
+
+              <!-- Alert 2 -->
+              <div style="background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.35); border-radius:8px; padding:0.55rem 0.75rem; display:flex; align-items:center; gap:0.65rem;">
+                <i class="fa-solid fa-water" style="color:#f59e0b; font-size:1.1rem;"></i>
+                <div style="flex:1;">
+                  <div style="font-weight:800; font-size:0.825rem; color:#fff;">Water Level Rising</div>
+                  <div style="font-size:0.685rem; color:#94a3b8;" id="crit-river">Dhansiri River</div>
+                </div>
+                <span style="font-size:0.65rem; color:#94a3b8; font-weight:600;">08:20 AM</span>
+              </div>
+
+              <!-- Alert 3 -->
+              <div style="background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.35); border-radius:8px; padding:0.55rem 0.75rem; display:flex; align-items:center; gap:0.65rem;">
+                <i class="fa-solid fa-cloud-showers-heavy" style="color:#ef4444; font-size:1.1rem;"></i>
+                <div style="flex:1;">
+                  <div style="font-weight:800; font-size:0.825rem; color:#fff;">Heavy Rainfall Warning</div>
+                  <div style="font-size:0.685rem; color:#94a3b8;">IMD Assam</div>
+                </div>
+                <span style="font-size:0.65rem; color:#94a3b8; font-weight:600;">07:50 AM</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Preferences Panel -->
+          <div class="notif-panel-card">
+            <div style="font-weight:800; font-size:0.9rem; color:#fff; margin-bottom:0.55rem;">PREFERENCES</div>
+
+            <div style="display:flex; flex-direction:column; gap:0.45rem; font-size:0.8rem;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:0.55rem;">
+                  <i class="fa-solid fa-bell" style="color:#38bdf8; font-size:0.95rem;"></i>
+                  <div>
+                    <div style="font-weight:700; color:#fff;">Alert Notifications</div>
+                    <div style="font-size:0.65rem; color:#94a3b8;">Receive critical and important alerts</div>
+                  </div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:0.55rem;">
+                  <i class="fa-solid fa-sailboat" style="color:#38bdf8; font-size:0.95rem;"></i>
+                  <div>
+                    <div style="font-weight:700; color:#fff;">Rescue Updates</div>
+                    <div style="font-size:0.65rem; color:#94a3b8;">Get updates about your SOS</div>
+                  </div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:0.55rem;">
+                  <i class="fa-solid fa-campground" style="color:#10b981; font-size:0.95rem;"></i>
+                  <div>
+                    <div style="font-weight:700; color:#fff;">Shelter Updates</div>
+                    <div style="font-size:0.65rem; color:#94a3b8;">Receive shelter and capacity updates</div>
+                  </div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:0.55rem;">
+                  <i class="fa-solid fa-bullhorn" style="color:#a78bfa; font-size:0.95rem;"></i>
+                  <div>
+                    <div style="font-weight:700; color:#fff;">General Announcements</div>
+                    <div style="font-size:0.65rem; color:#94a3b8;">Government and system messages</div>
+                  </div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:0.55rem;">
+                  <i class="fa-solid fa-volume-high" style="color:#f59e0b; font-size:0.95rem;"></i>
+                  <div>
+                    <div style="font-weight:700; color:#fff;">Sound Alerts</div>
+                    <div style="font-size:0.65rem; color:#94a3b8;">Play sound for critical alerts</div>
+                  </div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div style="text-align:right; margin-top:0.45rem;">
+              <a href="#" style="font-size:0.75rem; color:#38bdf8; text-decoration:none; font-weight:700;" onclick="showCustomAlert('⚙️ Preferences Saved', 'Notification preferences saved successfully.', 'success')">
+                Manage Preferences &rarr;
+              </a>
+            </div>
+          </div>
+
+          <!-- 3. Quick Actions Panel (4 Buttons) -->
+          <div class="notif-panel-card" style="flex:1; display:flex; flex-direction:column; justify-content:space-between;">
+            <div style="font-weight:800; font-size:0.9rem; color:#fff; margin-bottom:0.45rem;">QUICK ACTIONS</div>
+
+            <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:0.45rem;">
+              <div style="background:rgba(239,68,68,0.18); border:1px solid rgba(239,68,68,0.35); border-radius:8px; padding:0.55rem 0.25rem; text-align:center; cursor:pointer;" onclick="location.href='tel:112'">
+                <i class="fa-solid fa-phone" style="color:#ef4444; font-size:1.1rem;"></i>
+                <div style="font-size:0.785rem; font-weight:800; color:#fff; margin-top:4px;">Call 112</div>
+                <div style="font-size:0.625rem; color:#94a3b8;">Emergency</div>
+              </div>
+
+              <div style="background:rgba(37,99,235,0.18); border:1px solid rgba(37,99,235,0.35); border-radius:8px; padding:0.55rem 0.25rem; text-align:center; cursor:pointer;" onclick="location.href='citizen-tracking.html'">
+                <i class="fa-solid fa-comments" style="color:#38bdf8; font-size:1.1rem;"></i>
+                <div style="font-size:0.785rem; font-weight:800; color:#fff; margin-top:4px;">Message</div>
+                <div style="font-size:0.625rem; color:#94a3b8;">Rescue Team</div>
+              </div>
+
+              <div style="background:rgba(16,185,129,0.18); border:1px solid rgba(16,185,129,0.35); border-radius:8px; padding:0.55rem 0.25rem; text-align:center; cursor:pointer;" onclick="showCustomAlert('📡 Location Sent', 'GPS Location link copied and sent to registered family contacts.', 'success')">
+                <i class="fa-solid fa-location-crosshairs" style="color:#10b981; font-size:1.1rem;"></i>
+                <div style="font-size:0.785rem; font-weight:800; color:#fff; margin-top:4px;">Share Location</div>
+                <div style="font-size:0.625rem; color:#94a3b8;">With Family</div>
+              </div>
+
+              <div style="background:rgba(245,158,11,0.18); border:1px solid rgba(245,158,11,0.35); border-radius:8px; padding:0.55rem 0.25rem; text-align:center; cursor:pointer;" onclick="location.href='citizen-shelters.html'">
+                <i class="fa-solid fa-house-chimney" style="color:#f59e0b; font-size:1.1rem;"></i>
+                <div style="font-size:0.785rem; font-weight:800; color:#fff; margin-top:4px;">Find Shelter</div>
+                <div style="font-size:0.625rem; color:#94a3b8;">Near You</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Sticky Meta Footer -->
+      <footer class="notif-footer-bar">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <i class="fa-solid fa-shield-halved" style="color:#10b981;"></i>
+          <span><strong>Stay Informed. Stay Safe.</strong> AEGIS is with you in every step.</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <span>Real-time Updates</span>
+          <span>&bull;</span>
+          <span>Verified Information</span>
+          <span>&bull;</span>
+          <span>Faster Response</span>
+          <span>|</span>
+          <span>Trusted by Government of Assam</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span>Data Source: ASDMA | IMD | Local Authorities</span>
+          <span>&bull;</span>
+          <span>Last Updated: 12 Aug 2026, 10:35 AM</span>
+          <span>&bull;</span>
+          <span style="color:#10b981; font-weight:700;">🟢 Live</span>
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- Application Logic -->
+  <script src="js/citizen.js?v=3.0"></script>
+
+  <script>
+    let currentDistrictData = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderNotificationsForDistrict('Golaghat');
+    });
+
+    function renderNotificationsForDistrict(districtName) {
+      if (!window.citizenApp) return;
+
+      currentDistrictData = window.citizenApp.getDistrictModelData(districtName);
+
+      // Update Notifications Text for District
+      document.getElementById('notif-title-1').innerText = `Heavy Rainfall Alert for ${currentDistrictData.district} District`;
+      document.getElementById('notif-desc-1').innerText = `IMD Assam has issued a heavy rainfall warning for ${currentDistrictData.district} district. Avoid low-lying areas and stay indoors if possible.`;
+
+      if (currentDistrictData.shelterInfo) {
+        document.getElementById('notif-shelter-title').innerText = `Shelter Update: ${currentDistrictData.shelterInfo.name}`;
+      }
+
+      if (currentDistrictData.blockageInfo) {
+        document.getElementById('notif-road-title').innerText = `Road Blocked: ${currentDistrictData.blockageInfo.name}`;
+      }
+
+      document.getElementById('crit-district').innerText = `${currentDistrictData.district} District`;
+    }
+
+    function filterTab(category, element) {
+      document.querySelectorAll('.filter-tab-pill').forEach(p => p.classList.remove('active'));
+      element.classList.add('active');
+
+      document.querySelectorAll('.notif-card').forEach(card => {
+        if (category === 'all') {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = (card.getAttribute('data-category') === category) ? 'flex' : 'none';
+        }
+      });
+    }
+
+    function markAllAsRead() {
+      document.querySelectorAll('.unread-dot').forEach(dot => dot.style.display = 'none');
+      showCustomAlert('✅ Notifications Cleared', 'All notifications marked as read.', 'success');
+    }
+  </script>
+</body>
+</html>

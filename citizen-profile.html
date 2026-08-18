@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile & Settings - AEGIS</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Master Citizen Stylesheet -->
+  <link rel="stylesheet" href="citizen-styles.css">
+
+  <!-- Master Citizen Script -->
+  <script src="js/citizen.js?v=3.0"></script>
+
+  <!-- Firebase SDK (Compat Version) & Auth Module -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="js/firebase-auth.js?v=3.0"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      background-color: #030712;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #f1f5f9;
+      font-size: 14px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .prof-layout-container {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+
+    /* Left Sidebar */
+    .prof-sidebar {
+      background: #060b18;
+      border-right: 1px solid rgba(59, 130, 246, 0.18);
+      display: flex;
+      flex-direction: column;
+      padding: 0.85rem 0.75rem;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .prof-sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.2rem 0.4rem 0.75rem 0.4rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 0.55rem;
+    }
+
+    .prof-nav-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .prof-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.5rem 0.75rem;
+      color: #94a3b8;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.85rem;
+      border-radius: 8px;
+      transition: all 0.18s ease;
+      cursor: pointer;
+    }
+
+    .prof-nav-item:hover {
+      background: rgba(59, 130, 246, 0.12);
+      color: #ffffff;
+    }
+
+    .prof-nav-item.active {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    }
+
+    .prof-emergency-card {
+      background: linear-gradient(180deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.22) 100%);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: 10px;
+      padding: 0.65rem;
+      text-align: center;
+      margin-top: 0.45rem;
+      position: relative;
+    }
+
+    /* Main Area */
+    .prof-main-area {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      background: #030712;
+    }
+
+    /* Top Bar */
+    .prof-topbar {
+      height: 48px;
+      background: #070d1d;
+      border-bottom: 1px solid rgba(59, 130, 246, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .district-select-box {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      color: #f1f5f9;
+      font-size: 0.825rem;
+      font-weight: 700;
+      padding: 0.35rem 0.85rem;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .district-select-box select {
+      background: transparent;
+      border: none;
+      color: #f1f5f9;
+      font-weight: 700;
+      font-size: 0.825rem;
+      outline: none;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .district-select-box select option {
+      background: #070d1d;
+      color: #fff;
+    }
+
+    /* Top Tab Navigation */
+    .prof-tab-bar {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      padding: 0 1.15rem 0.45rem 1.15rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      flex-shrink: 0;
+      overflow-x: auto;
+    }
+
+    .prof-tab-link {
+      font-size: 0.825rem;
+      font-weight: 700;
+      color: #94a3b8;
+      cursor: pointer;
+      padding-bottom: 0.4rem;
+      border-bottom: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: all 0.18s;
+      white-space: nowrap;
+    }
+    .prof-tab-link:hover {
+      color: #fff;
+    }
+    .prof-tab-link.active {
+      color: #38bdf8;
+      border-bottom-color: #38bdf8;
+    }
+
+    /* Master Workspace 2-Column Grid */
+    .prof-workspace-grid {
+      display: grid;
+      grid-template-columns: 1fr 330px;
+      gap: 0.85rem;
+      padding: 0.55rem 1.15rem 0.55rem 1.15rem;
+      flex: 1;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    /* Left Console */
+    .prof-left-console {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      overflow-y: auto;
+      min-height: 0;
+      padding-right: 0.25rem;
+    }
+
+    .prof-left-console::-webkit-scrollbar {
+      width: 5px;
+    }
+    .prof-left-console::-webkit-scrollbar-thumb {
+      background: rgba(59, 130, 246, 0.3);
+      border-radius: 3px;
+    }
+
+    .prof-card {
+      background: #060c1c;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      border-radius: 10px;
+      padding: 0.75rem 0.95rem;
+    }
+
+    /* Right Column */
+    .prof-right-col {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      overflow: hidden;
+    }
+
+    .prof-panel-box {
+      background: #060c1c;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      border-radius: 10px;
+      padding: 0.75rem 0.95rem;
+    }
+
+    /* Toggle Switch */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 36px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #1e293b;
+      transition: .3s;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 2px;
+      bottom: 2px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+    input:checked + .toggle-slider {
+      background-color: #10b981;
+    }
+    input:checked + .toggle-slider:before {
+      transform: translateX(16px);
+    }
+
+    /* Sticky Footer */
+    .prof-footer-bar {
+      height: 32px;
+      background: #040813;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.15rem;
+      font-size: 0.7rem;
+      color: #64748b;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="prof-layout-container">
+    <!-- Left Navigation Sidebar -->
+    <aside class="prof-sidebar">
+      <div class="prof-sidebar-logo">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.25)"/>
+          <path d="M12 8v8M8 12h8" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <div style="font-weight: 800; font-size: 1.15rem; color: #fff; line-height: 1;">AEGIS</div>
+          <div style="font-size: 0.58rem; color: #94a3b8; font-weight: 500;">Stronger Together, Safer Together.</div>
+        </div>
+      </div>
+
+      <nav class="prof-nav-menu">
+        <a class="prof-nav-item" onclick="location.href='citizen-dashboard.html'"><i class="fa-solid fa-house"></i> Dashboard</a>
+        <a class="prof-nav-item" onclick="location.href='citizen-ai.html'"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Command Center</a>
+        <a class="prof-nav-item" onclick="location.href='citizen-intel.html'"><i class="fa-solid fa-route"></i> Safe Routes</a>
+        <a class="prof-nav-item" onclick="location.href='citizen-shelters.html'"><i class="fa-solid fa-campground"></i> Shelter Network</a>
+        <a class="prof-nav-item" onclick="location.href='citizen-sos.html'"><i class="fa-solid fa-circle-exclamation" style="color:#ef4444;"></i> SOS Reports</a>
+        <a class="prof-nav-item" onclick="location.href='citizen-tracking.html'"><i class="fa-solid fa-location-crosshairs"></i> My SOS / Rescue Tracking</a>
+        <a class="prof-nav-item" onclick="location.href='citizen-notifications.html'"><i class="fa-solid fa-bell"></i> Notifications & Updates <span style="background:#ef4444; color:#fff; font-size:0.58rem; padding:1.5px 6px; border-radius:50%; margin-left:auto; font-weight:800;">3</span></a>
+        <a class="prof-nav-item" onclick="location.href='citizen-contacts.html'"><i class="fa-solid fa-phone"></i> Emergency Contacts</a>
+        <a class="prof-nav-item active" onclick="location.href='citizen-profile.html'"><i class="fa-solid fa-gear"></i> Profile & Settings</a>
+        <a class="prof-nav-item" onclick="location.href='citizen-help.html'"><i class="fa-solid fa-circle-question"></i> Help & Support</a>
+        <a class="prof-nav-item" onclick="location.href='index.html'" style="margin-top:auto; color:#ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+      </nav>
+
+      <!-- Emergency Hotline Card -->
+      <div class="prof-emergency-card">
+        <div style="font-size: 0.65rem; color: #fca5a5; font-weight: 700;">In case of emergency</div>
+        <div style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin: 0.15rem 0;"><i class="fa-solid fa-phone-volume" style="color:#ef4444"></i> Call 112</div>
+        <div style="font-size: 0.625rem; color: #cbd5e1; margin-bottom: 0.25rem;">or send SOS instantly</div>
+        
+        <div style="display:flex; justify-content:center; margin-top:0.35rem;">
+          <svg width="110" height="32" viewBox="0 0 120 35" fill="none">
+            <path d="M10 25 Q35 15 60 25 T110 25" stroke="#38bdf8" stroke-width="2" fill="none" opacity="0.6"/>
+            <path d="M25 22 L95 22 L85 30 L35 30 Z" fill="#ea580c"/>
+            <circle cx="45" cy="14" r="4" fill="#fbbf24"/>
+            <circle cx="60" cy="13" r="4" fill="#60a5fa"/>
+            <circle cx="75" cy="14" r="4" fill="#34d399"/>
+            <path d="M45 18 L45 22 M60 17 L60 22 M75 18 L75 22" stroke="#fff" stroke-width="2"/>
+          </svg>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Area -->
+    <main class="prof-main-area">
+      <!-- Top Bar -->
+      <header class="prof-topbar">
+        <div style="display:flex; align-items:center; gap:0.65rem;">
+          <div class="district-select-box">
+            <i class="fa-solid fa-location-dot" style="color:#38bdf8;"></i>
+            <select id="prof-district-select" onchange="renderProfileForDistrict(this.value)">
+              <!-- Upper Assam -->
+              <option value="Golaghat" selected>Golaghat District, Assam</option>
+              <option value="Jorhat">Jorhat District, Assam</option>
+              <option value="Dibrugarh">Dibrugarh District, Assam</option>
+              <option value="Sivasagar">Sivasagar District, Assam</option>
+              <option value="Tinsukia">Tinsukia District, Assam</option>
+              <option value="Dhemaji">Dhemaji District, Assam</option>
+              <option value="Lakhimpur">Lakhimpur District, Assam</option>
+              <!-- Central Assam -->
+              <option value="Nagaon">Nagaon District, Assam</option>
+              <option value="Hojai">Hojai District, Assam</option>
+              <option value="Morigaon">Morigaon District, Assam</option>
+              <option value="Dima Hasao">Dima Hasao District, Assam</option>
+              <option value="East Karbi Anglong">East Karbi Anglong District, Assam</option>
+              <!-- Lower & North Assam -->
+              <option value="Kamrup Metropolitan">Kamrup Metropolitan (Guwahati), Assam</option>
+              <option value="Darrang">Darrang District, Assam</option>
+              <option value="Barpeta">Barpeta District, Assam</option>
+              <option value="Sonitpur">Sonitpur District, Assam</option>
+              <option value="Dhubri">Dhubri District, Assam</option>
+              <option value="Goalpara">Goalpara District, Assam</option>
+              <!-- Barak Valley -->
+              <option value="Cachar">Cachar District, Assam</option>
+              <option value="Hailakandi">Hailakandi District, Assam</option>
+              <option value="Karimganj">Karimganj District, Assam</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:1rem;">
+          <div style="position:relative; cursor:pointer;" onclick="location.href='citizen-notifications.html'">
+            <i class="fa-solid fa-bell" style="color:#94a3b8; font-size:1.05rem;"></i>
+            <span style="position:absolute; top:-4px; right:-6px; background:#ef4444; color:#fff; font-size:0.58rem; font-weight:800; padding:1px 5px; border-radius:50%;">3</span>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:0.55rem; cursor:pointer;" onclick="location.href='citizen-profile.html'">
+            <div style="position:relative;">
+              <img class="citizen-user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid #38bdf8;" alt="Avatar">
+              <span style="position:absolute; bottom:0; right:0; width:8px; height:8px; background:#10b981; border:2px solid #070d1d; border-radius:50%;"></span>
+            </div>
+            <div style="text-align:left;">
+              <div class="citizen-user-name" style="font-size:0.8rem; font-weight:700; color:#fff; line-height:1.1;">Ravi Das</div>
+              <div class="citizen-user-email" style="font-size:0.625rem; color:#94a3b8;">ravi.das@email.com</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Header Banner -->
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:0.55rem 1.15rem 0.35rem 1.15rem;">
+        <div style="display:flex; align-items:center; gap:0.65rem;">
+          <div style="width:34px; height:34px; border-radius:50%; background:rgba(37,99,235,0.2); color:#38bdf8; display:flex; align-items:center; justify-content:center; font-size:1rem; border:1px solid rgba(59,130,246,0.4);">
+            <i class="fa-solid fa-user-gear"></i>
+          </div>
+          <div>
+            <div style="font-weight:800; font-size:1.1rem; color:#fff; line-height:1.1;">PROFILE & ACCOUNT SETTINGS</div>
+            <div style="font-size:0.75rem; color:#94a3b8;">Manage your personal profile and account credentials.</div>
+          </div>
+        </div>
+        <button class="btn btn-outline" style="font-size:0.75rem; font-weight:700; padding:0.3rem 0.75rem; color:#cbd5e1; border-color:rgba(255,255,255,0.18);" onclick="showCustomAlert('🔒 Password Reset', 'Password reset link sent to your registered email.', 'info')">
+          <i class="fa-solid fa-lock"></i> Change Password
+        </button>
+      </div>
+
+      <!-- Tab Navigation Bar -->
+      <div class="prof-tab-bar">
+        <div class="prof-tab-link active"><i class="fa-solid fa-user"></i> My Profile & Account Details</div>
+      </div>
+
+      <!-- Master Workspace 2-Column Grid -->
+      <div class="prof-workspace-grid">
+        
+        <!-- Left: Main Profile & Info Console -->
+        <div class="prof-left-console">
+          
+          <!-- 1. Personal Information Card -->
+          <div class="prof-card">
+            <div style="display:flex; gap:1.25rem; align-items:flex-start;">
+              
+              <!-- Avatar Column -->
+              <div style="display:flex; flex-direction:column; align-items:center; gap:0.45rem; flex-shrink:0;">
+                <div style="position:relative; width:88px; height:88px; border-radius:50%; overflow:hidden; border:2.5px solid #38bdf8; box-shadow:0 0 16px rgba(56,189,248,0.3);">
+                  <img id="prof-avatar-img" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" style="width:100%; height:100%; object-fit:cover;" alt="Avatar">
+                  <div style="position:absolute; bottom:2px; right:2px; width:22px; height:22px; border-radius:50%; background:#2563eb; color:#fff; display:flex; align-items:center; justify-content:center; font-size:0.6rem; border:1.5px solid #fff;">
+                    <i class="fa-solid fa-camera"></i>
+                  </div>
+                </div>
+                <button class="btn btn-outline" style="font-size:0.7rem; font-weight:700; padding:0.2rem 0.65rem; color:#cbd5e1; border-color:rgba(255,255,255,0.18);" onclick="showCustomAlert('📷 Edit Photo', 'Choose a photo to upload as your profile picture.', 'info')">
+                  Edit Photo
+                </button>
+              </div>
+
+              <!-- Details Grid -->
+              <div style="flex:1;">
+                <div style="display:flex; align-items:center; gap:0.55rem; margin-bottom:0.45rem;">
+                  <span style="font-weight:800; font-size:1.15rem; color:#fff;" id="prof-name-text">Ravi Das</span>
+                  <span style="background:rgba(16,185,129,0.2); color:#10b981; font-weight:800; font-size:0.685rem; padding:2px 7px; border-radius:4px; display:flex; align-items:center; gap:0.3rem;">
+                    <i class="fa-solid fa-circle-check"></i> Verified
+                  </span>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.45rem 1.25rem; font-size:0.8rem;">
+                  <!-- Phone -->
+                  <div>
+                    <div style="font-size:0.685rem; color:#94a3b8;"><i class="fa-solid fa-phone" style="color:#38bdf8;"></i> Phone Number</div>
+                    <div style="font-weight:700; color:#fff; display:flex; align-items:center; gap:0.45rem; margin-top:1px;">
+                      <span id="prof-phone-text">+91 98765 43210</span>
+                      <span style="background:rgba(16,185,129,0.15); color:#10b981; font-size:0.6rem; font-weight:800; padding:1px 5px; border-radius:3px;">Verified</span>
+                    </div>
+                  </div>
+
+                  <!-- Email -->
+                  <div>
+                    <div style="font-size:0.685rem; color:#94a3b8;"><i class="fa-solid fa-envelope" style="color:#38bdf8;"></i> Email Address</div>
+                    <div style="font-weight:700; color:#fff; display:flex; align-items:center; gap:0.45rem; margin-top:1px;">
+                      <span id="prof-email-text">ravi.das@email.com</span>
+                      <span style="background:rgba(16,185,129,0.15); color:#10b981; font-size:0.6rem; font-weight:800; padding:1px 5px; border-radius:3px;">Verified</span>
+                    </div>
+                  </div>
+
+                  <!-- Address -->
+                  <div style="grid-column: span 2;">
+                    <div style="font-size:0.685rem; color:#94a3b8;"><i class="fa-solid fa-location-dot" style="color:#38bdf8;"></i> Address</div>
+                    <div style="font-weight:700; color:#fff; display:flex; align-items:center; gap:0.45rem; margin-top:1px;">
+                      <span id="prof-address-text">Golaghat Town, Golaghat District, Assam - 785621</span>
+                      <span style="background:rgba(16,185,129,0.15); color:#10b981; font-size:0.6rem; font-weight:800; padding:1px 5px; border-radius:3px;">Verified</span>
+                    </div>
+                  </div>
+
+                  <!-- DOB -->
+                  <div>
+                    <div style="font-size:0.685rem; color:#94a3b8;"><i class="fa-solid fa-calendar" style="color:#38bdf8;"></i> Date of Birth</div>
+                    <div style="font-weight:700; color:#fff; margin-top:1px;">14 March 1995</div>
+                  </div>
+
+                  <!-- Aadhaar -->
+                  <div>
+                    <div style="font-size:0.685rem; color:#94a3b8;"><i class="fa-solid fa-id-card" style="color:#38bdf8;"></i> Aadhaar (Last 4 digits)</div>
+                    <div style="font-weight:700; color:#fff; margin-top:1px;">•••• 5678</div>
+                  </div>
+
+                  <!-- Occupation -->
+                  <div>
+                    <div style="font-size:0.685rem; color:#94a3b8;"><i class="fa-solid fa-briefcase" style="color:#38bdf8;"></i> Occupation</div>
+                    <div style="font-weight:700; color:#fff; margin-top:1px;">Private Employee</div>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+
+          <!-- 2. Emergency Contacts Card -->
+          <div class="prof-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.45rem;">
+              <div>
+                <div style="font-weight:800; font-size:0.875rem; color:#fff; display:flex; align-items:center; gap:0.45rem;">
+                  <i class="fa-solid fa-phone" style="color:#10b981;"></i> Emergency Contacts
+                </div>
+                <div style="font-size:0.685rem; color:#94a3b8;">Your emergency contacts will be notified during SOS or critical situations.</div>
+              </div>
+
+              <button class="btn btn-outline" style="font-size:0.72rem; font-weight:700; padding:0.25rem 0.65rem; color:#38bdf8; border-color:rgba(56,189,248,0.3);" onclick="showCustomAlert('➕ Add Emergency Contact', 'Emergency Contact form ready. Enter contact details.', 'info')">
+                <i class="fa-solid fa-plus"></i> Add Contact
+              </button>
+            </div>
+
+            <!-- 2 Contacts Grid -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.55rem;">
+              
+              <!-- Contact 1 -->
+              <div style="background:rgba(15,23,42,0.85); border:1px solid rgba(59,130,246,0.22); border-radius:8px; padding:0.55rem 0.75rem; display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:0.55rem;">
+                  <div style="width:34px; height:34px; border-radius:50%; background:rgba(139,92,246,0.25); color:#a78bfa; display:flex; align-items:center; justify-content:center; font-size:0.95rem;">
+                    <i class="fa-solid fa-user"></i>
+                  </div>
+                  <div>
+                    <div style="font-weight:800; font-size:0.825rem; color:#fff; display:flex; align-items:center; gap:0.35rem;">
+                      <span>Suresh Das (Father)</span>
+                      <span style="background:rgba(16,185,129,0.2); color:#10b981; font-size:0.58rem; padding:1px 4px; border-radius:3px;">Primary</span>
+                    </div>
+                    <div style="font-size:0.72rem; color:#38bdf8; font-weight:700; margin-top:1px;"><i class="fa-solid fa-phone"></i> +91 91234 56789</div>
+                    <div style="font-size:0.625rem; color:#94a3b8;">Relationship: Father</div>
+                  </div>
+                </div>
+
+                <div style="display:flex; gap:0.35rem;">
+                  <button style="background:transparent; border:none; color:#38bdf8; cursor:pointer; font-size:0.85rem;"><i class="fa-solid fa-pen-to-square"></i></button>
+                  <button style="background:transparent; border:none; color:#ef4444; cursor:pointer; font-size:0.85rem;"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+              </div>
+
+              <!-- Contact 2 -->
+              <div style="background:rgba(15,23,42,0.85); border:1px solid rgba(59,130,246,0.22); border-radius:8px; padding:0.55rem 0.75rem; display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:0.55rem;">
+                  <div style="width:34px; height:34px; border-radius:50%; background:rgba(139,92,246,0.25); color:#a78bfa; display:flex; align-items:center; justify-content:center; font-size:0.95rem;">
+                    <i class="fa-solid fa-user"></i>
+                  </div>
+                  <div>
+                    <div style="font-weight:800; font-size:0.825rem; color:#fff;">Anita Das (Sister)</div>
+                    <div style="font-size:0.72rem; color:#38bdf8; font-weight:700; margin-top:1px;"><i class="fa-solid fa-phone"></i> +91 99887 76655</div>
+                    <div style="font-size:0.625rem; color:#94a3b8;">Relationship: Sister</div>
+                  </div>
+                </div>
+
+                <div style="display:flex; gap:0.35rem;">
+                  <button style="background:transparent; border:none; color:#38bdf8; cursor:pointer; font-size:0.85rem;"><i class="fa-solid fa-pen-to-square"></i></button>
+                  <button style="background:transparent; border:none; color:#ef4444; cursor:pointer; font-size:0.85rem;"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- 3. Preferences Card -->
+          <div class="prof-card">
+            <div style="font-weight:800; font-size:0.875rem; color:#fff; display:flex; align-items:center; gap:0.45rem; margin-bottom:0.15rem;">
+              <i class="fa-solid fa-sliders" style="color:#38bdf8;"></i> Preferences
+            </div>
+            <div style="font-size:0.685rem; color:#94a3b8; margin-bottom:0.55rem;">Customize your app experience.</div>
+
+            <!-- 3 Dropdowns Row -->
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.65rem; margin-bottom:0.65rem;">
+              <div>
+                <div style="font-size:0.685rem; color:#94a3b8; margin-bottom:2px;">Language</div>
+                <select style="width:100%; background:rgba(15,23,42,0.85); border:1px solid rgba(59,130,246,0.25); color:#fff; font-size:0.75rem; font-weight:700; padding:0.35rem 0.55rem; border-radius:6px; outline:none; font-family:inherit;">
+                  <option selected>English</option>
+                  <option>Assamese (অসমীয়া)</option>
+                  <option>Bengali (বাংলা)</option>
+                  <option>Hindi (हिंदी)</option>
+                </select>
+              </div>
+
+              <div>
+                <div style="font-size:0.685rem; color:#94a3b8; margin-bottom:2px;">Theme</div>
+                <select style="width:100%; background:rgba(15,23,42,0.85); border:1px solid rgba(59,130,246,0.25); color:#fff; font-size:0.75rem; font-weight:700; padding:0.35rem 0.55rem; border-radius:6px; outline:none; font-family:inherit;">
+                  <option selected>Dark</option>
+                  <option>Light</option>
+                  <option>High Contrast</option>
+                </select>
+              </div>
+
+              <div>
+                <div style="font-size:0.685rem; color:#94a3b8; margin-bottom:2px;">Distance Unit</div>
+                <select style="width:100%; background:rgba(15,23,42,0.85); border:1px solid rgba(59,130,246,0.25); color:#fff; font-size:0.75rem; font-weight:700; padding:0.35rem 0.55rem; border-radius:6px; outline:none; font-family:inherit;">
+                  <option selected>Kilometers (km)</option>
+                  <option>Miles (mi)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- 3 Toggle Switches Row -->
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.65rem; border-top:1px solid rgba(255,255,255,0.06); padding-top:0.55rem;">
+              <!-- Voice Alerts -->
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <div style="font-weight:700; font-size:0.785rem; color:#fff; display:flex; align-items:center; gap:0.35rem;">
+                    <i class="fa-solid fa-volume-high" style="color:#38bdf8;"></i> Voice Alerts
+                  </div>
+                  <div style="font-size:0.625rem; color:#94a3b8;">Get voice alerts for notifications</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <!-- High Contrast Mode -->
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <div style="font-weight:700; font-size:0.785rem; color:#fff; display:flex; align-items:center; gap:0.35rem;">
+                    <i class="fa-solid fa-circle-half-stroke" style="color:#38bdf8;"></i> High Contrast
+                  </div>
+                  <div style="font-size:0.625rem; color:#94a3b8;">Improve visibility in low light</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <!-- Auto Location -->
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <div style="font-weight:700; font-size:0.785rem; color:#fff; display:flex; align-items:center; gap:0.35rem;">
+                    <i class="fa-solid fa-location-crosshairs" style="color:#10b981;"></i> Auto Location
+                  </div>
+                  <div style="font-size:0.625rem; color:#94a3b8;">Detect location automatically</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Right Column: Account Summary, Quick Actions, Need Help -->
+        <div class="prof-right-col">
+          
+          <!-- 1. Account Summary Panel -->
+          <div class="prof-panel-box">
+            <div style="font-weight:800; font-size:0.875rem; color:#fff; margin-bottom:0.45rem;">Account Summary</div>
+
+            <div style="display:flex; flex-direction:column; gap:0.35rem; font-size:0.785rem;">
+              <div style="display:flex; justify-content:space-between;">
+                <span style="color:#94a3b8;"><i class="fa-solid fa-calendar-days" style="color:#38bdf8;"></i> Member Since</span>
+                <strong style="color:#fff;">May 24, 2024</strong>
+              </div>
+              <div style="display:flex; justify-content:space-between;">
+                <span style="color:#94a3b8;"><i class="fa-solid fa-user-check" style="color:#38bdf8;"></i> Account Status</span>
+                <strong style="color:#10b981;">Active</strong>
+              </div>
+              <div style="display:flex; justify-content:space-between;">
+                <span style="color:#94a3b8;"><i class="fa-solid fa-id-card-clip" style="color:#38bdf8;"></i> KYC Status</span>
+                <strong style="color:#10b981;">Verified</strong>
+              </div>
+              <div style="display:flex; justify-content:space-between;">
+                <span style="color:#94a3b8;"><i class="fa-solid fa-circle-exclamation" style="color:#ef4444;"></i> Total SOS Requests</span>
+                <strong style="color:#fff;">1</strong>
+              </div>
+              <div style="display:flex; justify-content:space-between;">
+                <span style="color:#94a3b8;"><i class="fa-solid fa-shield-check" style="color:#10b981;"></i> Rescues Completed</span>
+                <strong style="color:#fff;">1</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Quick Actions Panel -->
+          <div class="prof-panel-box">
+            <div style="font-weight:800; font-size:0.875rem; color:#fff; margin-bottom:0.45rem;">Quick Actions</div>
+
+            <div style="display:flex; flex-direction:column; gap:0.35rem; font-size:0.785rem;">
+              <div style="display:flex; justify-content:space-between; align-items:center; color:#cbd5e1; cursor:pointer; padding:0.2rem 0;" onclick="showCustomAlert('🔒 Change Password', 'Password security panel opened.', 'info')">
+                <span><i class="fa-solid fa-lock" style="color:#38bdf8; width:18px;"></i> Change Password</span>
+                <i class="fa-solid fa-chevron-right" style="font-size:0.65rem; color:#64748b;"></i>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center; color:#cbd5e1; cursor:pointer; padding:0.2rem 0;" onclick="showCustomAlert('📥 Download Profile Data', 'Downloading your encrypted rescue profile data JSON...', 'success')">
+                <span><i class="fa-solid fa-download" style="color:#38bdf8; width:18px;"></i> Download My Data</span>
+                <i class="fa-solid fa-chevron-right" style="font-size:0.65rem; color:#64748b;"></i>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center; color:#cbd5e1; cursor:pointer; padding:0.2rem 0;" onclick="showCustomAlert('📱 Manage Devices', 'Currently 1 active authorized device: Windows 11 Chrome.', 'info')">
+                <span><i class="fa-solid fa-mobile-screen" style="color:#38bdf8; width:18px;"></i> Manage Devices</span>
+                <i class="fa-solid fa-chevron-right" style="font-size:0.65rem; color:#64748b;"></i>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center; color:#ef4444; cursor:pointer; padding:0.2rem 0;" onclick="confirm('Are you sure you want to request account deletion?')">
+                <span><i class="fa-solid fa-trash-can" style="color:#ef4444; width:18px;"></i> Delete Account</span>
+                <i class="fa-solid fa-chevron-right" style="font-size:0.65rem; color:#64748b;"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Need Help Panel -->
+          <div class="prof-panel-box" style="flex:1; display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <div style="display:flex; align-items:center; gap:0.45rem; font-weight:800; font-size:0.875rem; color:#fff; margin-bottom:0.25rem;">
+                <i class="fa-solid fa-headset" style="color:#38bdf8;"></i> Need Help?
+              </div>
+              <div style="font-size:0.72rem; color:#cbd5e1; line-height:1.35;">
+                If you face any issues, our support team is here to help you 24/7.
+              </div>
+            </div>
+
+            <button class="btn btn-primary" style="width:100%; font-size:0.8rem; font-weight:800; padding:0.45rem; margin-top:0.45rem;" onclick="location.href='citizen-help.html'">
+              Contact Support
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Sticky Meta Footer -->
+      <footer class="prof-footer-bar">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <i class="fa-solid fa-shield-halved" style="color:#10b981;"></i>
+          <span><strong>Stay Informed. Stay Safe.</strong> AEGIS is with you in every step.</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <span>Real-time Updates</span>
+          <span>&bull;</span>
+          <span>Verified Information</span>
+          <span>&bull;</span>
+          <span>Faster Response</span>
+          <span>|</span>
+          <span>Trusted by Government of Assam</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span>Data Source: ASDMA | IMD | Local Authorities</span>
+          <span>&bull;</span>
+          <span>Last Updated: 12 Aug 2026, 10:35 AM</span>
+          <span>&bull;</span>
+          <span style="color:#10b981; font-weight:700;">🟢 Live</span>
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- Application Logic -->
+  <script src="js/citizen.js?v=3.0"></script>
+
+  <script>
+    let currentDistrictData = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderProfileForDistrict('Golaghat');
+    });
+
+    function renderProfileForDistrict(districtName) {
+      if (!window.citizenApp) return;
+
+      currentDistrictData = window.citizenApp.getDistrictModelData(districtName);
+
+      // Dynamically update address for district
+      document.getElementById('prof-address-text').innerText = `${currentDistrictData.district} Town, ${currentDistrictData.district} District, Assam - 785621`;
+    }
+  </script>
+</body>
+</html>
