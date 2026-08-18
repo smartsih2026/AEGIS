@@ -1,0 +1,16 @@
+{
+  "name": "AEGIS Citizen Offline SOS",
+  "short_name": "AEGIS SOS",
+  "description": "Offline 2G Emergency SOS Dispatcher for Assam Floods",
+  "start_url": "citizen-app.html",
+  "display": "standalone",
+  "background_color": "#030712",
+  "theme_color": "#ef4444",
+  "icons": [
+    {
+      "src": "https://images.unsplash.com/photo-1547683905-f686c993aae5?auto=format&fit=crop&w=192&q=80",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    }
+  ]
+}

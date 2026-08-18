@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AEGIS Citizen Offline SOS</title>
+  <link rel="manifest" href="manifest-citizen.json">
+  <meta name="theme-color" content="#ef4444">
+
+  <!-- Google Fonts & Font Awesome -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Offline Styles -->
+  <link rel="stylesheet" href="offline-styles.css">
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="brand-badge">
+      <div class="brand-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+      <div>
+        <div class="brand-title">AEGIS Citizen</div>
+        <div style="font-size:0.62rem; color:#94a3b8; font-weight:700;">Offline Emergency SOS</div>
+      </div>
+    </div>
+    <div class="offline-pill">
+      <i class="fa-solid fa-wifi-slash"></i> Offline Mode
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <div style="font-size:0.85rem; font-weight:800; color:#38bdf8; margin-bottom:1rem; display:flex; align-items:center; gap:0.4rem;">
+        <i class="fa-solid fa-tower-cell"></i> 2G Offline SMS Dispatch
+      </div>
+
+      <!-- District / Location Selection -->
+      <div class="form-group">
+        <label class="form-label">Select Your District in Assam</label>
+        <select id="district-select" class="form-select" onchange="onDistrictChange()">
+          <option value="Golaghat" data-lat="26.5181" data-lng="93.9612" data-phone="+91 94350 10701">Golaghat District (Ward 4)</option>
+          <option value="Guwahati" data-lat="26.1445" data-lng="91.7362" data-phone="+91 94350 10702">Kamrup Metro / Guwahati</option>
+          <option value="Silchar" data-lat="24.8333" data-lng="92.7789" data-phone="+91 94350 10703">Cachar / Silchar</option>
+          <option value="Dibrugarh" data-lat="27.4728" data-lng="94.9120" data-phone="+91 94350 10704">Dibrugarh District</option>
+          <option value="Lakhimpur" data-lat="27.2361" data-lng="94.1035" data-phone="+91 94350 10705">North Lakhimpur</option>
+          <option value="Jorhat" data-lat="26.7509" data-lng="94.2037" data-phone="+91 94350 10706">Jorhat District</option>
+        </select>
+      </div>
+
+      <!-- Citizen Phone Number -->
+      <div class="form-group">
+        <label class="form-label">Your Mobile Phone Number (For Rescue Callback)</label>
+        <input type="tel" id="citizen-phone" class="form-control" value="+91 98765 43210" placeholder="Enter 10-digit mobile number">
+      </div>
+
+      <!-- Headcount Pickers -->
+      <div class="counter-grid form-group">
+        <div class="counter-box">
+          <label class="form-label">Total Trapped</label>
+          <div class="counter-btn-group">
+            <button class="btn-counter" onclick="adjustCount('people', -1)">-</button>
+            <span id="count-people" class="counter-val">5</span>
+            <button class="btn-counter" onclick="adjustCount('people', 1)">+</button>
+          </div>
+        </div>
+        <div class="counter-box">
+          <label class="form-label">Children / Elderly</label>
+          <div class="counter-btn-group">
+            <button class="btn-counter" onclick="adjustCount('children', -1)">-</button>
+            <span id="count-children" class="counter-val">2</span>
+            <button class="btn-counter" onclick="adjustCount('children', 1)">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Emergency Hazard Type Dropdown -->
+      <div class="form-group">
+        <label class="form-label">Emergency Hazard Situation</label>
+        <select id="hazard-select" class="form-select">
+          <option value="ROOF_SUBMERGED">🏠 Trapped on Submerged Roof</option>
+          <option value="HOUSE_WATERLOGGED">🌊 Water inside House (3+ feet)</option>
+          <option value="MEDICAL_URGENCY">🚑 Medical Emergency / Pregnant</option>
+          <option value="FOOD_WATER_SHORTAGE">📦 Food & Drinking Water Shortage</option>
+        </select>
+      </div>
+
+      <!-- Target Rescue Officer Hotline Number (Pre-filled & Editable for Demo) -->
+      <div class="form-group">
+        <label class="form-label">Target Rescue Unit Hotline (Demo Friend Number)</label>
+        <input type="tel" id="rescue-phone" class="form-control" value="+91 94350 10701" placeholder="Rescue squad number or demo friend number">
+        <div style="font-size:0.68rem; color:#94a3b8; margin-top:0.35rem;">
+          <i class="fa-solid fa-circle-info" style="color:#38bdf8;"></i> Auto-assigned to nearest district unit. Edit to your demo number for stage testing!
+        </div>
+      </div>
+
+      <!-- Send Offline SOS Button -->
+      <button class="btn-sos" onclick="sendOfflineSms()">
+        <i class="fa-solid fa-paper-plane"></i> SEND OFFLINE EMERGENCY SMS
+      </button>
+    </div>
+  </div>
+
+  <script>
+    let counts = { people: 5, children: 2 };
+
+    function adjustCount(type, delta) {
+      counts[type] = Math.max(0, counts[type] + delta);
+      document.getElementById(`count-${type}`).innerText = counts[type];
+    }
+
+    function onDistrictChange() {
+      const select = document.getElementById('district-select');
+      const selectedOption = select.options[select.selectedIndex];
+      const targetPhone = selectedOption.getAttribute('data-phone');
+      if (targetPhone) {
+        document.getElementById('rescue-phone').value = targetPhone;
+      }
+    }
+
+    function sendOfflineSms() {
+      const districtSelect = document.getElementById('district-select');
+      const selectedOpt = districtSelect.options[districtSelect.selectedIndex];
+      
+      const district = selectedOpt.value;
+      const lat = selectedOpt.getAttribute('data-lat');
+      const lng = selectedOpt.getAttribute('data-lng');
+      
+      const citizenPhone = document.getElementById('citizen-phone').value.trim() || '9876543210';
+      const rescuePhone = document.getElementById('rescue-phone').value.trim();
+      const hazard = document.getElementById('hazard-select').value;
+
+      // Construct compact encoded payload string
+      const rawPayload = `AEGIS#SOS#${citizenPhone}#${lat},${lng}#${district}#${counts.people}P#${counts.children}C#${hazard}`;
+      
+      // Solution 1: Direct 1-Tap App Opener Link included in SMS
+      const rescueAppBaseUrl = "https://aegis-xi-ruddy.vercel.app/offline/rescue-app.html";
+      const fullSmsBody = `🚨 AEGIS FLOOD SOS: Tap to open in Rescue App -> ${rescueAppBaseUrl}?data=${encodeURIComponent(rawPayload)}`;
+
+      // Clean phone number for sms: URI scheme
+      const cleanTargetNumber = rescuePhone.replace(/[^\d+]/g, '');
+
+      // Open native SMS messaging app
+      const smsUri = `sms:${cleanTargetNumber}?body=${encodeURIComponent(fullSmsBody)}`;
+      window.location.href = smsUri;
+    }
+
+    // Register Service Worker for 100% Offline PWA Mode
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(err => console.log('SW Reg Error:', err));
+    }
+  </script>
+</body>
+</html>
