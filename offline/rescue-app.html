@@ -129,6 +129,15 @@
         Golaghat District (Ward 4)
       </div>
 
+      <!-- Decoded SMS Details Report -->
+      <div style="background:rgba(30,41,59,0.7); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:0.75rem; margin-bottom:0.85rem; font-size:0.78rem; line-height:1.5;">
+        <div style="font-size:0.7rem; font-weight:800; color:#38bdf8; text-transform:uppercase; margin-bottom:0.35rem; display:flex; align-items:center; justify-content:space-between;">
+          <span><i class="fa-solid fa-file-lines"></i> Decoded SMS Dispatch Report</span>
+          <span id="v-phone-badge" style="color:#6ee7b7; font-weight:800;">+91 9959359854</span>
+        </div>
+        <div id="v-coords" style="color:#94a3b8; font-weight:600;"><i class="fa-solid fa-location-dot" style="color:#ef4444;"></i> GPS Coords: 26.1445° N, 91.7362° E</div>
+      </div>
+
       <!-- Victims Headcount & Hazard Badge -->
       <div style="display:flex; gap:0.6rem; flex-wrap:wrap; margin-bottom:0.85rem;">
         <span style="background:rgba(255,255,255,0.08); padding:4px 10px; border-radius:8px; font-size:0.75rem; font-weight:700; color:#cbd5e1;">
@@ -140,17 +149,6 @@
         <span style="background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.3); padding:4px 10px; border-radius:8px; font-size:0.75rem; font-weight:700; color:#38bdf8;" id="v-hazard">
           🏠 Trapped on Roof
         </span>
-      </div>
-
-      <!-- Decoded Full SOS Summary -->
-      <div style="background:rgba(30, 41, 59, 0.85); border-radius:12px; padding:0.75rem; margin-bottom:0.85rem; font-size:0.78rem; border:1px solid rgba(255,255,255,0.1); line-height:1.6;">
-        <div style="color:#38bdf8; font-weight:800; font-size:0.75rem; margin-bottom:0.35rem; display:flex; align-items:center; gap:0.35rem;">
-          <i class="fa-solid fa-file-invoice"></i> DECODED SOS DISPATCH REPORT
-        </div>
-        <div style="color:#e2e8f0;"><i class="fa-solid fa-map-pin" style="color:#ef4444; width:16px;"></i> <strong>GPS Coords:</strong> <span id="v-coords-full">26.5181° N, 93.9612° E</span></div>
-        <div style="color:#e2e8f0;"><i class="fa-solid fa-users" style="color:#ef4444; width:16px;"></i> <strong>Trapped Count:</strong> <span id="v-count-full">5 People (2 Children / Elderly)</span></div>
-        <div style="color:#e2e8f0;"><i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b; width:16px;"></i> <strong>Hazard:</strong> <span id="v-hazard-full">🏠 Trapped on Roof</span></div>
-        <div style="color:#e2e8f0;"><i class="fa-solid fa-phone" style="color:#3b82f6; width:16px;"></i> <strong>Victim Phone:</strong> <span id="v-phone-full">+91 98765 43210</span></div>
       </div>
 
       <!-- Citizen Contact & Action Buttons -->
@@ -267,23 +265,18 @@
       document.getElementById('victim-location').innerText = `${district} District (Assam)`;
       document.getElementById('v-people').innerText = `${people} People`;
       document.getElementById('v-children').innerText = children;
+      document.getElementById('v-phone-badge').innerText = citizenPhone;
+      document.getElementById('v-coords').innerHTML = `<i class="fa-solid fa-location-dot" style="color:#ef4444;"></i> GPS Coords: ${lat}° N, ${lng}° E`;
       document.getElementById('btn-call').href = `tel:${citizenPhone}`;
 
       // Hazard badge map
       const hazardMap = {
         'ROOF_SUBMERGED': '🏠 Trapped on Roof',
         'HOUSE_WATERLOGGED': '🌊 House Submerged (3+ ft)',
-        'MEDICAL_URGENCY': '🚑 Medical Emergency / Pregnant',
+        'MEDICAL_URGENCY': '🚑 Medical Emergency',
         'FOOD_WATER_SHORTAGE': '📦 Food & Water Shortage'
       };
-      const hzTxt = hazardMap[hazardCode] || '🚨 Emergency SOS';
-      document.getElementById('v-hazard').innerText = hzTxt;
-
-      // Populate DECODED SOS DISPATCH REPORT fields
-      document.getElementById('v-coords-full').innerText = `${lat}° N, ${lng}° E`;
-      document.getElementById('v-count-full').innerText = `${people} People (${children} Children / Elderly)`;
-      document.getElementById('v-hazard-full').innerText = hzTxt;
-      document.getElementById('v-phone-full').innerText = citizenPhone;
+      document.getElementById('v-hazard').innerText = hazardMap[hazardCode] || '🚨 Emergency SOS';
 
       // Boat base camp coordinates (approx 2.4km away in Golaghat)
       const boatLat = lat + 0.015;
