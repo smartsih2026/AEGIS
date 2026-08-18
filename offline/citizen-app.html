@@ -291,20 +291,20 @@
       };
       const hazardTextEnglish = englishHazards[hazard] || '🏠 Trapped on Submerged Roof';
 
-      // Construct clean 2G offline payload code string for SMS (Underscores allow 1-tap full word select in Android)
-      const rawPayload = `AEGIS_SOS_${citizenPhone}_${lat},${lng}_${district}_${counts.people}P_${counts.children}C_${hazard}`;
+      // Construct clean 2G offline payload code string for SMS (Without + in code to prevent SMS hyperlink splitting)
+      const rawPayload = `AEGIS#SOS#91${rawPhone}#${lat},${lng}#${district}#${counts.people}P#${counts.children}C#${hazard}`;
       
-      const fullSmsBody = `🚨 *AEGIS FLOOD EMERGENCY SOS*
+      const fullSmsBody = `🚨 AEGIS FLOOD EMERGENCY SOS
 
-📍 *Location:* ${district} District (${lat}, ${lng})
+📍 Location: ${district} District (${lat}, ${lng})
 
-👥 *Trapped:* ${counts.people} People (${counts.children} Children)
+👥 Trapped: ${counts.people} People (${counts.children} Children)
 
-⚠️ *Hazard:* ${hazardTextEnglish}
+⚠️ Hazard: ${hazardTextEnglish}
 
-📞 *Contact:* ${citizenPhone}
+📞 Contact: ${citizenPhone}
 
-📋 *PASTE THIS CODE IN AEGIS RESCUE APP:*
+📋 PASTE THIS CODE IN AEGIS RESCUE APP:
 ${rawPayload}`;
 
       // Clean phone number for sms: URI scheme

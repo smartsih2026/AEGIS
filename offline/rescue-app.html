@@ -264,7 +264,10 @@
       }
       if (parts.length < 8) return;
 
-      const citizenPhone = parts[2];
+      let citizenPhone = parts[2].trim();
+      if (!citizenPhone.startsWith('+')) {
+        citizenPhone = `+${citizenPhone}`;
+      }
       const coords = parts[3].split(',');
       const lat = parseFloat(coords[0]);
       const lng = parseFloat(coords[1]);
