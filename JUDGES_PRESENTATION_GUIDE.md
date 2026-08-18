@@ -116,6 +116,20 @@
 
 ---
 
+### 📍 Step 7: 📱 OFFLINE 2G EMERGENCY SMS & MOBILE PWA DEMO (Bonus Jury Winner)
+* **Live Citizen Offline App:** [https://aegis-xi-ruddy.vercel.app/offline/citizen-app.html](https://aegis-xi-ruddy.vercel.app/offline/citizen-app.html)
+* **Live Rescue Offline App:** [https://aegis-xi-ruddy.vercel.app/offline/rescue-app.html](https://aegis-xi-ruddy.vercel.app/offline/rescue-app.html)
+* **What to Say to the Jury:**
+  > *"Judges, we also solved the #1 failure mode in disaster management: **What happens when 4G mobile internet fails completely?**
+  > 
+  > We engineered installable **Offline PWAs** with a **2G Encoded Emergency SMS Engine**.
+  > 1. The citizen opens **AEGIS Citizen Offline App** on their phone without internet.
+  > 2. They select their district, trapped headcount, and hazard type.
+  > 3. Tapping **SEND OFFLINE SOS** formats an encoded SMS containing a direct 1-tap app opener link.
+  > 4. When the Rescue Officer receives the text, tapping the link opens the **AEGIS Rescue Offline App**, sounds the offline emergency siren, and zooms the Leaflet map directly to the victim's location in Assam!"*
+
+---
+
 ## 💡 Top 3 Tips for Jury Demo Success
 
 1. **Keep 2 Tabs Prepared Before Starting:**
